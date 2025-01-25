@@ -1,0 +1,10 @@
+import requests
+
+API_KEY = "your_api_key"
+url = f"https://api.semrush.com/?type=domain_organic&key={API_KEY}&display_limit=10&domain=example.com"
+
+response = requests.get(url)
+data = response.json()
+print(data)
+
+#https://dataforseo.com/apis?utm_source=google&utm_medium=cpc&utm_campaign=_pr_mpc_reg_PMax-SerpAPI/WW&utm_term=&utm_content=&gclid=CjwKCAiAkc28BhB0EiwAM001TSrjcauOJxqAsfgB8aRL6jrHq1yUwC-Z3b8k-Q1UDpEDImT5f_9lChoCt90QAvD_BwE&gad_source=1
