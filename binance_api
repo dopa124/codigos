@@ -1,0 +1,24 @@
+import requests
+import pandas as pd
+
+symbol = "BTCUSDT"  # Par de criptomoedas
+interval = "1m"  # Intervalo de 1 minuto
+start_time = "1672444800000"  # Início (timestamp Unix em ms)
+end_time = "1675123200000"  # Fim (timestamp Unix em ms)
+
+# Endpoint
+url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&startTime={start_time}&endTime={end_time}"
+
+# Requisição
+response = requests.get(url)
+data = response.json()
+
+# Organizar os dados em um DataFrame
+columns = ["timestamp", "open", "high", "low", "close", "volume", "close_time", "quote_asset_volume", "number_of_trades", "taker_buy_base", "taker_buy_quote", "ignore"]
+df = pd.DataFrame(data, columns=columns)
+df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+df.set_index("timestamp", inplace=True)
+
+# Filtrar o horário das 13h às 18h
+filtered_df = df.between_time("13:00", "18:00")
+print(filtered_df.head())
