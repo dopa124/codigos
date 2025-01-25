@@ -1,0 +1,15 @@
+from google.ads.google_ads.client import GoogleAdsClient
+
+client = GoogleAdsClient.load_from_storage("google-ads.yaml")
+
+query = """
+    SELECT campaign.id, campaign.name, metrics.clicks, metrics.impressions
+    FROM campaign
+    WHERE segments.date DURING LAST_30_DAYS
+"""
+
+response = client.service.google_ads.search(query=query)
+
+for row in response:
+    print(f"Campanha: {row.campaign.name}, Cliques: {row.metrics.clicks}")
+#https://developers.google.com/google-ads/api/docs/start?hl=pt-br
