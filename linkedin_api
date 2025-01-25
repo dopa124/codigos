@@ -1,0 +1,11 @@
+import requests
+
+ACCESS_TOKEN = "your_access_token"
+url = "https://api.linkedin.com/v2/me"
+
+headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+response = requests.get(url, headers=headers)
+data = response.json()
+print(data)
+
+#https://learn.microsoft.com/en-us/linkedin/
