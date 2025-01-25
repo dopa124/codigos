@@ -1,0 +1,7 @@
+import requests
+
+url = "https://hooks.zapier.com/hooks/catch/your-webhook-id/"
+data = {"name": "John Doe", "email": "johndoe@example.com"}
+
+response = requests.post(url, json=data)
+print(response.status_code)
