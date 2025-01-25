@@ -1,0 +1,22 @@
+from googleapiclient.discovery import build
+
+API_KEY = "your_api_key"
+VIEW_ID = "your_view_id"
+
+analytics = build('analyticsreporting', 'v4', developerKey=API_KEY)
+
+response = analytics.reports().batchGet(
+    body={
+        "reportRequests": [
+            {
+                "viewId": VIEW_ID,
+                "dateRanges": [{"startDate": "7daysAgo", "endDate": "today"}],
+                "metrics": [{"expression": "ga:sessions"}]
+            }
+        ]
+    }
+).execute()
+
+print(response)
+
+#https://developers.google.com/analytics/devguides/reporting/data/v1?hl=pt-br
