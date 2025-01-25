@@ -1,0 +1,9 @@
+import requests
+
+ACCESS_TOKEN = "your_access_token"
+url = "https://api.mercadolibre.com/sites/MLB/search?q=celulares&access_token=" + ACCESS_TOKEN
+
+response = requests.get(url)
+print(response.json())
+
+#https://developers.mercadolivre.com.br/pt_br/desenvolvimento-seguro
