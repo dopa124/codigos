@@ -1,0 +1,9 @@
+import scrapy
+
+class ExampleSpider(scrapy.Spider):
+    name = "example"
+    start_urls = ["https://example.com"]
+
+    def parse(self, response):
+        for item in response.css("div.item"):
+            yield {"title": item.css("h2::text").get()}
