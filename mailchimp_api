@@ -1,0 +1,10 @@
+import requests
+
+API_KEY = "your_api_key"
+server_prefix = "usX"  # Substitua pelo seu prefixo
+url = f"https://{server_prefix}.api.mailchimp.com/3.0/lists"
+
+headers = {"Authorization": f"Bearer {API_KEY}"}
+response = requests.get(url, headers=headers)
+data = response.json()
+print(data)
