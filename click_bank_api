@@ -1,0 +1,10 @@
+import requests
+
+API_KEY = "your_api_key"
+
+url = "https://api.clickbank.com/rest/1.3/sales"
+headers = {"Authorization": f"Bearer {API_KEY}"}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+#https://support.clickbank.com/hc/en-us/articles/226159487-Analytics-API
