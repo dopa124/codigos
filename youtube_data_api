@@ -1,0 +1,16 @@
+from googleapiclient.discovery import build
+
+API_KEY = "your_api_key"
+youtube = build("youtube", "v3", developerKey=API_KEY)
+
+request = youtube.search().list(
+    part="snippet",
+    q="marketing",
+    type="video",
+    maxResults=5
+)
+response = request.execute()
+
+for item in response["items"]:
+    print(f"Título: {item['snippet']['title']}")
+#https://developers.google.com/youtube/v3/docs?apix=true&hl=pt-br
