@@ -1,4 +1,17 @@
 import yfinance as yf
-data = yf.download("AAPL", start="2023-01-01", end="2023-12-31")
-print(data)
+#data = yf.download("AAPL", start="2023-01-01", end="2023-12-31")
+#print(data)
+
+symbol = "AAPL"  # Ticker da ação
+start_date = "2023-12-01"
+end_date = "2023-12-31"
+
+# Baixar dados intradiários
+data = yf.download(symbol, start=start_date, end=end_date, interval="1m")
+data.index = data.index.tz_convert("America/New_York")  # Ajustar para o fuso horário
+
+# Filtrar o horário das 13h às 18h
+filtered_data = data.between_time("13:00", "18:00")
+print(filtered_data.head())
+
 #https://github.com/ranaroussi/yfinance
