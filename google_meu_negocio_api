@@ -1,0 +1,12 @@
+import requests
+
+ACCESS_TOKEN = "your_access_token"
+location_id = "your_location_id"
+
+url = f"https://mybusiness.googleapis.com/v4/accounts/{location_id}/reviews"
+headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
+response = requests.get(url, headers=headers)
+reviews = response.json()
+print(reviews)
+#https://developers.google.com/apis-explorer?hl=pt-br
