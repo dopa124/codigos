@@ -1,0 +1,11 @@
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://www.olx.com.br/celulares"  # Substitua pela URL de busca
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+
+for ad in soup.find_all("li", class_="sc-1fcmfeb-2"):
+    title = ad.find("h2").text
+    price = ad.find("span", class_="sc-ifAKCX").text
+    print(f"Anúncio: {title} | Preço: {price}")
