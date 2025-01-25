@@ -2,21 +2,15 @@ scrapy startproject ticto_scraper
 import scrapy
 import time
 
-time.sleep(2)  # Pausa de 2 segundos
-headers = {"User-Agent": "Mozilla/5.0"}
-response = requests.get(url, headers=headers)
+def parse(self, response):
+    for produto in response.css("div.product-item"):
+        yield {
+            "nome": produto.css("h2::text").get(),
+            "preco": produto.css("span.price::text").get(),
+        }
+    
+    # Link para a próxima página
+    next_page = response.css("a.next-page::attr(href)").get()
+    if next_page:
+        yield response.follow(next_page, callback=self.parse)
 
-class TictoSpider(scrapy.Spider):
-    name = "ticto"
-    start_urls = [
-        "https://example.com/produtos"  # Substitua pela URL do site
-    ]
-
-    def parse(self, response):
-        # Exemplo: Selecionar itens de produtos na página
-        for produto in response.css("div.product-item"):  # Ajuste o seletor para o site
-            yield {
-                "nome": produto.css("h2::text").get(),
-                "preco": produto.css("span.price::text").get(),
-            }
-#COMAND ==> scrapy crawl ticto -o produtos.json
