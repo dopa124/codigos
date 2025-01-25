@@ -1,0 +1,8 @@
+import requests
+
+ACCESS_TOKEN = "your_access_token"
+url = "https://graph.facebook.com/v17.0/me/media?fields=id,caption,like_count,comments_count&access_token=" + ACCESS_TOKEN
+
+response = requests.get(url)
+print(response.json())
+#https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login
