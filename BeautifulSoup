@@ -2,23 +2,16 @@ pip install scrapy beautifulsoup4 requests
 import requests
 from bs4 import BeautifulSoup
 
-# URL pública de um exemplo de página da Kiwify ou Peppers
-url = "https://example.com/produtos"  # Substitua pela URL do site alvo
+base_url = "https://example.com/produtos?page="
 
-# Fazendo a requisição HTTP
-response = requests.get(url)
-
-# Verifica se o acesso foi bem-sucedido
-if response.status_code == 200:
-    # Parser do conteúdo HTML
+for pagina in range(1, 6):  # Substitua pelo número total de páginas
+    url = f"{base_url}{pagina}"
+    response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     
-    # Exemplo: Extrair o nome e o preço de produtos
-    produtos = soup.find_all("div", class_="product-item")  # Substitua com a classe correta
-    
+    produtos = soup.find_all("div", class_="product-item")
     for produto in produtos:
-        nome = produto.find("h2").text  # Exemplo: Nome do produto
-        preco = produto.find("span", class_="price").text  # Exemplo: Preço do produto
+        nome = produto.find("h2").text
+        preco = produto.find("span", class_="price").text
         print(f"Produto: {nome} | Preço: {preco}")
-else:
-    print(f"Erro ao acessar a página: {response.status_code}")
+
