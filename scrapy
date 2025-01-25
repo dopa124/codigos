@@ -7,3 +7,4 @@ class ExampleSpider(scrapy.Spider):
     def parse(self, response):
         for item in response.css("div.item"):
             yield {"title": item.css("h2::text").get()}
+#https://docs.scrapy.org/en/latest/
