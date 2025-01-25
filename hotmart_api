@@ -1,0 +1,11 @@
+import requests
+
+ACCESS_TOKEN = "your_access_token"
+
+url = "https://api-hot-connect.hotmart.com/v1/sales"
+headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
+response = requests.get(url, headers=headers)
+sales = response.json()
+print(sales)
+#https://developers.hotmart.com/docs/pt-BR/start/about/
