@@ -1,0 +1,79 @@
+pip install yfinance numpy pandas matplotlib tensorflow scikit-learn
+import numpy as np
+import pandas as pd
+import yfinance as yf
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM
+
+# Fetch historical stock price data
+def fetch_stock_data(ticker, start_date, end_date):
+    data = yf.download(ticker, start=start_date, end=end_date)
+    return data['Close']
+
+# Prepare the dataset for training
+def prepare_data(data, time_step=60):
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    data_scaled = scaler.fit_transform(data.reshape(-1, 1))
+    
+    X, y = [], []
+    for i in range(len(data_scaled) - time_step):
+        X.append(data_scaled[i:i + time_step, 0])
+        y.append(data_scaled[i + time_step, 0])
+    
+    return np.array(X), np.array(y), scaler
+
+# Build the LSTM model
+def build_model(input_shape):
+    model = Sequential([
+        LSTM(50, return_sequences=True, input_shape=input_shape),
+        LSTM(50, return_sequences=False),
+        Dense(25),
+        Dense(1)
+    ])
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    return model
+
+# Main script
+if __name__ == "__main__":
+    # User-defined parameters
+    stock_ticker = "AAPL"  # Replace with the desired stock ticker
+    start_date = "2015-01-01"
+    end_date = "2023-12-31"
+    prediction_days = 60  # Number of days to look back for predictions
+
+    # Fetch and preprocess data
+    data = fetch_stock_data(stock_ticker, start_date, end_date)
+    data = data.values  # Convert to numpy array
+    train_size = int(len(data) * 0.8)
+    train_data, test_data = data[:train_size], data[train_size:]
+
+    X_train, y_train, scaler = prepare_data(train_data, time_step=prediction_days)
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+
+    # Build and train the model
+    model = build_model((X_train.shape[1], 1))
+    model.fit(X_train, y_train, batch_size=32, epochs=10, verbose=1)
+
+    # Prepare test data
+    X_test, y_test, _ = prepare_data(test_data, time_step=prediction_days)
+    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+    # Make predictions
+    predictions = model.predict(X_test)
+    predictions = scaler.inverse_transform(predictions)
+
+    # Visualize the results
+    train_actual = data[:train_size]
+    test_actual = data[train_size + prediction_days:]
+
+    plt.figure(figsize=(14, 7))
+    plt.plot(train_actual, label="Training Data")
+    plt.plot(range(len(train_actual), len(data)), test_actual, label="Actual Prices")
+    plt.plot(range(len(train_actual) + prediction_days, len(data)), predictions, label="Predicted Prices")
+    plt.legend()
+    plt.title(f"Stock Price Prediction for {stock_ticker}")
+    plt.xlabel("Time")
+    plt.ylabel("Stock Price")
+    plt.show()
