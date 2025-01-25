@@ -1,0 +1,9 @@
+import requests
+
+API_KEY = "your_api_key"
+
+url = f"https://api.monetizze.com.br/2.1/sales?api_key={API_KEY}"
+response = requests.get(url)
+sales = response.json()
+print(sales)
+#https://api.monetizze.com.br/2.1/apidoc/
