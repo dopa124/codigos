@@ -1,17 +1,31 @@
+pip install yfinance gspread oauth2client pandas
 import yfinance as yf
-#data = yf.download("AAPL", start="2023-01-01", end="2023-12-31")
-#print(data)
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
 
-symbol = "AAPL"  # Ticker da ação
-start_date = "2023-12-01"
-end_date = "2023-12-31"
+# Configuração da API do Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("seu_arquivo_credenciais.json", scope)
+client = gspread.authorize(creds)
 
-# Baixar dados intradiários
-data = yf.download(symbol, start=start_date, end=end_date, interval="1m")
-data.index = data.index.tz_convert("America/New_York")  # Ajustar para o fuso horário
+# Acessar a planilha
+sheet_name = "NomeDaSuaPlanilha"
+spreadsheet = client.open(sheet_name)
+worksheet = spreadsheet.get_worksheet(0)  # Primeira aba da planilha
+
+# Baixar dados intradiários com yfinance
+ticker = "AAPL"  # Exemplo: Apple
+data = yf.download(ticker, start="2023-12-01", end="2023-12-31", interval="5m")  # Intervalo de 5 minutos
+
+# Ajustar fuso horário, se necessário
+data.index = data.index.tz_convert("America/New_York")  # Ajustar para fuso horário de Nova York
 
 # Filtrar o horário das 13h às 18h
 filtered_data = data.between_time("13:00", "18:00")
-print(filtered_data.head())
 
-#https://github.com/ranaroussi/yfinance
+# Exportar para o Google Sheets
+worksheet.clear()  # Limpa os dados anteriores
+worksheet.update([filtered_data.reset_index().columns.values.tolist()] + filtered_data.reset_index().values.tolist())
+
+print("Dados intradiários exportados com sucesso para o Google Sheets!")
