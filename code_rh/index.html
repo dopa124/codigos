@@ -1,0 +1,437 @@
+
+
+
+
+
+
+<!DOCTYPE html> <!-- Declaração do tipo de documento para HTML5 -->
+<html lang="pt-BR"> <!-- Define o idioma da página como Português do Brasil -->
+<head>
+    <meta charset="UTF-8"> <!-- Define a codificação de caracteres como UTF-8 para suportar acentos e caracteres especiais -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configura a viewport para responsividade em dispositivos móveis -->
+    <title>Dashboard de Desempenho RH</title> <!-- Título da página exibido na aba do navegador -->
+    <!-- Carregamento do Tailwind CSS para Estilo -->
+    <script src="https://cdn.tailwindcss.com"></script> <!-- Carrega o Tailwind CSS via CDN para estilização rápida e utilitários -->
+    <!-- Carregamento do Chart.js para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script> <!-- Carrega a biblioteca Chart.js via CDN para renderizar gráficos interativos -->
+    <!-- Fonte Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"> <!-- Importa a fonte Inter do Google Fonts para tipografia consistente -->
+    <!-- Link para o CSS externo -->
+    <link rel="stylesheet" href="styles.css"> <!-- Vincula o arquivo CSS externo para estilos customizados -->
+</head>
+<body class="p-4 sm:p-8"> <!-- Inicia o corpo da página com padding responsivo usando classes do Tailwind -->
+
+    <div id="app" class="max-w-7xl mx-auto"> <!-- Container principal com largura máxima e centralização horizontal -->
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard de Desempenho RH</h1> <!-- Título principal do dashboard com estilo bold e margem inferior -->
+
+        <!-- Controles de Navegação (Abas) -->
+        <div class="flex border-b border-gray-200 mb-6 overflow-x-auto"> <!-- Container flexível para botões de abas com borda inferior e overflow horizontal para mobile -->
+            <button id="tab-dashboard" class="tab-button active py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Visão Geral</button> <!-- Botão da aba "Visão Geral", ativo por padrão com classes para hover e sem quebra de linha -->
+            <button id="tab-finance" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Gestão Financeira</button> <!-- Botão da aba "Gestão Financeira" com classes para hover -->
+            <button id="tab-add-employee" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Adicionar Colaborador</button> <!-- Botão da aba "Adicionar Colaborador" com classes para hover -->
+            <button id="tab-tasks" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Gestão de Tarefas</button> <!-- Botão da aba "Gestão de Tarefas" com classes para hover -->
+            <button id="tab-timesheet" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Folha de Ponto</button> <!-- Botão da aba "Folha de Ponto" com classes para hover -->
+            <button id="tab-pdi" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">PDI/Treinamento</button> <!-- Botão da aba "PDI/Treinamento" com classes para hover -->
+            <button id="tab-evaluations" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Avaliações</button> <!-- Botão da aba "Avaliações" com classes para hover -->
+        </div>
+
+        <!-- Conteúdo do Dashboard (Padrão) -->
+        <div id="dashboard-content"> <!-- Container principal do conteúdo da aba "Visão Geral" -->
+            <!-- KPIs (Métricas Chave) -->
+            <div id="kpi-container" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"> <!-- Grid responsivo para cards de KPIs com 2 colunas em mobile e 5 em desktop -->
+                <!-- KPIs serão preenchidos via JS --> <!-- Placeholder para KPIs gerados dinamicamente pelo JavaScript -->
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"> <!-- Grid principal com 1 coluna em mobile e 3 em large screens -->
+
+                <!-- Coluna 1: Detalhes do Funcionário (Sidebar) -->
+                <div class="lg:col-span-1 space-y-6"> <!-- Sidebar para detalhes do funcionário, ocupando 1 coluna em large screens -->
+                    <!-- Detalhes do Funcionário Selecionado -->
+                    <div class="bg-white p-6 rounded-xl card h-full"> <!-- Card branco com padding e bordas arredondadas para detalhes -->
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalhes do Colaborador</h2> <!-- Título do card de detalhes -->
+                        <div id="employee-details" class="text-center"> <!-- Container para detalhes dinâmicos do funcionário selecionado -->
+                            <p class="text-gray-500">Selecione um funcionário na lista ao lado.</p> <!-- Mensagem placeholder inicial -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna 2 e 3: Gráficos de Desempenho e Demográficos -->
+                <div class="lg:col-span-2 space-y-6"> <!-- Colunas principais para gráficos, ocupando 2 colunas em large screens -->
+                    <!-- Gráficos de Competências Individuais -->
+                    <div id="competency-charts" class="grid grid-cols-1 md:grid-cols-2 gap-6"> <!-- Grid para gráficos de competências, 1 coluna em mobile e 2 em medium -->
+                        <!-- Gráfico de Radar -->
+                        <div class="bg-white p-6 rounded-xl card"> <!-- Card para gráfico de radar -->
+                            <h3 class="text-lg font-semibold mb-4">Radar de Competências (0-5)</h3> <!-- Título do gráfico de radar -->
+                            <canvas id="radarChart"></canvas> <!-- Elemento canvas para renderizar o gráfico de radar via Chart.js -->
+                        </div>
+                        <!-- Gráfico de Barras de Competências -->
+                        <div class="bg-white p-6 rounded-xl card"> <!-- Card para gráfico de barras -->
+                            <h3 class="text-lg font-semibold mb-4">Notas por Competência (0-5)</h3> <!-- Título do gráfico de barras -->
+                            <canvas id="barChart"></canvas> <!-- Elemento canvas para renderizar o gráfico de barras via Chart.js -->
+                        </div>
+                    </div>
+                     
+                    <!-- Gráficos Demográficos -->
+                    <div id="demographic-charts" class="grid grid-cols-1 md:grid-cols-3 gap-6"> <!-- Grid para gráficos demográficos, 1 coluna em mobile e 3 em medium -->
+                        <!-- Gênero -->
+                        <div class="bg-white p-6 rounded-xl card"> <!-- Card para gráfico de gênero -->
+                            <h3 class="text-lg font-semibold mb-4">Funcionários por Gênero</h3> <!-- Título do gráfico de gênero -->
+                            <canvas id="genderChart"></canvas> <!-- Elemento canvas para gráfico de gênero -->
+                        </div>
+                        <!-- Tempo de Empresa -->
+                        <div class="bg-white p-6 rounded-xl card"> <!-- Card para gráfico de tempo de empresa -->
+                            <h3 class="text-lg font-semibold mb-4">Tempo de Empresa</h3> <!-- Título do gráfico de tempo de empresa -->
+                            <canvas id="tenureChart"></canvas> <!-- Elemento canvas para gráfico de tempo de empresa -->
+                        </div>
+                        <!-- Contratações/Desligamentos por Ano -->
+                        <div class="bg-white p-6 rounded-xl card md:col-span-1"> <!-- Card para gráfico de movimentação anual, ocupando 1 coluna em medium -->
+                            <h3 class="text-lg font-semibold mb-4">Movimentação Anual</h3> <!-- Título do gráfico de movimentação -->
+                            <canvas id="hiringFiringChart"></canvas> <!-- Elemento canvas para gráfico de contratações/desligamentos -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+             
+            <!-- GRÁFICOS: QI E PERFIL COMPORTAMENTAL -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8"> <!-- Grid para gráficos de QI e perfil comportamental, 1 coluna em mobile e 2 em medium, com margem superior -->
+                 <div class="bg-white p-6 rounded-xl card"> <!-- Card para comparativo de QI -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Comparativo de QI por Colaborador</h2> <!-- Título do gráfico de QI -->
+                    <canvas id="qiComparisonChart"></canvas> <!-- Elemento canvas para gráfico de QI -->
+                </div>
+                 <div class="bg-white p-6 rounded-xl card"> <!-- Card para distribuição de perfil comportamental -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Distribuição de Perfil Comportamental</h2> <!-- Título do gráfico de perfil -->
+                    <canvas id="behavioralProfileChart"></canvas> <!-- Elemento canvas para gráfico de perfil comportamental -->
+                </div>
+            </div>
+             
+            <!-- NOVOS GRÁFICOS DE DEPARTAMENTO -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"> <!-- Grid para gráficos de departamento, 1 coluna em mobile e 3 em medium, com margem superior -->
+                 <div class="bg-white p-6 rounded-xl card"> <!-- Card para avaliação média por departamento -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Avaliação Média por Departamento</h2> <!-- Título do gráfico de avaliação média -->
+                    <canvas id="departmentAvgScoreChart"></canvas> <!-- Elemento canvas para gráfico de avaliação média -->
+                </div>
+                <div class="bg-white p-6 rounded-xl card"> <!-- Card para PDI score médio por departamento -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">PDI Score Médio por Departamento</h2> <!-- Título do gráfico de PDI score -->
+                    <canvas id="departmentPdiChart"></canvas> <!-- Elemento canvas para gráfico de PDI score -->
+                </div>
+                <div class="bg-white p-6 rounded-xl card"> <!-- Card para funcionários por departamento -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Funcionários por Departamento</h2> <!-- Título do gráfico de funcionários por dept -->
+                    <canvas id="employeesByDeptChart"></canvas> <!-- Elemento canvas para gráfico de funcionários por dept -->
+                </div>
+            </div>
+
+
+            <!-- GRÁFICO: QI MÉDIO POR DEPARTAMENTO -->
+            <div class="mt-8 bg-white p-6 rounded-xl card"> <!-- Card para QI médio por departamento, com margem superior -->
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">QI Médio por Departamento</h2> <!-- Título do gráfico de QI médio -->
+                <canvas id="qiByDepartmentChart"></canvas> <!-- Elemento canvas para gráfico de QI médio por dept -->
+            </div>
+
+            <!-- Salário Médio Mensal por Departamento -->
+            <div class="mt-8 bg-white p-6 rounded-xl card"> <!-- Card para salário médio por departamento, com margem superior -->
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Salário Médio Mensal por Departamento</h2> <!-- Título do gráfico de salário médio -->
+                <canvas id="departmentSalaryChart"></canvas> <!-- Elemento canvas para gráfico de salário médio -->
+            </div>
+
+
+            <!-- Lista de Funcionários -->
+            <div class="mt-8 bg-white p-6 rounded-xl card"> <!-- Card para lista de funcionários, com margem superior -->
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Lista de Colaboradores Ativos</h2> <!-- Título da lista de funcionários -->
+                <div id="employee-list-container" class="overflow-x-auto"> <!-- Container com overflow horizontal para tabela responsiva -->
+                    <table class="min-w-full divide-y divide-gray-200"> <!-- Tabela com largura mínima total e divisores de linhas -->
+                        <thead> <!-- Cabeçalho da tabela -->
+                            <tr class="bg-gray-50"> <!-- Linha do cabeçalho com fundo cinza claro -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Completo</th> <!-- Coluna para nome completo -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Área/Departamento</th> <!-- Coluna para departamento -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th> <!-- Coluna para cargo -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QI</th> <!-- Coluna para QI -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avaliação Média (0-10)</th> <!-- Coluna para avaliação média -->
+                            </tr>
+                        </thead>
+                        <tbody id="employee-list-body" class="bg-white divide-y divide-gray-200"> <!-- Corpo da tabela para linhas dinâmicas -->
+                            <!-- Linhas preenchidas via JS --> <!-- Placeholder para linhas de funcionários geradas pelo JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Gestão Financeira (NOVO) -->
+        <div id="finance-content" class="hidden"> <!-- Container da aba "Gestão Financeira", oculto por padrão -->
+            <div class="space-y-8"> <!-- Container com espaçamento vertical entre elementos -->
+                 <h2 class="text-2xl font-bold text-gray-800">Exemplos Práticos de Indicadores Financeiros</h2> <!-- Título da aba financeira -->
+                <!-- Container para os exemplos de indicadores financeiros -->
+                <div id="finance-examples-container" class="space-y-6"></div> <!-- Container para exemplos financeiros gerados dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Conteúdo Adicionar Colaborador -->
+        <div id="add-employee-content" class="hidden bg-white p-6 rounded-xl card"> <!-- Container da aba "Adicionar Colaborador", oculto por padrão com estilo de card -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Adicionar Novo Colaborador</h2> <!-- Título do formulário de adição -->
+            <form id="add-employee-form" class="grid grid-cols-1 md:grid-cols-2 gap-6"> <!-- Formulário de adição em grid responsivo -->
+                 
+                <!-- Informações Pessoais e Contrato -->
+                <div class="space-y-4 md:col-span-2 border-b pb-4"> <!-- Seção para dados pessoais com borda inferior -->
+                    <h3 class="text-lg font-semibold text-gray-700">Dados Pessoais e Contrato</h3> <!-- Subtítulo da seção -->
+                    <div> <!-- Container para campo de nome -->
+                        <label for="nomeCompleto" class="block text-sm font-medium text-gray-700">Nome Completo</label> <!-- Label para campo de nome -->
+                        <input type="text" id="nomeCompleto" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input obrigatório para nome completo -->
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"> <!-- Grid para departamento e cargo -->
+                        <div> <!-- Container para departamento -->
+                            <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label> <!-- Label para departamento -->
+                            <select id="departamento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white"> <!-- Select obrigatório para departamento -->
+                                <!-- Opções preenchidas via JS --> <!-- Placeholder para opções geradas pelo JS -->
+                            </select>
+                        </div>
+                        <div> <!-- Container para cargo -->
+                            <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label> <!-- Label para cargo -->
+                            <select id="cargo" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white"> <!-- Select obrigatório para cargo -->
+                                <!-- Opções preenchidas via JS --> <!-- Placeholder para opções geradas pelo JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4"> <!-- Grid para salário, data e gênero -->
+                        <div> <!-- Container para salário -->
+                            <!-- Salário Mensal -->
+                            <label for="salario" class="block text-sm font-medium text-gray-700">Salário (R$ Mensal)</label> <!-- Label para salário -->
+                            <input type="number" id="salario" required min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico obrigatório para salário -->
+                        </div>
+                        <div> <!-- Container para data de contratação -->
+                            <label for="dataContratacao" class="block text-sm font-medium text-gray-700">Data de Contratação (DD/MM/AAAA)</label> <!-- Label para data -->
+                            <input type="text" id="dataContratacao" required  
+                                pattern="\d{2}/\d{2}/\d{4}"  
+                                placeholder="Ex: 31/12/2024" 
+                                title="Formato exigido: DD/MM/AAAA (Ex: 01/01/2023)" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input de texto com pattern para data no formato DD/MM/AAAA -->
+                        </div>
+                        <div> <!-- Container para gênero -->
+                            <label for="genero" class="block text-sm font-medium text-gray-700">Gênero</label> <!-- Label para gênero -->
+                            <select id="genero" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white"> <!-- Select obrigatório para gênero -->
+                                <option value="Masculino">Masculino</option> <!-- Opção para masculino -->
+                                <option value="Feminino">Feminino</option> <!-- Opção para feminino -->
+                                <option value="Outro">Outro</option> <!-- Opção para outro -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avaliação de Competências (Notas de 0 a 10) -->
+                <div class="space-y-4 md:col-span-2 border-b pb-4"> <!-- Seção para competências com borda inferior -->
+                    <h3 class="text-lg font-semibold text-gray-700">Avaliação de Competências (Nota 0-10)</h3> <!-- Subtítulo da seção de competências -->
+                     
+                    <div class="grid grid-cols-2 gap-4"> <!-- Grid de 2 colunas para campos de competências -->
+                        <div> <!-- Container para comunicação -->
+                            <label for="comunicacao" class="block text-sm font-medium text-gray-700">Comunicação (0-10)</label> <!-- Label para comunicação -->
+                            <input type="number" id="comunicacao" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de comunicação -->
+                        </div>
+                        <div> <!-- Container para iniciativa -->
+                            <label for="iniciativa" class="block text-sm font-medium text-gray-700">Iniciativa (0-10)</label> <!-- Label para iniciativa -->
+                            <input type="number" id="iniciativa" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de iniciativa -->
+                        </div>
+                        <div> <!-- Container para liderança -->
+                            <label for="lideranca" class="block text-sm font-medium text-gray-700">Liderança (0-10)</label> <!-- Label para liderança -->
+                            <input type="number" id="lideranca" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de liderança -->
+                        </div>
+                        <div> <!-- Container para trabalho em equipe -->
+                            <label for="trabalhoEmEquipe" class="block text-sm font-medium text-gray-700">Trabalho em Equipe (0-10)</label> <!-- Label para trabalho em equipe -->
+                            <input type="number" id="trabalhoEmEquipe" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de equipe -->
+                        </div>
+                         
+                        <!-- NOVO CAMPO: Organização (0-10) -->
+                        <div> <!-- Container para organização -->
+                            <label for="organizacao" class="block text-sm font-medium text-gray-700">Organização (0-10)</label> <!-- Label para organização -->
+                            <input type="number" id="organizacao" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de organização -->
+                        </div>
+
+                        <!-- Campo especial para Frequência (Razão) -->
+                        <div class="col-span-2"> <!-- Container que ocupa 2 colunas para frequência -->
+                            <label for="frequenciaRatio" class="block text-sm font-medium text-gray-700">Frequência (Razão)</label> <!-- Label para frequência -->
+                            <p class="text-xs text-gray-500 mb-1">Insira a Razão de Frequência (Ex: 0.8 para 80% de horas)</p> <!-- Descrição auxiliar para o campo -->
+                            <input type="number" id="frequenciaRatio" required min="0" max="1" step="0.01" placeholder="Ex: 0.8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para razão de frequência -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarefas Concluídas -->
+                <div class="space-y-4 md:col-span-2 border-b pb-4"> <!-- Seção para desempenho por tarefas com borda inferior -->
+                    <h3 class="text-lg font-semibold text-gray-700">Desempenho por Tarefas</h3> <!-- Subtítulo da seção de tarefas -->
+                    <div> <!-- Container para campo de tarefas concluídas -->
+                        <label for="tarefasConcluidas" class="block text-sm font-medium text-gray-700">Tarefas Concluídas (0 a 10)</label> <!-- Label para tarefas concluídas -->
+                        <p class="text-xs text-gray-500 mb-1">Nota de 0 a 10, ganhando +1 ponto a cada 10 tarefas concluídas.</p> <!-- Descrição auxiliar para o campo -->
+                        <input type="number" id="tarefasConcluidas" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota de tarefas -->
+                    </div>
+                </div>
+
+                <!-- Botão de Envio -->
+                <div class="md:col-span-2"> <!-- Container que ocupa 2 colunas em medium para botão -->
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md"> <!-- Botão de submit com hover e transição -->
+                        Adicionar Colaborador <!-- Texto do botão -->
+                    </button>
+                </div>
+            </form>
+            <div id="form-message" class="mt-4 p-3 rounded-lg hidden"></div> <!-- Container para mensagens de feedback do formulário, oculto por padrão -->
+        </div>
+
+        <!-- Conteúdo Gestão de Tarefas (NOVO) -->
+        <div id="tasks-content" class="hidden"> <!-- Container da aba "Gestão de Tarefas", oculto por padrão -->
+            <div class="bg-white p-6 rounded-xl card space-y-8"> <!-- Card principal para tarefas com espaçamento vertical -->
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Gestão de Tarefas</h2> <!-- Título da aba de tarefas com borda inferior -->
+
+                <!-- Formulário para Adicionar Tarefa -->
+                <form id="add-task-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded-lg bg-gray-50"> <!-- Formulário em grid responsivo para adicionar tarefa -->
+                    <div> <!-- Container para nome da tarefa -->
+                        <label for="taskName" class="block text-sm font-medium text-gray-700">Nome da Tarefa</label> <!-- Label para nome da tarefa -->
+                        <input type="text" id="taskName" required class="mt-1 block w-full p-2 border rounded-md" placeholder="Ex: Relatório Mensal"> <!-- Input obrigatório para nome da tarefa -->
+                    </div>
+                    <div> <!-- Container para status da tarefa -->
+                        <label for="taskStatus" class="block text-sm font-medium text-gray-700">Status</label> <!-- Label para status -->
+                        <select id="taskStatus" class="mt-1 block w-full p-2 border rounded-md bg-white"> <!-- Select para status -->
+                            <option value="A Fazer">A Fazer</option> <!-- Opção para "A Fazer" -->
+                            <option value="Em Andamento">Em Andamento</option> <!-- Opção para "Em Andamento" -->
+                            <option value="Concluído">Concluído</option> <!-- Opção para "Concluído" -->
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4"> <!-- Container que ocupa 2 colunas em medium para encarregados e prazo -->
+                        <div> <!-- Container para select de encarregados -->
+                            <label for="taskEmployees" class="block text-sm font-medium text-gray-700">Encarregados</label> <!-- Label para encarregados -->
+                            <select id="taskEmployees" multiple required class="mt-1 block w-full p-2 border rounded-md bg-white h-24"></select> <!-- Select múltiplo obrigatório para encarregados, com altura fixa -->
+                        </div>
+                        <div> <!-- Container para prazo de entrega -->
+                            <label for="taskDueDate" class="block text-sm font-medium text-gray-700">Prazo de Entrega</label> <!-- Label para prazo -->
+                            <input type="text" id="taskDueDate" required class="mt-1 block w-full p-2 border rounded-md" placeholder="Ex: 08/10/2025"> <!-- Input obrigatório para prazo -->
+                        </div>
+                    </div>
+                    <div class="md:col-span-4"> <!-- Container que ocupa 4 colunas em medium para botão -->
+                        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md"> <!-- Botão de submit com hover -->
+                            Adicionar Tarefa <!-- Texto do botão -->
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Gráficos de Tarefas -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t"> <!-- Grid para gráficos de tarefas, 1 coluna em mobile e 3 em large, com borda superior -->
+                    <div class="bg-white p-4 rounded-xl card"> <!-- Card para tarefas por funcionário -->
+                        <h3 class="text-lg font-semibold mb-4 text-center">Tarefas por Funcionário</h3> <!-- Título do gráfico de tarefas por funcionário -->
+                        <canvas id="assignedTasksChart"></canvas> <!-- Canvas para gráfico de tarefas atribuídas -->
+                    </div>
+                    <div class="bg-white p-4 rounded-xl card"> <!-- Card para tarefas concluídas -->
+                        <h3 class="text-lg font-semibold mb-4 text-center">Tarefas Concluídas</h3> <!-- Título do gráfico de tarefas concluídas -->
+                        <canvas id="completedTasksChart"></canvas> <!-- Canvas para gráfico de tarefas concluídas -->
+                    </div>
+                    <div class="bg-white p-4 rounded-xl card"> <!-- Card para tarefas em andamento -->
+                        <h3 class="text-lg font-semibold mb-4 text-center">Tarefas em Andamento</h3> <!-- Título do gráfico de tarefas em andamento -->
+                        <canvas id="inProgressTasksChart"></canvas> <!-- Canvas para gráfico de tarefas em andamento -->
+                    </div>
+                </div>
+
+                <!-- Lista de Tarefas -->
+                <div> <!-- Container para lista de tarefas -->
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Lista de Tarefas</h3> <!-- Título da lista de tarefas -->
+                    <div class="overflow-x-auto"> <!-- Container com overflow horizontal para tabela -->
+                        <table class="min-w-full divide-y divide-gray-200"> <!-- Tabela para tarefas -->
+                            <thead> <!-- Cabeçalho da tabela de tarefas -->
+                                <tr class="bg-gray-50"> <!-- Linha do cabeçalho com fundo cinza -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridade</th> <!-- Coluna para prioridade -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefa</th> <!-- Coluna para nome da tarefa -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th> <!-- Coluna para status -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Encarregados</th> <!-- Coluna para encarregados -->
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th> <!-- Coluna para prazo -->
+                                </tr>
+                            </thead>
+                            <tbody id="task-list-body" class="bg-white divide-y divide-gray-200"> <!-- Corpo da tabela para linhas dinâmicas de tarefas -->
+                                <!-- Tarefas serão inseridas aqui via JS --> <!-- Placeholder para linhas de tarefas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Folha de Ponto (Novo) -->
+        <div id="timesheet-content" class="hidden"> <!-- Container da aba "Folha de Ponto", oculto por padrão -->
+            <div class="bg-white p-6 rounded-xl card space-y-6"> <!-- Card principal para timesheet com espaçamento vertical -->
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Registro de Ponto</h2> <!-- Título da aba de timesheet com borda inferior -->
+
+                <!-- Seleção do Usuário e Estado do Ponto -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center"> <!-- Grid responsivo para seleção e status -->
+                    <div> <!-- Container para select de colaborador -->
+                        <label for="timesheet-employee-select" class="block text-sm font-medium text-gray-700">Selecione o Colaborador</label> <!-- Label para select de timesheet -->
+                        <select id="timesheet-employee-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white"></select> <!-- Select para colaborador em timesheet -->
+                    </div>
+
+                    <div class="text-center"> <!-- Container centralizado para status -->
+                        <p class="text-sm font-medium text-gray-500">Status Atual do Ponto:</p> <!-- Texto descritivo para status -->
+                        <p id="timesheet-status" class="text-xl font-bold text-gray-600">Carregando...</p> <!-- Elemento para status atual (LOGADO/DESLOGADO) -->
+                        <p id="timesheet-last-punch" class="text-xs text-gray-400 mt-1"></p> <!-- Elemento para último punch -->
+                    </div>
+
+                    <div> <!-- Container para botão de punch -->
+                        <button id="punch-button" disabled class="w-full py-3 px-4 rounded-lg text-white font-bold transition duration-200 shadow-lg bg-gray-400 hover:bg-gray-500 disabled:opacity-50"> <!-- Botão para bater ponto, desabilitado inicialmente -->
+                            Carregando... <!-- Texto inicial do botão -->
+                        </button>
+                    </div>
+                </div>
+<!-- Histórico de Ponto do Dia -->
+                <h3 class="text-xl font-semibold text-gray-700 pt-4 border-t">Histórico do Dia (<span id="current-timesheet-date"></span>)</h3> <!-- Título do histórico com data dinâmica e borda superior -->
+                <div class="overflow-x-auto"> <!-- Container com overflow para tabela de histórico -->
+                    <table class="min-w-full divide-y divide-gray-200"> <!-- Tabela para histórico de punches -->
+                        <thead> <!-- Cabeçalho da tabela de histórico -->
+                            <tr class="bg-gray-50"> <!-- Linha do cabeçalho -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th> <!-- Coluna para tipo de punch -->
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th> <!-- Coluna para horário -->
+                            </tr>
+                        </thead>
+                        <tbody id="timesheet-history-body" class="bg-white divide-y divide-gray-200"> <!-- Corpo da tabela para histórico dinâmico -->
+                            <!-- Histórico de Ponto do Dia --> <!-- Placeholder para linhas de histórico -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total de Horas Trabalhadas e Porcentagem (Atualizado) -->
+                <div class="text-right p-4 bg-emerald-50 rounded-lg flex flex-col sm:flex-row justify-between items-end sm:items-center"> <!-- Container alinhado à direita para progresso diário com fundo verde claro -->
+                    <div> <!-- Div para meta e progresso -->
+                        <p class="text-sm font-medium text-gray-600">Meta Diária (8h)</p> <!-- Texto da meta diária -->
+                        <p class="text-xl font-bold text-emerald-800">Progresso do Dia: <span id="progress-percentage" class="font-bold">0%</span></p> <!-- Texto com porcentagem dinâmica -->
+                    </div>
+                    <div class="mt-2 sm:mt-0"> <!-- Div para total de horas -->
+                        <p class="text-lg font-semibold text-emerald-800">Total de Horas Registradas: <span id="total-hours-worked" class="font-bold">0h 0m</span></p> <!-- Texto com total de horas dinâmico -->
+                    </div>
+                </div>
+
+                <!-- NOVO: Metas Agregadas (Semanal, Mensal, Anual) -->
+                <h3 class="text-xl font-semibold text-gray-700 pt-4 border-t mt-6">Metas de Frequência de Jornada</h3> <!-- Título para metas agregadas com borda superior -->
+                <div id="aggregated-goals-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"> <!-- Grid para cards de metas agregadas -->
+                    <!-- Cards de metas serão preenchidos via JS --> <!-- Placeholder para cards de metas -->
+                </div>
+
+
+                <div id="firestore-status" class="text-sm text-center text-gray-500 mt-4">Aguardando conexão com o Firebase...</div> <!-- Elemento para status de conexão com Firebase -->
+            </div>
+        </div>
+<!-- Conteúdo PDI/Treinamento (Novo) -->
+        <div id="pdi-content" class="hidden"> <!-- Container da aba "PDI/Treinamento", oculto por padrão -->
+            <div class="bg-white p-6 rounded-xl card space-y-6"> <!-- Card principal para PDI com espaçamento vertical -->
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Plano de Desenvolvimento Individual (PDI)</h2> <!-- Título da aba PDI com borda inferior -->
+
+                <!-- SELEÇÃO DE COLABORADOR E FORMULÁRIO -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 border-b pb-4"> <!-- Grid para seleção e formulário, 1 coluna em mobile e 3 em large, com borda inferior -->
+                    <div class="lg:col-span-1"> <!-- Container para select de colaborador em PDI -->
+                        <label for="pdi-employee-select" class="block text-sm font-medium text-gray-700">Colaborador para Registro</label> <!-- Label para select de PDI -->
+                        <select id="pdi-employee-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white"></select> <!-- Select para colaborador em PDI -->
+                        <div class="mt-2 p-2 bg-indigo-50 rounded-lg text-sm text-indigo-800"> <!-- Div para display de PDI score com fundo azul claro -->
+                            PDI Score (Média de Treinamento): <span id="pdi-score-display" class="font-bold">N/A</span> <!-- Texto com score dinâmico -->
+                        </div>
+                    </div>
+
+                    <form id="add-training-form" class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"> <!-- Formulário para adicionar treinamento em grid responsivo -->
+                        <div class="sm:col-span-2"> <!-- Container para nome do treinamento, ocupando 2 colunas em small -->
+                            <label for="trainingName" class="block text-sm font-medium text-gray-700">Nome do Treinamento/PDI</label> <!-- Label para nome do treinamento -->
+                            <input type="text" id="trainingName" required placeholder="Ex: Curso de Python Básico" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input obrigatório para nome -->
+                        </div>
+                        <div> <!-- Container para nota do treinamento -->
+                            <label for="trainingScore" class="block text-sm font-medium text-gray-700">Nota (0-10)</label> <!-- Label para nota -->
+                            <input type="number" id="trainingScore" required min="0" max="10" step="0.1" placeholder="Ex: 8.5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"> <!-- Input numérico para nota -->
+                        </div>
+                        <div> <!-- Container para botão de registro -->
+                            <button type="submit" class="w-full bg-indigo-500 hov
