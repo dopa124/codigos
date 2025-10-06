@@ -1,0 +1,477 @@
+import React, { useState, useMemo } from 'react';
+
+// --- SEÇÃO DE DADOS ---
+
+// Dados para o Dashboard de Clima
+const sampleData = [
+    { employee_id: 101, employee_name: "Mariana Silva", department: "Financeiro", date: "2025-10-01", communication: 80, leadership: 70, organization: 75, teamwork: 90, initiative: 60 },
+    { employee_id: 102, employee_name: "Rodrigo Alves", department: "Marketing", date: "2025-10-01", communication: 45, leadership: 50, organization: 40, teamwork: 55, initiative: 48 },
+    { employee_id: 103, employee_name: "Beatriz Costa", department: "Tecnologia", date: "2025-10-15", communication: 90, leadership: 95, organization: 85, teamwork: 92, initiative: 88 },
+    { employee_id: 104, employee_name: "Carlos Pereira", department: "Tecnologia", date: "2025-10-15", communication: 30, leadership: 40, organization: 25, teamwork: 35, initiative: 20 },
+    { employee_id: 105, employee_name: "Fernanda Lima", department: "RH", date: "2025-10-20", communication: 65, leadership: 60, organization: 70, teamwork: 55, initiative: 68 },
+    { employee_id: 106, employee_name: "Lucas Martins", department: "Financeiro", date: "2025-11-01", communication: 55, leadership: 62, organization: 68, teamwork: 70, initiative: 58 },
+    { employee_id: 107, employee_name: "Juliana Souza", department: "Marketing", date: "2025-11-05", communication: 85, leadership: 80, organization: 90, teamwork: 88, initiative: 92 },
+    { employee_id: 108, employee_name: "Marcos Andrade", department: "Tecnologia", date: "2025-11-10", communication: 75, leadership: 70, organization: 80, teamwork: 65, initiative: 72 },
+    { employee_id: 109, employee_name: "Aline Barros", department: "RH", date: "2025-11-12", communication: 40, leadership: 35, organization: 45, teamwork: 50, initiative: 30 },
+    { employee_id: 110, employee_name: "Thiago Mendes", department: "Financeiro", date: "2025-11-20", communication: 95, leadership: 90, organization: 92, teamwork: 85, initiative: 98 },
+];
+
+// Perguntas para a Aba de Feedback
+const quizQuestions = [
+    // Liderança
+    { id: 1, category: 'Liderança', text: "1. Um líder verdadeiramente inspirador costuma:", options: ["Demonstrar coerência entre palavras e ações, motivando sem precisar insistir verbalmente.", "Delegar tarefas de forma rígida para controlar a execução.", "Priorizar metas sobre o bem-estar da equipe.", "Impor regras para garantir obediência imediata.", "Manter distância emocional para evitar favoritismos."], correctAnswer: "A" },
+    { id: 2, category: 'Liderança', text: "2. Ao enfrentar um erro grave de um subordinado, o líder mais efetivo:", options: ["Utiliza a situação para refletir sobre processos e orientar melhorias, sem humilhar.", "Repreende duramente para evitar repetição.", "Ignora para não gerar conflito.", "Culpa apenas a equipe, não o processo.", "Centraliza toda decisão corretiva nele mesmo."], correctAnswer: "A" },
+    { id: 3, category: 'Liderança', text: "3. Uma comunicação de liderança eficiente prioriza:", options: ["Clareza, escuta ativa e alinhamento de expectativas entre todos.", "Manter o controle falando mais do que ouvindo.", "Evitar feedbacks para não gerar desconforto.", "Centralizar informações apenas para a alta gestão.", "Depender de memorandos escritos."], correctAnswer: "A" },
+    { id: 4, category: 'Liderança', text: "4. Engajamento da equipe é potencializado quando o líder:", options: ["Valoriza contribuições individuais e demonstra propósito compartilhado.", "Exige resultados sem reconhecer esforços.", "Foca apenas em métricas objetivas.", "Cria competição interna entre membros.", "Evita reuniões para não perder tempo."], correctAnswer: "A" },
+    { id: 5, category: 'Liderança', text: "5. Um líder que realmente desenvolve sua equipe:", options: ["Oferece desafios, feedbacks e oportunidades para autonomia crescente.", "Mantém o status quo para evitar riscos.", "Foca apenas nas próprias metas.", "Evita diálogos individuais.", "Confia que a equipe se desenvolverá sozinha."], correctAnswer: "A" },
+    { id: 6, category: 'Liderança', text: "6. Durante crises, o comportamento de um líder eficaz é:", options: ["Manter compostura, analisar dados e orientar a equipe de forma estruturada.", "Transferir responsabilidades para os subordinados.", "Esconder informações para reduzir pânico.", "Ignorar a situação até ela se resolver.", "Tomar decisões sem consultar ninguém."], correctAnswer: "A" },
+    { id: 7, category: 'Liderança', text: "7. Escuta ativa é crucial para liderar porque:", options: ["Permite identificar nuances e necessidades não explicitadas da equipe.", "Serve apenas para parecer atento.", "Diminui a autoridade do líder.", "Substitui processos formais de comunicação.", "Evita conflitos ao longo do tempo."], correctAnswer: "A" },
+    { id: 8, category: 'Liderança', text: "8. Liderança situacional consiste em:", options: ["Ajustar estilo e abordagem conforme maturidade e contexto da equipe.", "Manter abordagem uniforme para todos.", "Priorizar autoridade sobre empatia.", "Evitar decisões em situações ambíguas.", "Deixar que a equipe decida tudo sozinha."], correctAnswer: "A" },
+    { id: 9, category: 'Liderança', text: "9. Um líder ético, na prática:", options: ["Age com transparência e justiça, mesmo quando não é observado.", "Assume riscos pessoais para se beneficiar.", "Oculta informações estratégicas para evitar responsabilidade.", "Favorece apenas quem está mais próximo.", "Prioriza resultados acima de princípios."], correctAnswer: "A" },
+    { id: 10, category: 'Liderança', text: "10. Clima organizacional saudável é resultado de um líder que:", options: ["Incentiva diálogo, colaboração e respeito mútuo.", "Evita abordar problemas para não gerar atrito.", "Foca apenas na produtividade.", "Centraliza decisões em si mesmo.", "Prioriza hierarquia rígida."], correctAnswer: "A" },
+    // Comunicação
+    { id: 11, category: 'Comunicação', text: "11. Comunicação eficaz em times complexos depende principalmente de:", options: ["Falar com frequência para reforçar autoridade.", "Ouvir ativamente e confirmar entendimento mesmo em mensagens sutis.", "Usar termos técnicos para mostrar conhecimento.", "Limitar contato a relatórios formais.", "Evitar feedbacks individuais."], correctAnswer: "B" },
+    { id: 12, category: 'Comunicação', text: "12. Ao lidar com mal-entendidos, a postura mais estratégica é:", options: ["Esperar que o tempo resolva naturalmente.", "Confrontar de forma direta e diplomática para esclarecer fatos.", "Compartilhar queixas com colegas para validar percepções.", "Solicitar intervenção do gestor imediatamente.", "Evitar contato com os envolvidos."], correctAnswer: "B" },
+    { id: 13, category: 'Comunicação', text: "13. Clareza na comunicação é mais do que simplificar palavras; envolve:", options: ["Concordar com todos para evitar conflitos.", "Expressar ideias objetivamente e ajustar à compreensão do interlocutor.", "Repetir sempre os mesmos termos técnicos.", "Falar apenas quando solicitado.", "Enviar relatórios longos detalhando cada passo."], correctAnswer: "B" },
+    { id: 14, category: 'Comunicação', text: "14. A comunicação não verbal se manifesta em:", options: ["Apenas o tom de voz.", "Gestos, postura, expressões faciais e ritmo da fala.", "Mensagens escritas exclusivamente.", "Documentos oficiais da empresa.", "Planejamento estratégico."], correctAnswer: "B" },
+    { id: 15, category: 'Comunicação', text: "15. Feedback construtivo deve ser:", options: ["Público para motivar todos.", "Assertivo, respeitoso e voltado à melhoria do desempenho.", "Baseado apenas em falhas para reforçar disciplina.", "Evitado para não gerar desconforto.", "Genérico, sem exemplos concretos."], correctAnswer: "B" },
+    { id: 16, category: 'Comunicação', text: "16. Um erro comum na comunicação corporativa é:", options: ["Repetir mensagens em excesso.", "Pressupor entendimento sem confirmação explícita.", "Questionar sempre o ouvinte.", "Ouvir antes de falar.", "Ajustar a mensagem ao público-alvo."], correctAnswer: "B" },
+    { id: 17, category: 'Comunicação', text: "17. Para assegurar compreensão, o emissor deve:", options: ["Falar rápido e com termos complexos.", "Simplificar linguagem e checar entendimento continuamente.", "Incluir jargões técnicos desnecessários.", "Evitar interação com ouvintes.", "Mandar apenas e-mails formais."], correctAnswer: "B" },
+    { id: 18, category: 'Comunicação', text: "18. Em reuniões produtivas, a comunicação acontece quando:", options: ["Apenas líderes falam.", "Todos têm espaço para expor ideias e opiniões de forma estruturada.", "Interrupções frequentes ocorrem.", "Todos concordam sem questionar.", "Foco é apenas em métricas."], correctAnswer: "B" },
+    { id: 19, category: 'Comunicação', text: "19. Empatia na comunicação permite:", options: ["Inibir emoções durante o diálogo.", "Compreender sutilezas, perspectivas e evitar conflitos desnecessários.", "Tornar o discurso mais técnico e frio.", "Reduzir assertividade.", "Prolongar reuniões sem objetivo."], correctAnswer: "B" },
+    { id: 20, category: 'Comunicação', text: "20. Quando há ruídos de comunicação, a postura ideal do líder é:", options: ["Ignorar para não complicar.", "Diagnosticar causas e promover diálogo claro entre envolvidos.", "Aumentar pressão por resultados imediatos.", "Trocar membros da equipe.", "Evitar reuniões adicionais."], correctAnswer: "B" },
+    // Iniciativa
+    { id: 21, category: 'Iniciativa', text: "21. Colaboradores proativos normalmente:", options: ["Aguardam ordens antes de agir.", "Reclamam antes de tomar decisão.", "Antecipam problemas e buscam soluções sem serem solicitados.", "Seguem regras rígidas sem questionamento.", "Evitam responsabilidades extras."], correctAnswer: "C" },
+    { id: 22, category: 'Iniciativa', text: "22. Ao surgir uma situação inesperada, quem tem iniciativa:", options: ["Culpa outros setores.", "Espera instruções detalhadas.", "Analisa e propõe alternativas viáveis rapidamente.", "Foge do problema.", "Pede que outro resolva."], correctAnswer: "C" },
+    { id: 23, category: 'Iniciativa', text: "23. Iniciativa pode ser caracterizada por:", options: ["Cumprir apenas o mínimo do esperado.", "Seguir sempre ordens sem questionar.", "Identificar oportunidades de melhoria e agir de forma autônoma.", "Esperar motivação externa.", "Evitar desafios."], correctAnswer: "C" },
+    { id: 24, category: 'Iniciativa', text: "24. Um comportamento que evidencia iniciativa é:", options: ["Fazer somente o que foi solicitado.", "Repetir procedimentos antigos sem pensar.", "Sugerir alterações que melhorem processos existentes.", "Reclamar de tarefas novas.", "Delegar responsabilidade sempre."], correctAnswer: "C" },
+    { id: 25, category: 'Iniciativa', text: "25. Atitude proativa se manifesta quando:", options: ["Tenta resolver tudo sozinho sem avaliar riscos.", "Aguarda ordens detalhadas.", "Age com responsabilidade, mesmo sem supervisão constante.", "Toma decisões impulsivas.", "Depende de aprovação contínua."], correctAnswer: "C" },
+    { id: 26, category: 'Iniciativa', text: "26. Profissionais com iniciativa se destacam por:", options: ["Evitar responsabilidades extras.", "Fazer apenas o que é pedido.", "Demonstrar autonomia e interesse em aprender.", "Esperar orientações detalhadas.", "Focar apenas no cumprimento de horário."], correctAnswer: "C" },
+    { id: 27, category: 'Iniciativa', text: "27. Diante de novas tarefas, quem demonstra iniciativa:", options: ["Rejeita por não estar no plano inicial.", "Aguarda que outros se ofereçam.", "Assume a responsabilidade e planeja a execução.", "Questiona a relevância da tarefa.", "Deixa para resolver depois."], correctAnswer: "C" },
+    { id: 28, category: 'Iniciativa', text: "28. Iniciativa também envolve:", options: ["Evitar mudanças.", "Repetir métodos conhecidos.", "Buscar desenvolvimento contínuo e aprendizado constante.", "Seguir sempre o mesmo padrão.", "Esperar motivação externa."], correctAnswer: "C" },
+    { id: 29, category: 'Iniciativa', text: "29. Um líder reconhece iniciativa em um colaborador quando ele:", options: ["Reclama das dificuldades.", "Segue ordens sem questionar.", "Propõe melhorias sem ser solicitado.", "Cumpre apenas o básico.", "Age apenas sob pressão."], correctAnswer: "C" },
+    { id: 30, category: 'Iniciativa', text: "30. Para estimular iniciativa na equipe, é necessário:", options: ["Controlar cada ação.", "Repreender tentativas de inovação.", "Delegar autonomia e valorizar atitudes proativas.", "Aumentar regras e limitações.", "Focar apenas em resultados imediatos."], correctAnswer: "C" },
+    // Trabalho em Equipe
+    { id: 31, category: 'Trabalho em Equipe', text: "31. Colaboração eficaz ocorre quando:", options: ["Cada membro prioriza apenas sua tarefa.", "Líder centraliza todas decisões.", "Há competição intensa entre colegas.", "Todos contribuem para metas comuns e apoiam uns aos outros.", "Cada um trabalha isoladamente para mostrar resultado individual."], correctAnswer: "D" },
+    { id: 32, category: 'Trabalho em Equipe', text: "32. Um membro comprometido com a equipe:", options: ["Repreende colegas quando cometem erros.", "Ignora opiniões divergentes.", "Trabalha somente sob supervisão.", "Colabora positivamente e oferece suporte quando necessário.", "Concentra-se apenas em suas próprias metas."], correctAnswer: "D" },
+    { id: 33, category: 'Trabalho em Equipe', text: "33. Comunicação em equipe eficaz é:", options: ["Centralizada apenas no líder.", "Limitada a e-mails formais.", "Feita apenas em reuniões obrigatórias.", "Aberta, contínua e respeitosa entre todos membros.", "Reservada para documentos oficiais."], correctAnswer: "D" },
+    { id: 34, category: 'Trabalho em Equipe', text: "34. Em caso de conflito, a postura que favorece a equipe é:", options: ["Evitar conversas sobre o problema.", "Escolher um lado.", "Esperar que o líder resolva sozinho.", "Dialogar e buscar solução conjunta.", "Ignorar até o conflito desaparecer."], correctAnswer: "D" },
+    { id: 35, category: 'Trabalho em Equipe', text: "35. Cooperação entre colegas:", options: ["Reduz a produtividade individual.", "Gera mais competição.", "Torna o ambiente mais rígido.", "Facilita atingir metas e melhora clima organizacional.", "Prejudica o foco em resultados."], correctAnswer: "D" },
+    { id: 36, category: 'Trabalho em Equipe', text: "36. Um bom colega de equipe:", options: ["Trabalha isoladamente.", "Evita feedback.", "Busca apenas sucesso individual.", "Apoia colegas e compartilha conquistas.", "Esconde informações importantes."], correctAnswer: "D" },
+    { id: 37, category: 'Trabalho em Equipe', text: "37. Confiança entre membros é construída quando:", options: ["Todos trabalham de forma independente.", "Há competição constante.", "Pessoas evitam compartilhar ideias.", "Compromissos são cumpridos e respeito mútuo é mantido.", "Líder controla todas decisões."], correctAnswer: "D" },
+    { id: 38, category: 'Trabalho em Equipe', text: "38. Trabalho em equipe funciona melhor quando:", options: ["Cada um defende apenas suas ideias.", "Críticas são ignoradas.", "Tarefas sempre individuais.", "Há colaboração e objetivos compartilhados.", "Líder decide tudo sozinho."], correctAnswer: "D" },
+    { id: 39, category: 'Trabalho em Equipe', text: "39. Benefício principal de equipes bem coordenadas:", options: ["Reduz autonomia individual.", "Aumenta conflitos internos.", "Dificulta decisões estratégicas.", "Combina habilidades diversas para melhores resultados.", "Torna processos mais lentos."], correctAnswer: "D" },
+    { id: 40, category: 'Trabalho em Equipe', text: "40. Ao perceber que um colega precisa de ajuda, um membro efetivo:", options: ["Ignora.", "Repreende.", "Espera que outro faça.", "Oferece apoio e trabalha junto na solução.", "Aproveita para se destacar individualmente."], correctAnswer: "D" },
+    // Organização
+    { id: 41, category: 'Organização', text: "41. Ser organizado implica:", options: ["Executar múltiplas tarefas sem priorização.", "Guardar tudo para resolver de última hora.", "Depender de lembretes de colegas.", "Deixar o ambiente desordenado.", "Planejar, priorizar e manter ambiente funcional."], correctAnswer: "E" },
+    { id: 42, category: 'Organização', text: "42. Planejamento diário eficiente:", options: ["Começar sem priorizar.", "Ignorar metas e prazos.", "Ser feito apenas quando surgem problemas.", "Deixar para o final do dia.", "Definir objetivos claros e revisar progresso."], correctAnswer: "E" },
+    { id: 43, category: 'Organização', text: "43. Para evitar retrabalhos, é essencial:", options: ["Trabalhar sob pressão constante.", "Confiar apenas na memória.", "Acumular tarefas.", "Ignorar checklists.", "Seguir plano de ação com prazos definidos."], correctAnswer: "E" },
+    { id: 44, category: 'Organização', text: "44. Organização impacta produtividade porque:", options: ["Deixa ambiente burocrático.", "Atrapalha criatividade.", "Diminui flexibilidade.", "Aumenta interrupções.", "Permite gestão de tempo eficiente e prioridades claras."], correctAnswer: "E" },
+    { id: 45, category: 'Organização', text: "45. Arquivos bem organizados:", options: ["Evitam acesso de outros.", "Tornam buscas demoradas.", "Preenchem tempo ocioso.", "Complicam fluxo de informação.", "Facilitam acesso rápido e eficiência."], correctAnswer: "E" },
+    { id: 46, category: 'Organização', text: "46. Colaborador organizado normalmente:", options: ["Deixa tarefas incompletas.", "Trabalha desordenadamente.", "Espera que outros corrijam erros.", "Perde prazos.", "Cumpre metas e mantém rotina estruturada."], correctAnswer: "E" },
+    { id: 47, category: 'Organização', text: "47. Ambiente físico organizado:", options: ["Distrai equipe.", "Reduz produtividade.", "Dificulta acesso a materiais.", "Torna local confuso.", "Melhora concentração e eficiência."], correctAnswer: "E" },
+    { id: 48, category: 'Organização', text: "48. Diante de múltiplas tarefas, profissional organizado:", options: ["Executa tudo sem planejamento.", "Faz primeiro o mais fácil.", "Adia tarefas importantes.", "Espera ordens.", "Define prioridades e distribui tempo equilibradamente."], correctAnswer: "E" },
+    { id: 49, category: 'Organização', text: "49. Falta de organização tende a:", options: ["Melhorar qualidade do trabalho.", "Reduzir erros.", "Facilitar decisões.", "Cumprir prazos antecipadamente.", "Causar atrasos, retrabalho e estresse."], correctAnswer: "E" },
+    { id: 50, category: 'Organização', text: "50. Manter organização a longo prazo exige:", options: ["Deixar processos se ajustarem sozinhos.", "Trabalhar sem rotina.", "Ignorar revisões.", "Depender da memória.", "Revisar métodos e atualizar planejamentos periodicamente."], correctAnswer: "E" },
+];
+
+
+// --- CONSTANTES E FUNÇÕES AUXILIARES GLOBAIS ---
+const COLORS = {
+    green: '#28A745',
+    yellow: '#FFC107',
+    red: '#DC3545',
+    gray: '#6c757d',
+    indigo: '#4f46e5'
+};
+
+const getScoreColor = (score) => {
+    if (score >= 70) return { name: 'green', value: COLORS.green };
+    if (score >= 50) return { name: 'yellow', value: COLORS.yellow };
+    return { name: 'red', value: COLORS.red };
+};
+
+
+// --- COMPONENTES DO DASHBOARD DE CLIMA ---
+
+const OverallThermometer = ({ score }) => {
+    if (isNaN(score) || score === null) {
+        return <div className="text-center text-gray-500">Dados insuficientes</div>;
+    }
+    const color = getScoreColor(score).value;
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md text-center transition-all duration-300" style={{ borderTop: `5px solid ${color}` }}>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Termômetro Organizacional</h2>
+            <div className="flex items-center justify-center gap-4">
+                <div className="text-6xl font-bold" style={{ color: color }}>{score}%</div>
+                <div>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 4.004v11.59a5 5 0 1 1-4 0V4.004a2 2 0 0 1 4 0Z" />
+                     </svg>
+                </div>
+            </div>
+            <div className="flex justify-center gap-4 mt-4 text-sm">
+                <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500"></div>&lt;= 49%</span>
+                <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-yellow-400"></div>50-69%</span>
+                <span className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-500"></div>&gt;= 70%</span>
+            </div>
+        </div>
+    );
+};
+
+const DepartmentChart = ({ data }) => {
+    const departmentScores = useMemo(() => {
+        const departments = {};
+        data.forEach(emp => {
+            const score = (emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5;
+            if (!departments[emp.department]) {
+                departments[emp.department] = { totalScore: 0, count: 0 };
+            }
+            departments[emp.department].totalScore += score;
+            departments[emp.department].count++;
+        });
+
+        return Object.entries(departments).map(([name, { totalScore, count }]) => {
+            const average = Math.round(totalScore / count);
+            const color = getScoreColor(average).value;
+            return { name, average, color, count };
+        }).sort((a,b) => b.average - a.average);
+    }, [data]);
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Média por Departamento</h2>
+            <div className="space-y-4">
+                {departmentScores.length > 0 ? departmentScores.map(dept => (
+                    <div key={dept.name} className="group">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="font-medium text-gray-600">{dept.name} ({dept.count} func.)</span>
+                            <span className="font-bold" style={{ color: dept.color }}>{dept.average}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div className="h-4 rounded-full transition-all duration-500" style={{ width: `${dept.average}%`, backgroundColor: dept.color }}></div>
+                        </div>
+                    </div>
+                )) : <div className="text-center text-gray-500">Nenhum dado para exibir.</div>}
+            </div>
+        </div>
+    );
+};
+
+const EmployeeRanking = ({ data }) => {
+     const processedData = useMemo(() => {
+        return data.map(emp => {
+            const score = Math.round((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5);
+            const color = getScoreColor(score).value;
+            return {...emp, score, color};
+        }).sort((a,b) => a.score - b.score);
+    }, [data]);
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md col-span-1 md:col-span-2">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Ranking de Funcionários (Pior → Melhor)</h2>
+            <div className="overflow-x-auto max-h-[500px]">
+                <table className="w-full text-sm text-left text-gray-500">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                        <tr>
+                            <th scope="col" className="px-4 py-3">Clima</th>
+                            <th scope="col" className="px-4 py-3">Funcionário</th>
+                            <th scope="col" className="px-4 py-3 text-center">Score</th>
+                            <th scope="col" className="px-4 py-3 text-center hidden md:table-cell">Com.</th>
+                            <th scope="col" className="px-4 py-3 text-center hidden md:table-cell">Lid.</th>
+                            <th scope="col" className="px-4 py-3 text-center hidden md:table-cell">Org.</th>
+                            <th scope="col" className="px-4 py-3 text-center hidden md:table-cell">Equipe</th>
+                            <th scope="col" className="px-4 py-3 text-center hidden md:table-cell">Inic.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {processedData.length > 0 ? processedData.map(emp => (
+                            <tr key={emp.employee_id} className="bg-white border-b hover:bg-gray-50">
+                                <td className="px-4 py-3"><div className="w-3 h-3 rounded-full mx-auto" style={{ backgroundColor: emp.color }}></div></td>
+                                <th scope="row" className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                                    <div>{emp.employee_name}</div>
+                                    <div className="text-xs text-gray-500">{emp.department}</div>
+                                </th>
+                                <td className="px-4 py-3 text-center font-bold" style={{ color: emp.color }}>{emp.score}%</td>
+                                <td className="px-4 py-3 text-center hidden md:table-cell">{emp.communication}</td>
+                                <td className="px-4 py-3 text-center hidden md:table-cell">{emp.leadership}</td>
+                                <td className="px-4 py-3 text-center hidden md:table-cell">{emp.organization}</td>
+                                <td className="px-4 py-3 text-center hidden md:table-cell">{emp.teamwork}</td>
+                                <td className="px-4 py-3 text-center hidden md:table-cell">{emp.initiative}</td>
+                            </tr>
+                        )) : (
+                            <tr><td colSpan="8" className="text-center py-8 text-gray-500">Nenhum funcionário encontrado.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+const DashboardTab = () => {
+    const [allData] = useState(sampleData);
+    const [filters, setFilters] = useState({ department: 'Todos', startDate: '2025-10-01', endDate: '2025-11-30', search: '' });
+    const departments = useMemo(() => ['Todos', ...new Set(allData.map(d => d.department))], [allData]);
+
+    const handleFilterChange = (e) => setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const filteredData = useMemo(() => {
+        return allData.filter(emp => {
+            const date = new Date(emp.date);
+            const start = new Date(filters.startDate);
+            const end = new Date(filters.endDate);
+            return (date >= start && date <= end) &&
+                   (filters.department === 'Todos' || emp.department === filters.department) &&
+                   (filters.search === '' || emp.employee_name.toLowerCase().includes(filters.search.toLowerCase()));
+        });
+    }, [allData, filters]);
+    
+    const overallScore = useMemo(() => {
+        if (filteredData.length === 0) return null;
+        const totalScore = filteredData.reduce((acc, emp) => acc + ((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5), 0);
+        return Math.round(totalScore / filteredData.length);
+    }, [filteredData]);
+
+    const exportToCSV = () => {
+        const headers = "ID,Nome,Departamento,Data,Comunicacao,Lideranca,Organizacao,Trabalho em Equipe,Iniciativa,Score\n";
+        const rows = filteredData.map(emp => {
+             const score = Math.round((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5);
+             return `${emp.employee_id},${emp.employee_name},${emp.department},${emp.date},${emp.communication},${emp.leadership},${emp.organization},${emp.teamwork},${emp.initiative},${score}`
+        }).join("\n");
+        const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", "relatorio_clima_organizacional.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <>
+            <div className="bg-white p-4 rounded-lg shadow-md mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                {/* Filtros */}
+                <div><label className="block text-sm font-medium text-gray-700">Departamento</label><select name="department" value={filters.department} onChange={handleFilterChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">{departments.map(d => <option key={d}>{d}</option>)}</select></div>
+                <div><label className="block text-sm font-medium text-gray-700">Data Início</label><input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/></div>
+                <div><label className="block text-sm font-medium text-gray-700">Data Fim</label><input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/></div>
+                <div className="sm:col-span-2 lg:col-span-1"><label className="block text-sm font-medium text-gray-700">Buscar Funcionário</label><input type="text" name="search" placeholder="Nome..." value={filters.search} onChange={handleFilterChange} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/></div>
+                <button onClick={exportToCSV} className="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 flex items-center justify-center gap-2"><svg xmlns="http://www.w.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar CSV</button>
+            </div>
+            <main className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-1 space-y-8"><OverallThermometer score={overallScore} /><DepartmentChart data={filteredData} /></div>
+                <div className="md:col-span-2"><EmployeeRanking data={filteredData} /></div>
+            </main>
+        </>
+    );
+};
+
+
+// --- COMPONENTES DA ABA DE FEEDBACK ---
+
+const FeedbackForm = ({ onSubmit }) => {
+    const [employeeName, setEmployeeName] = useState('');
+    const [answers, setAnswers] = useState({});
+    const [feedbackPositive, setFeedbackPositive] = useState('');
+    const [feedbackNegative, setFeedbackNegative] = useState('');
+    const [error, setError] = useState('');
+
+    const handleAnswerChange = (questionId, answer) => {
+        setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    };
+
+    const handleSubmit = () => {
+        if (!employeeName) {
+            setError('Por favor, insira seu nome.');
+            return;
+        }
+        if (Object.keys(answers).length < quizQuestions.length) {
+            setError('Por favor, responda a todas as perguntas.');
+            return;
+        }
+        setError('');
+        onSubmit({ employeeName, answers, feedbackPositive, feedbackNegative });
+    };
+    
+    const optionLetter = (index) => String.fromCharCode(65 + index);
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Formulário de Feedback</h2>
+            
+            <div className="mb-6">
+                <label htmlFor="employeeName" className="block text-lg font-medium text-gray-700 mb-2">Seu Nome</label>
+                <input type="text" id="employeeName" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Digite seu nome completo" className="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"/>
+            </div>
+
+            {quizQuestions.map((q) => (
+                <div key={q.id} className="mb-8 p-4 border border-gray-200 rounded-lg">
+                    <p className="font-semibold text-gray-700 mb-3">{q.text}</p>
+                    <div className="space-y-2">
+                        {q.options.map((option, index) => (
+                            <label key={index} className="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name={`question-${q.id}`} value={optionLetter(index)} checked={answers[q.id] === optionLetter(index)} onChange={() => handleAnswerChange(q.id, optionLetter(index))} className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                                <span className="ml-3 text-gray-600">{optionLetter(index)}) {option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            ))}
+
+            <div className="mb-6">
+                <label htmlFor="feedbackPositive" className="block text-lg font-medium text-gray-700 mb-2">O que você mais gostou na empresa?</label>
+                <textarea id="feedbackPositive" rows="4" value={feedbackPositive} onChange={(e) => setFeedbackPositive(e.target.value)} className="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"></textarea>
+            </div>
+            
+            <div className="mb-8">
+                <label htmlFor="feedbackNegative" className="block text-lg font-medium text-gray-700 mb-2">O que você acha que poderia ser melhorado?</label>
+                <textarea id="feedbackNegative" rows="4" value={feedbackNegative} onChange={(e) => setFeedbackNegative(e.target.value)} className="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"></textarea>
+            </div>
+
+            {error && <p className="text-red-600 text-center mb-4 font-semibold">{error}</p>}
+
+            <button onClick={handleSubmit} className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 text-lg">Enviar Feedback</button>
+        </div>
+    );
+};
+
+const FeedbackReport = ({ result, onReset }) => {
+    const { overallScore, categoryScores, employeeName, feedbackPositive, feedbackNegative } = result;
+    const overallColor = getScoreColor(overallScore).value;
+
+    const sortedCompetencies = Object.entries(categoryScores).map(([name, data]) => ({ name, score: data.score })).sort((a,b) => a.score - b.score);
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md space-y-8">
+            <h2 className="text-2xl font-bold text-gray-800 text-center">Relatório de Feedback de {employeeName}</h2>
+
+            {/* Gráfico Média Geral */}
+            <div className="text-center p-6 rounded-lg" style={{ backgroundColor: `${overallColor}20` }}>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Média Geral de Acertos</h3>
+                <p className="text-6xl font-bold" style={{ color: overallColor }}>{overallScore}%</p>
+            </div>
+
+            {/* Gráfico por Categoria */}
+            <div>
+                 <h3 className="text-xl font-semibold text-gray-700 mb-4 text-center">Performance por Competência</h3>
+                 <div className="space-y-4">
+                    {Object.entries(categoryScores).map(([category, data]) => (
+                        <div key={category}>
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium text-gray-600">{category} ({data.correct}/{data.total} acertos)</span>
+                                <span className="font-bold" style={{ color: getScoreColor(data.score).value }}>{data.score}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-4"><div className="h-4 rounded-full" style={{ width: `${data.score}%`, backgroundColor: getScoreColor(data.score).value }}></div></div>
+                        </div>
+                    ))}
+                 </div>
+            </div>
+
+             {/* Resumo do Funcionário */}
+            <div className="border-t pt-6">
+                <h3 className="text-xl font-semibold text-gray-700 mb-4 text-center">Resumo Individual</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-center text-lg"><span className="font-semibold">Funcionário:</span> {employeeName}</p>
+                    <p className="text-center text-lg mt-2"><span className="font-semibold">Média Final:</span> <span className="font-bold" style={{color: overallColor}}>{overallScore}%</span></p>
+                    <div className="mt-4">
+                        <p className="text-center font-semibold mb-2">Competências (Pior para Melhor):</p>
+                        <ul className="text-center">
+                           {sortedCompetencies.map(c => <li key={c.name}>{c.name}: <span className="font-bold" style={{color: getScoreColor(c.score).value}}>{c.score}%</span></li>)}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Feedback Qualitativo */}
+            <div className="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Pontos Positivos Mencionados:</h3>
+                    <p className="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">{feedbackPositive || "Nenhum feedback positivo fornecido."}</p>
+                </div>
+                 <div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Pontos para Melhoria Mencionados:</h3>
+                    <p className="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">{feedbackNegative || "Nenhum feedback de melhoria fornecido."}</p>
+                </div>
+            </div>
+            
+            <button onClick={onReset} className="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 text-lg mt-6">Responder Novamente</button>
+        </div>
+    );
+};
+
+const FeedbackTab = () => {
+    const [quizResult, setQuizResult] = useState(null);
+
+    const handleQuizSubmit = (data) => {
+        const { employeeName, answers, feedbackPositive, feedbackNegative } = data;
+        
+        let totalCorrect = 0;
+        const categoryResults = {};
+        
+        quizQuestions.forEach(q => {
+            if (!categoryResults[q.category]) {
+                categoryResults[q.category] = { correct: 0, total: 0 };
+            }
+            categoryResults[q.category].total++;
+            if (answers[q.id] === q.correctAnswer) {
+                totalCorrect++;
+                categoryResults[q.category].correct++;
+            }
+        });
+
+        const overallScore = Math.round((totalCorrect / quizQuestions.length) * 100);
+        const categoryScores = Object.fromEntries(
+            Object.entries(categoryResults).map(([category, counts]) => [
+                category,
+                { ...counts, score: Math.round((counts.correct / counts.total) * 100) }
+            ])
+        );
+
+        setQuizResult({ employeeName, overallScore, categoryScores, feedbackPositive, feedbackNegative });
+    };
+
+    const handleReset = () => {
+        setQuizResult(null);
+    }
+
+    return (
+        quizResult ? <FeedbackReport result={quizResult} onReset={handleReset} /> : <FeedbackForm onSubmit={handleQuizSubmit} />
+    );
+};
+
+
+// --- COMPONENTE PRINCIPAL: App ---
+
+export default function App() {
+    const [activeTab, setActiveTab] = useState('dashboard');
+
+    return (
+        <div className="bg-gray-100 min-h-screen font-sans p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+                <header className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-800">Dashboard de Clima e Cultura</h1>
+                    <p className="text-gray-600 mt-1">Análise interativa do ambiente organizacional.</p>
+                </header>
+
+                {/* Navegação por Abas */}
+                <div className="mb-8 border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-6">
+                        <button onClick={() => setActiveTab('dashboard')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'dashboard' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            Dashboard de Clima
+                        </button>
+                        <button onClick={() => setActiveTab('feedback')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'feedback' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            Feedback (NPS Score)
+                        </button>
+                    </nav>
+                </div>
+
+                {/* Conteúdo da Aba */}
+                {activeTab === 'dashboard' && <DashboardTab />}
+                {activeTab === 'feedback' && <FeedbackTab />}
+            </div>
+        </div>
+    );
+}
+
+
