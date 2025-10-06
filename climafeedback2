@@ -1,3 +1,741 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Clima e Cultura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for thermometer icon and other specifics */
+        .thermometer-icon {
+            stroke: currentColor;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Dashboard de Clima e Cultura</h1>
+            <p class="text-gray-600 mt-1">Análise interativa do ambiente organizacional.</p>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="mb-8 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-6">
+                <button id="dashboard-tab" onclick="switchTab('dashboard')" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600">
+                    Dashboard de Clima
+                </button>
+                <button id="feedback-tab" onclick="switchTab('feedback')" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Feedback (NPS Score)
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo do Dashboard -->
+        <div id="dashboard-content">
+            <!-- Filtros -->
+            <div class="bg-white p-4 rounded-lg shadow-md mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Departamento</label>
+                    <select id="department-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option>Todos</option>
+                        <option>Financeiro</option>
+                        <option>Marketing</option>
+                        <option>Tecnologia</option>
+                        <option>RH</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data Início</label>
+                    <input type="date" id="start-date" value="2025-10-01" class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data Fim</label>
+                    <input type="date" id="end-date" value="2025-11-30" class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
+                </div>
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700">Buscar Funcionário</label>
+                    <input type="text" id="search-employee" placeholder="Nome..." class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Ordenar Ranking</label>
+                    <select id="order-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="asc">Pior → Melhor</option>
+                        <option value="desc">Melhor → Pior</option>
+                    </select>
+                </div>
+                <button onclick="exportToCSV()" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Exportar CSV
+                </button>
+            </div>
+
+            <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1 space-y-8">
+                    <div id="overall-thermometer" class="bg-white p-6 rounded-lg shadow-md text-center transition-all duration-300" style="border-top: 5px solid #6c757d;">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Termômetro Organizacional</h2>
+                        <div class="flex items-center justify-center gap-4">
+                            <div id="overall-score" class="text-6xl font-bold text-gray-500">Dados insuficientes</div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="thermometer-icon">
+                                    <path d="M14 4.004v11.59a5 5 0 1 1-4 0V4.004a2 2 0 0 1 4 0Z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex justify-center gap-4 mt-4 text-sm">
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-red-500"></div>&lt;= 49%</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-yellow-400"></div>50-69%</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-green-500"></div>&gt;= 70%</span>
+                        </div>
+                    </div>
+                    <div id="department-chart" class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Média por Departamento</h2>
+                        <div id="dept-list" class="space-y-4">Nenhum dado para exibir.</div>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <div id="employee-ranking" class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Ranking de Funcionários</h2>
+                        <div class="overflow-x-auto max-h-[500px]">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3">Clima</th>
+                                        <th scope="col" class="px-4 py-3">Funcionário</th>
+                                        <th scope="col" class="px-4 py-3 text-center">Score</th>
+                                        <th scope="col" class="px-4 py-3 text-center hidden md:table-cell">Com.</th>
+                                        <th scope="col" class="px-4 py-3 text-center hidden md:table-cell">Lid.</th>
+                                        <th scope="col" class="px-4 py-3 text-center hidden md:table-cell">Org.</th>
+                                        <th scope="col" class="px-4 py-3 text-center hidden md:table-cell">Equipe</th>
+                                        <th scope="col" class="px-4 py-3 text-center hidden md:table-cell">Inic.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranking-tbody">
+                                    <tr><td colSpan="8" class="text-center py-8 text-gray-500">Nenhum funcionário encontrado.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="employee-details" class="bg-white p-6 rounded-lg shadow-md mt-8" style="display: none;">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Detalhes do Funcionário: <span id="detail-name"></span></h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-lg font-medium mb-2">Gráfico de Radar</h3>
+                                <canvas id="radar-chart"></canvas>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-2">Gráfico de Barras</h3>
+                                <canvas id="bar-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-2">Pontos Positivos:</h3>
+                                <p id="detail-positive" class="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">Nenhum feedback positivo fornecido.</p>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700 mb-2">Pontos para Melhoria:</h3>
+                                <p id="detail-negative" class="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">Nenhum feedback de melhoria fornecido.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Conteúdo do Feedback -->
+        <div id="feedback-content" style="display: none;">
+            <div id="feedback-form">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Formulário de Feedback</h2>
+                    
+                    <div class="mb-6">
+                        <label for="employee-name" class="block text-lg font-medium text-gray-700 mb-2">Seu Nome</label>
+                        <input type="text" id="employee-name" placeholder="Digite seu nome completo" class="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"/>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="employee-department" class="block text-lg font-medium text-gray-700 mb-2">Seu Departamento</label>
+                        <select id="employee-department" class="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm">
+                            <option>Financeiro</option>
+                            <option>Marketing</option>
+                            <option>Tecnologia</option>
+                            <option>RH</option>
+                        </select>
+                    </div>
+
+                    <div id="questions-container"></div>
+
+                    <div class="mb-6">
+                        <label for="feedback-positive" class="block text-lg font-medium text-gray-700 mb-2">O que você mais gostou na empresa?</label>
+                        <textarea id="feedback-positive" rows="4" class="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"></textarea>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <label for="feedback-negative" class="block text-lg font-medium text-gray-700 mb-2">O que você acha que poderia ser melhorado?</label>
+                        <textarea id="feedback-negative" rows="4" class="w-full px-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"></textarea>
+                    </div>
+
+                    <p id="feedback-error" class="text-red-600 text-center mb-4 font-semibold" style="display: none;"></p>
+
+                    <button onclick="submitFeedback()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 text-lg">Enviar Feedback</button>
+                </div>
+            </div>
+
+            <div id="feedback-report" style="display: none;" class="bg-white p-6 rounded-lg shadow-md space-y-8">
+                <h2 id="report-title" class="text-2xl font-bold text-gray-800 text-center"></h2>
+
+                <!-- Gráfico Média Geral -->
+                <div id="overall-score-section" class="text-center p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Média Geral de Acertos</h3>
+                    <p id="report-overall-score" class="text-6xl font-bold"></p>
+                </div>
+
+                <!-- Gráfico por Categoria -->
+                <div id="category-chart">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Performance por Competência</h3>
+                    <div id="category-list" class="space-y-4"></div>
+                </div>
+
+                <!-- Resumo do Funcionário -->
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Resumo Individual</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p id="report-employee" class="text-center text-lg"></p>
+                        <p id="report-final-score" class="text-center text-lg mt-2"></p>
+                        <div id="competencies-summary" class="mt-4">
+                            <p class="text-center font-semibold mb-2">Competências (Pior para Melhor):</p>
+                            <ul id="sorted-competencies" class="text-center"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Qualitativo -->
+                <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Pontos Positivos Mencionados:</h3>
+                        <p id="positive-feedback" class="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">Nenhum feedback positivo fornecido.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Pontos para Melhoria Mencionados:</h3>
+                        <p id="negative-feedback" class="bg-gray-50 p-4 rounded-lg text-gray-600 italic whitespace-pre-wrap">Nenhum feedback de melhoria fornecido.</p>
+                    </div>
+                </div>
+                
+                <button onclick="resetFeedback()" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 text-lg mt-6">Responder Novamente</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SEÇÃO DE DADOS ---
+        let data = [
+            { employee_id: 101, employee_name: "Mariana Silva", department: "Financeiro", date: "2025-10-01", communication: 80, leadership: 70, organization: 75, teamwork: 90, initiative: 60, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 102, employee_name: "Rodrigo Alves", department: "Marketing", date: "2025-10-01", communication: 45, leadership: 50, organization: 40, teamwork: 55, initiative: 48, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 103, employee_name: "Beatriz Costa", department: "Tecnologia", date: "2025-10-15", communication: 90, leadership: 95, organization: 85, teamwork: 92, initiative: 88, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 104, employee_name: "Carlos Pereira", department: "Tecnologia", date: "2025-10-15", communication: 30, leadership: 40, organization: 25, teamwork: 35, initiative: 20, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 105, employee_name: "Fernanda Lima", department: "RH", date: "2025-10-20", communication: 65, leadership: 60, organization: 70, teamwork: 55, initiative: 68, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 106, employee_name: "Lucas Martins", department: "Financeiro", date: "2025-11-01", communication: 55, leadership: 62, organization: 68, teamwork: 70, initiative: 58, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 107, employee_name: "Juliana Souza", department: "Marketing", date: "2025-11-05", communication: 85, leadership: 80, organization: 90, teamwork: 88, initiative: 92, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 108, employee_name: "Marcos Andrade", department: "Tecnologia", date: "2025-11-10", communication: 75, leadership: 70, organization: 80, teamwork: 65, initiative: 72, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 109, employee_name: "Aline Barros", department: "RH", date: "2025-11-12", communication: 40, leadership: 35, organization: 45, teamwork: 50, initiative: 30, feedback_positive: "", feedback_negative: "" },
+            { employee_id: 110, employee_name: "Thiago Mendes", department: "Financeiro", date: "2025-11-20", communication: 95, leadership: 90, organization: 92, teamwork: 85, initiative: 98, feedback_positive: "", feedback_negative: "" },
+        ];
+
+        const quizQuestions = [
+            // Liderança (IDs 1-10, correct A)
+            { id: 1, category: 'Liderança', text: "1. Um líder verdadeiramente inspirador costuma:", options: ["Demonstrar coerência entre palavras e ações, motivando sem precisar insistir verbalmente.", "Delegar tarefas de forma rígida para controlar a execução.", "Priorizar metas sobre o bem-estar da equipe.", "Impor regras para garantir obediência imediata.", "Manter distância emocional para evitar favoritismos."], correctAnswer: "A" },
+            { id: 2, category: 'Liderança', text: "2. Ao enfrentar um erro grave de um subordinado, o líder mais efetivo:", options: ["Utiliza a situação para refletir sobre processos e orientar melhorias, sem humilhar.", "Repreende duramente para evitar repetição.", "Ignora para não gerar conflito.", "Culpa apenas a equipe, não o processo.", "Centraliza toda decisão corretiva nele mesmo."], correctAnswer: "A" },
+            { id: 3, category: 'Liderança', text: "3. Uma comunicação de liderança eficiente prioriza:", options: ["Clareza, escuta ativa e alinhamento de expectativas entre todos.", "Manter o controle falando mais do que ouvindo.", "Evitar feedbacks para não gerar desconforto.", "Centralizar informações apenas para a alta gestão.", "Depender de memorandos escritos."], correctAnswer: "A" },
+            { id: 4, category: 'Liderança', text: "4. Engajamento da equipe é potencializado quando o líder:", options: ["Valoriza contribuições individuais e demonstra propósito compartilhado.", "Exige resultados sem reconhecer esforços.", "Foca apenas em métricas objetivas.", "Cria competição interna entre membros.", "Evita reuniões para não perder tempo."], correctAnswer: "A" },
+            { id: 5, category: 'Liderança', text: "5. Um líder que realmente desenvolve sua equipe:", options: ["Oferece desafios, feedbacks e oportunidades para autonomia crescente.", "Mantém o status quo para evitar riscos.", "Foca apenas nas próprias metas.", "Evita diálogos individuais.", "Confia que a equipe se desenvolverá sozinha."], correctAnswer: "A" },
+            { id: 6, category: 'Liderança', text: "6. Durante crises, o comportamento de um líder eficaz é:", options: ["Manter compostura, analisar dados e orientar a equipe de forma estruturada.", "Transferir responsabilidades para os subordinados.", "Esconder informações para reduzir pânico.", "Ignorar a situação até ela se resolver.", "Tomar decisões sem consultar ninguém."], correctAnswer: "A" },
+            { id: 7, category: 'Liderança', text: "7. Escuta ativa é crucial para liderar porque:", options: ["Permite identificar nuances e necessidades não explicitadas da equipe.", "Serve apenas para parecer atento.", "Diminui a autoridade do líder.", "Substitui processos formais de comunicação.", "Evita conflitos ao longo do tempo."], correctAnswer: "A" },
+            { id: 8, category: 'Liderança', text: "8. Liderança situacional consiste em:", options: ["Ajustar estilo e abordagem conforme maturidade e contexto da equipe.", "Manter abordagem uniforme para todos.", "Priorizar autoridade sobre empatia.", "Evitar decisões em situações ambíguas.", "Deixar que a equipe decida tudo sozinha."], correctAnswer: "A" },
+            { id: 9, category: 'Liderança', text: "9. Um líder ético, na prática:", options: ["Age com transparência e justiça, mesmo quando não é observado.", "Assume riscos pessoais para se beneficiar.", "Oculta informações estratégicas para evitar responsabilidade.", "Favorece apenas quem está mais próximo.", "Prioriza resultados acima de princípios."], correctAnswer: "A" },
+            { id: 10, category: 'Liderança', text: "10. Clima organizacional saudável é resultado de um líder que:", options: ["Incentiva diálogo, colaboração e respeito mútuo.", "Evita abordar problemas para não gerar atrito.", "Foca apenas na produtividade.", "Centraliza decisões em si mesmo.", "Prioriza hierarquia rígida."], correctAnswer: "A" },
+            // Comunicação (IDs 11-20, correct B)
+            { id: 11, category: 'Comunicação', text: "11. Comunicação eficaz em times complexos depende principalmente de:", options: ["Falar com frequência para reforçar autoridade.", "Ouvir ativamente e confirmar entendimento mesmo em mensagens sutis.", "Usar termos técnicos para mostrar conhecimento.", "Limitar contato a relatórios formais.", "Evitar feedbacks individuais."], correctAnswer: "B" },
+            { id: 12, category: 'Comunicação', text: "12. Ao lidar com mal-entendidos, a postura mais estratégica é:", options: ["Esperar que o tempo resolva naturalmente.", "Confrontar de forma direta e diplomática para esclarecer fatos.", "Compartilhar queixas com colegas para validar percepções.", "Solicitar intervenção do gestor imediatamente.", "Evitar contato com os envolvidos."], correctAnswer: "B" },
+            { id: 13, category: 'Comunicação', text: "13. Clareza na comunicação é mais do que simplificar palavras; envolve:", options: ["Concordar com todos para evitar conflitos.", "Expressar ideias objetivamente e ajustar à compreensão do interlocutor.", "Repetir sempre os mesmos termos técnicos.", "Falar apenas quando solicitado.", "Enviar relatórios longos detalhando cada passo."], correctAnswer: "B" },
+            { id: 14, category: 'Comunicação', text: "14. A comunicação não verbal se manifesta em:", options: ["Apenas o tom de voz.", "Gestos, postura, expressões faciais e ritmo da fala.", "Mensagens escritas exclusivamente.", "Documentos oficiais da empresa.", "Planejamento estratégico."], correctAnswer: "B" },
+            { id: 15, category: 'Comunicação', text: "15. Feedback construtivo deve ser:", options: ["Público para motivar todos.", "Assertivo, respeitoso e voltado à melhoria do desempenho.", "Baseado apenas em falhas para reforçar disciplina.", "Evitado para não gerar desconforto.", "Genérico, sem exemplos concretos."], correctAnswer: "B" },
+            { id: 16, category: 'Comunicação', text: "16. Um erro comum na comunicação corporativa é:", options: ["Repetir mensagens em excesso.", "Pressupor entendimento sem confirmação explícita.", "Questionar sempre o ouvinte.", "Ouvir antes de falar.", "Ajustar a mensagem ao público-alvo."], correctAnswer: "B" },
+            { id: 17, category: 'Comunicação', text: "17. Para assegurar compreensão, o emissor deve:", options: ["Falar rápido e com termos complexos.", "Simplificar linguagem e checar entendimento continuamente.", "Incluir jargões técnicos desnecessários.", "Evitar interação com ouvintes.", "Mandar apenas e-mails formais."], correctAnswer: "B" },
+            { id: 18, category: 'Comunicação', text: "18. Em reuniões produtivas, a comunicação acontece quando:", options: ["Apenas líderes falam.", "Todos têm espaço para expor ideias e opiniões de forma estruturada.", "Interrupções frequentes ocorrem.", "Todos concordam sem questionar.", "Foco é apenas em métricas."], correctAnswer: "B" },
+            { id: 19, category: 'Comunicação', text: "19. Empatia na comunicação permite:", options: ["Inibir emoções durante o diálogo.", "Compreender sutilezas, perspectivas e evitar conflitos desnecessários.", "Tornar o discurso mais técnico e frio.", "Reduzir assertividade.", "Prolongar reuniões sem objetivo."], correctAnswer: "B" },
+            { id: 20, category: 'Comunicação', text: "20. Quando há ruídos de comunicação, a postura ideal do líder é:", options: ["Ignorar para não complicar.", "Diagnosticar causas e promover diálogo claro entre envolvidos.", "Aumentar pressão por resultados imediatos.", "Trocar membros da equipe.", "Evitar reuniões adicionais."], correctAnswer: "B" },
+            // Iniciativa (IDs 21-30, correct C)
+            { id: 21, category: 'Iniciativa', text: "21. Colaboradores proativos normalmente:", options: ["Aguardam ordens antes de agir.", "Reclamam antes de tomar decisão.", "Antecipam problemas e buscam soluções sem serem solicitados.", "Seguem regras rígidas sem questionamento.", "Evitam responsabilidades extras."], correctAnswer: "C" },
+            { id: 22, category: 'Iniciativa', text: "22. Ao surgir uma situação inesperada, quem tem iniciativa:", options: ["Culpa outros setores.", "Espera instruções detalhadas.", "Analisa e propõe alternativas viáveis rapidamente.", "Foge do problema.", "Pede que outro resolva."], correctAnswer: "C" },
+            { id: 23, category: 'Iniciativa', text: "23. Iniciativa pode ser caracterizada por:", options: ["Cumprir apenas o mínimo do esperado.", "Seguir sempre ordens sem questionar.", "Identificar oportunidades de melhoria e agir de forma autônoma.", "Esperar motivação externa.", "Evitar desafios."], correctAnswer: "C" },
+            { id: 24, category: 'Iniciativa', text: "24. Um comportamento que evidencia iniciativa é:", options: ["Fazer somente o que foi solicitado.", "Repetir procedimentos antigos sem pensar.", "Sugerir alterações que melhorem processos existentes.", "Reclamar de tarefas novas.", "Delegar responsabilidade sempre."], correctAnswer: "C" },
+            { id: 25, category: 'Iniciativa', text: "25. Atitude proativa se manifesta quando:", options: ["Tenta resolver tudo sozinho sem avaliar riscos.", "Aguarda ordens detalhadas.", "Age com responsabilidade, mesmo sem supervisão constante.", "Toma decisões impulsivas.", "Depende de aprovação contínua."], correctAnswer: "C" },
+            { id: 26, category: 'Iniciativa', text: "26. Profissionais com iniciativa se destacam por:", options: ["Evitar responsabilidades extras.", "Fazer apenas o que é pedido.", "Demonstrar autonomia e interesse em aprender.", "Esperar orientações detalhadas.", "Focar apenas no cumprimento de horário."], correctAnswer: "C" },
+            { id: 27, category: 'Iniciativa', text: "27. Diante de novas tarefas, quem demonstra iniciativa:", options: ["Rejeita por não estar no plano inicial.", "Aguarda que outros se ofereçam.", "Assume a responsabilidade e planeja a execução.", "Questiona a relevância da tarefa.", "Deixa para resolver depois."], correctAnswer: "C" },
+            { id: 28, category: 'Iniciativa', text: "28. Iniciativa também envolve:", options: ["Evitar mudanças.", "Repetir métodos conhecidos.", "Buscar desenvolvimento contínuo e aprendizado constante.", "Seguir sempre o mesmo padrão.", "Esperar motivação externa."], correctAnswer: "C" },
+            { id: 29, category: 'Iniciativa', text: "29. Um líder reconhece iniciativa em um colaborador quando ele:", options: ["Reclama das dificuldades.", "Segue ordens sem questionar.", "Propõe melhorias sem ser solicitado.", "Cumprir apenas o básico.", "Age apenas sob pressão."], correctAnswer: "C" },
+            { id: 30, category: 'Iniciativa', text: "30. Para estimular iniciativa na equipe, é necessário:", options: ["Controlar cada ação.", "Repreender tentativas de inovação.", "Delegar autonomia e valorizar atitudes proativas.", "Aumentar regras e limitações.", "Focar apenas em resultados imediatos."], correctAnswer: "C" },
+            // Trabalho em Equipe (IDs 31-40, correct D)
+            { id: 31, category: 'Trabalho em Equipe', text: "31. Colaboração eficaz ocorre quando:", options: ["Cada membro prioriza apenas sua tarefa.", "Líder centraliza todas decisões.", "Há competição intensa entre colegas.", "Todos contribuem para metas comuns e apoiam uns aos outros.", "Cada um trabalha isoladamente para mostrar resultado individual."], correctAnswer: "D" },
+            { id: 32, category: 'Trabalho em Equipe', text: "32. Um membro comprometido com a equipe:", options: ["Repreende colegas quando cometem erros.", "Ignora opiniões divergentes.", "Trabalha somente sob supervisão.", "Colabora positivamente e oferece suporte quando necessário.", "Concentra-se apenas em suas próprias metas."], correctAnswer: "D" },
+            { id: 33, category: 'Trabalho em Equipe', text: "33. Comunicação em equipe eficaz é:", options: ["Centralizada apenas no líder.", "Limitada a e-mails formais.", "Feita apenas em reuniões obrigatórias.", "Aberta, contínua e respeitosa entre todos membros.", "Reservada para documentos oficiais."], correctAnswer: "D" },
+            { id: 34, category: 'Trabalho em Equipe', text: "34. Em caso de conflito, a postura que favorece a equipe é:", options: ["Evitar conversas sobre o problema.", "Escolher um lado.", "Esperar que o líder resolva sozinho.", "Dialogar e buscar solução conjunta.", "Ignorar até o conflito desaparecer."], correctAnswer: "D" },
+            { id: 35, category: 'Trabalho em Equipe', text: "35. Cooperação entre colegas:", options: ["Reduz a produtividade individual.", "Gera mais competição.", "Torna o ambiente mais rígido.", "Facilita atingir metas e melhora clima organizacional.", "Prejudica o foco em resultados."], correctAnswer: "D" },
+            { id: 36, category: 'Trabalho em Equipe', text: "36. Um bom colega de equipe:", options: ["Trabalha isoladamente.", "Evita feedback.", "Busca apenas sucesso individual.", "Apoia colegas e compartilha conquistas.", "Esconde informações importantes."], correctAnswer: "D" },
+            { id: 37, category: 'Trabalho em Equipe', text: "37. Confiança entre membros é construída quando:", options: ["Todos trabalham de forma independente.", "Há competição constante.", "Pessoas evitam compartilhar ideias.", "Compromissos são cumpridos e respeito mútuo é mantido.", "Líder controla todas decisões."], correctAnswer: "D" },
+            { id: 38, category: 'Trabalho em Equipe', text: "38. Trabalho em equipe funciona melhor quando:", options: ["Cada um defende apenas suas ideias.", "Críticas são ignoradas.", "Tarefas sempre individuais.", "Há colaboração e objetivos compartilhados.", "Líder decide tudo sozinho."], correctAnswer: "D" },
+            { id: 39, category: 'Trabalho em Equipe', text: "39. Benefício principal de equipes bem coordenadas:", options: ["Reduz autonomia individual.", "Aumenta conflitos internos.", "Dificulta decisões estratégicas.", "Combina habilidades diversas para melhores resultados.", "Torna processos mais lentos."], correctAnswer: "D" },
+            { id: 40, category: 'Trabalho em Equipe', text: "40. Ao perceber que um colega precisa de ajuda, um membro efetivo:", options: ["Ignora.", "Repreende.", "Espera que outro faça.", "Oferece apoio e trabalha junto na solução.", "Aproveita para se destacar individualmente."], correctAnswer: "D" },
+            // Organização (IDs 41-50, correct E)
+            { id: 41, category: 'Organização', text: "41. Ser organizado implica:", options: ["Executar múltiplas tarefas sem priorização.", "Guardar tudo para resolver de última hora.", "Depender de lembretes de colegas.", "Deixar o ambiente desordenado.", "Planejar, priorizar e manter ambiente funcional."], correctAnswer: "E" },
+            { id: 42, category: 'Organização', text: "42. Planejamento diário eficiente:", options: ["Começar sem priorizar.", "Ignorar metas e prazos.", "Ser feito apenas quando surgem problemas.", "Deixar para o final do dia.", "Definir objetivos claros e revisar progresso."], correctAnswer: "E" },
+            { id: 43, category: 'Organização', text: "43. Para evitar retrabalhos, é essencial:", options: ["Trabalhar sob pressão constante.", "Confiar apenas na memória.", "Acumular tarefas.", "Ignorar checklists.", "Seguir plano de ação com prazos definidos."], correctAnswer: "E" },
+            { id: 44, category: 'Organização', text: "44. Organização impacta produtividade porque:", options: ["Deixa ambiente burocrático.", "Atrapalha criatividade.", "Diminui flexibilidade.", "Aumenta interrupções.", "Permite gestão de tempo eficiente e prioridades claras."], correctAnswer: "E" },
+            { id: 45, category: 'Organização', text: "45. Arquivos bem organizados:", options: ["Evitam acesso de outros.", "Tornam buscas demoradas.", "Preenchem tempo ocioso.", "Complicam fluxo de informação.", "Facilitam acesso rápido e eficiência."], correctAnswer: "E" },
+            { id: 46, category: 'Organização', text: "46. Colaborador organizado normalmente:", options: ["Deixa tarefas incompletas.", "Trabalha desordenadamente.", "Espera que outros corrijam erros.", "Perde prazos.", "Cumpre metas e mantém rotina estruturada."], correctAnswer: "E" },
+            { id: 47, category: 'Organização', text: "47. Ambiente físico organizado:", options: ["Distrai equipe.", "Reduz produtividade.", "Dificulta acesso a materiais.", "Torna local confuso.", "Melhora concentração e eficiência."], correctAnswer: "E" },
+            { id: 48, category: 'Organização', text: "48. Diante de múltiplas tarefas, profissional organizado:", options: ["Executa tudo sem planejamento.", "Faz primeiro o mais fácil.", "Adia tarefas importantes.", "Espera ordens.", "Define prioridades e distribui tempo equilibradamente."], correctAnswer: "E" },
+            { id: 49, category: 'Organização', text: "49. Falta de organização tende a:", options: ["Melhorar qualidade do trabalho.", "Reduzir erros.", "Facilitar decisões.", "Cumprir prazos antecipadamente.", "Causar atrasos, retrabalho e estresse."], correctAnswer: "E" },
+            { id: 50, category: 'Organização', text: "50. Manter organização a longo prazo exige:", options: ["Deixar processos se ajustarem sozinhos.", "Trabalhar sem rotina.", "Ignorar revisões.", "Depender da memória.", "Revisar métodos e atualizar planejamentos periodicamente."], correctAnswer: "E" },
+        ];
+
+        // --- CONSTANTES E FUNÇÕES AUXILIARES GLOBAIS ---
+        const COLORS = {
+            green: '#28A745',
+            yellow: '#FFC107',
+            red: '#DC3545',
+            gray: '#6c757d',
+            indigo: '#4f46e5'
+        };
+
+        const getScoreColor = (score) => {
+            if (score >= 70) return { name: 'green', value: COLORS.green };
+            if (score >= 50) return { name: 'yellow', value: COLORS.yellow };
+            return { name: 'red', value: COLORS.red };
+        };
+
+        let currentActiveTab = 'dashboard';
+        let answers = {};
+        let quizResult = null;
+
+        // --- FUNÇÕES DO DASHBOARD ---
+        function updateDashboard() {
+            const department = document.getElementById('department-filter').value;
+            const startDate = new Date(document.getElementById('start-date').value);
+            const endDate = new Date(document.getElementById('end-date').value);
+            const search = document.getElementById('search-employee').value.toLowerCase();
+            const order = document.getElementById('order-filter').value;
+
+            const filteredData = data.filter(emp => {
+                const empDate = new Date(emp.date);
+                return (empDate >= startDate && empDate <= endDate) &&
+                       (department === 'Todos' || emp.department === department) &&
+                       (search === '' || emp.employee_name.toLowerCase().includes(search));
+            });
+
+            // Update overall score
+            let overallScore = null;
+            if (filteredData.length > 0) {
+                const totalScore = filteredData.reduce((acc, emp) => acc + ((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5), 0);
+                overallScore = Math.round(totalScore / filteredData.length);
+            }
+            updateThermometer(overallScore);
+
+            // Update department chart
+            updateDepartmentChart(filteredData);
+
+            // Update employee ranking
+            updateEmployeeRanking(filteredData, order);
+
+            // Add click listeners to rows
+            document.querySelectorAll('#ranking-tbody tr').forEach(tr => {
+                tr.addEventListener('click', showEmployeeDetails);
+            });
+        }
+
+        function updateThermometer(score) {
+            const container = document.getElementById('overall-thermometer');
+            const scoreEl = document.getElementById('overall-score');
+            const icon = container.querySelector('svg');
+            if (isNaN(score) || score === null) {
+                scoreEl.textContent = 'Dados insuficientes';
+                scoreEl.style.color = '#6c757d';
+                container.style.borderTopColor = '#6c757d';
+                icon.setAttribute('stroke', '#6c757d');
+                return;
+            }
+            const color = getScoreColor(score).value;
+            scoreEl.textContent = score + '%';
+            scoreEl.style.color = color;
+            container.style.borderTopColor = color;
+            icon.setAttribute('stroke', color);
+        }
+
+        function updateDepartmentChart(filteredData) {
+            const departments = {};
+            filteredData.forEach(emp => {
+                const score = (emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5;
+                if (!departments[emp.department]) {
+                    departments[emp.department] = { totalScore: 0, count: 0 };
+                }
+                departments[emp.department].totalScore += score;
+                departments[emp.department].count++;
+            });
+
+            const deptList = document.getElementById('dept-list');
+            let html = '';
+            if (Object.keys(departments).length > 0) {
+                const deptScores = Object.entries(departments).map(([name, { totalScore, count }]) => {
+                    const average = Math.round(totalScore / count);
+                    const color = getScoreColor(average).value;
+                    return { name, average, color, count };
+                }).sort((a, b) => b.average - a.average);
+                deptScores.forEach(dept => {
+                    html += `
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-medium text-gray-600">${dept.name} (${dept.count} func.)</span>
+                                <span class="font-bold" style="color: ${dept.color}">${dept.average}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                <div class="h-4 rounded-full transition-all duration-500" style="width: ${dept.average}%; background-color: ${dept.color}"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="text-center text-gray-500">Nenhum dado para exibir.</div>';
+            }
+            deptList.innerHTML = html;
+        }
+
+        function updateEmployeeRanking(filteredData, order) {
+            const processedData = filteredData.map(emp => {
+                const score = Math.round((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5);
+                const color = getScoreColor(score).value;
+                return { ...emp, score, color };
+            }).sort((a, b) => order === 'asc' ? a.score - b.score : b.score - a.score);
+
+            const tbody = document.getElementById('ranking-tbody');
+            let html = '';
+            if (processedData.length > 0) {
+                processedData.forEach(emp => {
+                    html += `
+                        <tr class="bg-white border-b hover:bg-gray-50 cursor-pointer" data-employee-id="${emp.employee_id}">
+                            <td class="px-4 py-3"><div class="w-3 h-3 rounded-full mx-auto" style="background-color: ${emp.color}"></div></td>
+                            <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                                <div>${emp.employee_name}</div>
+                                <div class="text-xs text-gray-500">${emp.department}</div>
+                            </th>
+                            <td class="px-4 py-3 text-center font-bold" style="color: ${emp.color}">${(emp.score / 10).toFixed(1)} (${emp.score}%)</td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">${emp.communication}</td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">${emp.leadership}</td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">${emp.organization}</td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">${emp.teamwork}</td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">${emp.initiative}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html = '<tr><td colSpan="8" class="text-center py-8 text-gray-500">Nenhum funcionário encontrado.</td></tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function showEmployeeDetails(e) {
+            const id = e.currentTarget.dataset.employeeId;
+            const emp = data.find(e => e.employee_id == id);
+            if (!emp) return;
+
+            document.getElementById('employee-details').style.display = 'block';
+            document.getElementById('detail-name').textContent = emp.employee_name;
+            document.getElementById('detail-positive').textContent = emp.feedback_positive || 'Nenhum feedback positivo fornecido.';
+            document.getElementById('detail-negative').textContent = emp.feedback_negative || 'Nenhum feedback de melhoria fornecido.';
+
+            const competencies = ['Comunicação', 'Liderança', 'Organização', 'Trabalho em Equipe', 'Iniciativa'];
+            const scores = [emp.communication, emp.leadership, emp.organization, emp.teamwork, emp.initiative];
+            const scores10 = scores.map(s => s / 10);
+
+            // Radar Chart
+            const radarCtx = document.getElementById('radar-chart').getContext('2d');
+            if (window.radarChart) window.radarChart.destroy();
+            window.radarChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: competencies,
+                    datasets: [{
+                        label: 'Competências',
+                        data: scores10,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: COLORS.indigo,
+                        borderWidth: 1,
+                        pointBackgroundColor: scores.map(s => getScoreColor(s).value)
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 10,
+                            ticks: { stepSize: 2 }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 4
+                        }
+                    }
+                }
+            });
+
+            // Bar Chart
+            const barCtx = document.getElementById('bar-chart').getContext('2d');
+            if (window.barChart) window.barChart.destroy();
+            window.barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: competencies,
+                    datasets: [{
+                        label: 'Média',
+                        data: scores10,
+                        backgroundColor: scores.map(s => getScoreColor(s).value),
+                        borderColor: scores.map(s => getScoreColor(s).value),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportToCSV() {
+            const department = document.getElementById('department-filter').value;
+            const startDate = new Date(document.getElementById('start-date').value);
+            const endDate = new Date(document.getElementById('end-date').value);
+            const search = document.getElementById('search-employee').value.toLowerCase();
+
+            const filteredData = data.filter(emp => {
+                const empDate = new Date(emp.date);
+                return (empDate >= startDate && empDate <= endDate) &&
+                       (department === 'Todos' || emp.department === department) &&
+                       (search === '' || emp.employee_name.toLowerCase().includes(search));
+            });
+
+            const headers = "ID,Nome,Departamento,Data,Comunicacao,Lideranca,Organizacao,Trabalho em Equipe,Iniciativa,Score\n";
+            const rows = filteredData.map(emp => {
+                const score = Math.round((emp.communication + emp.leadership + emp.organization + emp.teamwork + emp.initiative) / 5);
+                return `${emp.employee_id},${emp.employee_name},${emp.department},${emp.date},${emp.communication},${emp.leadership},${emp.organization},${emp.teamwork},${emp.initiative},${score}`;
+            }).join("\n");
+            const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "relatorio_clima_organizacional.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- FUNÇÕES DO FEEDBACK ---
+        function initFeedbackForm() {
+            const container = document.getElementById('questions-container');
+            let html = '';
+            quizQuestions.forEach(q => {
+                html += `
+                    <div class="mb-8 p-4 border border-gray-200 rounded-lg">
+                        <p class="font-semibold text-gray-700 mb-3">${q.text}</p>
+                        <div class="space-y-2">
+                `;
+                q.options.forEach((option, index) => {
+                    const letter = String.fromCharCode(65 + index);
+                    html += `
+                        <label class="flex items-center p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="question-${q.id}" value="${letter}" onchange="handleAnswerChange(${q.id}, '${letter}')" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                            <span class="ml-3 text-gray-600">${letter}) ${option}</span>
+                        </label>
+                    `;
+                });
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function handleAnswerChange(questionId, answer) {
+            answers[questionId] = answer;
+        }
+
+        function submitFeedback() {
+            const employeeName = document.getElementById('employee-name').value.trim();
+            const employeeDepartment = document.getElementById('employee-department').value;
+            const feedbackPositive = document.getElementById('feedback-positive').value;
+            const feedbackNegative = document.getElementById('feedback-negative').value;
+            const errorEl = document.getElementById('feedback-error');
+
+            if (!employeeName) {
+                errorEl.textContent = 'Por favor, insira seu nome.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!employeeDepartment) {
+                errorEl.textContent = 'Por favor, selecione seu departamento.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (Object.keys(answers).length < quizQuestions.length) {
+                errorEl.textContent = 'Por favor, responda a todas as perguntas.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            errorEl.style.display = 'none';
+
+            let totalCorrect = 0;
+            const categoryResults = {};
+            quizQuestions.forEach(q => {
+                if (!categoryResults[q.category]) {
+                    categoryResults[q.category] = { correct: 0, total: 0 };
+                }
+                categoryResults[q.category].total++;
+                if (answers[q.id] === q.correctAnswer) {
+                    totalCorrect++;
+                    categoryResults[q.category].correct++;
+                }
+            });
+
+            const overallScore = Math.round((totalCorrect / quizQuestions.length) * 100);
+            const categoryScores = Object.fromEntries(
+                Object.entries(categoryResults).map(([category, counts]) => [
+                    category,
+                    { ...counts, score: Math.round((counts.correct / counts.total) * 100) }
+                ])
+            );
+
+            quizResult = { employeeName, overallScore, categoryScores, feedbackPositive, feedbackNegative, employeeDepartment };
+
+            // Add to data
+            const newId = data.length > 0 ? Math.max(...data.map(e => e.employee_id)) + 1 : 1;
+            const today = new Date().toISOString().slice(0, 10);
+            const newEntry = {
+                employee_id: newId,
+                employee_name: employeeName,
+                department: employeeDepartment,
+                date: today,
+                communication: categoryScores['Comunicação'].score,
+                leadership: categoryScores['Liderança'].score,
+                organization: categoryScores['Organização'].score,
+                teamwork: categoryScores['Trabalho em Equipe'].score,
+                initiative: categoryScores['Iniciativa'].score,
+                feedback_positive: feedbackPositive,
+                feedback_negative: feedbackNegative
+            };
+            data.push(newEntry);
+
+            // Update dashboard if active
+            if (currentActiveTab === 'dashboard') {
+                updateDashboard();
+            }
+
+            showFeedbackReport();
+        }
+
+        function showFeedbackReport() {
+            document.getElementById('feedback-form').style.display = 'none';
+            document.getElementById('feedback-report').style.display = 'block';
+
+            const { overallScore, categoryScores, employeeName, feedbackPositive, feedbackNegative } = quizResult;
+            const overallColor = getScoreColor(overallScore).value;
+
+            document.getElementById('report-title').textContent = `Relatório de Feedback de ${employeeName}`;
+            const overallSection = document.getElementById('overall-score-section');
+            overallSection.style.backgroundColor = `${overallColor}20`;
+            document.getElementById('report-overall-score').textContent = overallScore + '%';
+            document.getElementById('report-overall-score').style.color = overallColor;
+
+            const categoryList = document.getElementById('category-list');
+            let catHtml = '';
+            Object.entries(categoryScores).forEach(([category, data]) => {
+                const color = getScoreColor(data.score).value;
+                catHtml += `
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium text-gray-600">${category} (${data.correct}/${data.total} acertos)</span>
+                            <span class="font-bold" style="color: ${color}">${data.score}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="h-4 rounded-full" style="width: ${data.score}%; background-color: ${color}"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            categoryList.innerHTML = catHtml;
+
+            document.getElementById('report-employee').innerHTML = `<span class="font-semibold">Funcionário:</span> ${employeeName}`;
+            document.getElementById('report-final-score').innerHTML = `<span class="font-semibold">Média Final:</span> <span class="font-bold" style="color: ${overallColor}">${overallScore}%</span>`;
+
+            const sortedCompetencies = Object.entries(categoryScores).map(([name, data]) => ({ name, score: data.score })).sort((a, b) => a.score - b.score);
+            const sortedList = document.getElementById('sorted-competencies');
+            let sortedHtml = '';
+            sortedCompetencies.forEach(c => {
+                const color = getScoreColor(c.score).value;
+                sortedHtml += `<li>${c.name}: <span class="font-bold" style="color: ${color}">${c.score}%</span></li>`;
+            });
+            sortedList.innerHTML = sortedHtml;
+
+            document.getElementById('positive-feedback').textContent = feedbackPositive || "Nenhum feedback positivo fornecido.";
+            document.getElementById('negative-feedback').textContent = feedbackNegative || "Nenhum feedback de melhoria fornecido.";
+        }
+
+        function resetFeedback() {
+            document.getElementById('employee-name').value = '';
+            document.getElementById('employee-department').value = '';
+            document.getElementById('feedback-positive').value = '';
+            document.getElementById('feedback-negative').value = '';
+            answers = {};
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            document.getElementById('feedback-report').style.display = 'none';
+            document.getElementById('feedback-form').style.display = 'block';
+            quizResult = null;
+        }
+
+        // --- FUNÇÕES GLOBAIS ---
+        function switchTab(tab) {
+            currentActiveTab = tab;
+            document.getElementById('dashboard-content').style.display = tab === 'dashboard' ? 'block' : 'none';
+            document.getElementById('feedback-content').style.display = tab === 'feedback' ? 'block' : 'none';
+
+            if (tab === 'dashboard') {
+                document.getElementById('dashboard-tab').className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600';
+                document.getElementById('feedback-tab').className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                updateDashboard();
+            } else {
+                document.getElementById('dashboard-tab').className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                document.getElementById('feedback-tab').className = 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600';
+                initFeedbackForm();
+            }
+        }
+
+        // Event listeners for filters
+        document.getElementById('department-filter').addEventListener('change', updateDashboard);
+        document.getElementById('start-date').addEventListener('change', updateDashboard);
+        document.getElementById('end-date').addEventListener('change', updateDashboard);
+        document.getElementById('search-employee').addEventListener('input', updateDashboard);
+        document.getElementById('order-filter').addEventListener('change', updateDashboard);
+
+        // Initialize
+        updateDashboard();
+        initFeedbackForm();
+    </script>
 </body>
 </html>
 ```
