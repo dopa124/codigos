@@ -1,0 +1,600 @@
+```html
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Recrutamento e Seleção</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-trigger.active-class {
+            color: white !important;
+        }
+        .tab-trigger[data-tab="processos"].active-class {
+            background: linear-gradient(to right, #3b82f6, #6366f1);
+        }
+        .tab-trigger[data-tab="candidatos"].active-class {
+            background: linear-gradient(to right, #16a34a, #059669);
+        }
+        .tab-trigger[data-tab="ranking"].active-class {
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+        }
+        .tab-trigger[data-tab="swot"].active-class {
+            background: linear-gradient(to right, #f97316, #ef4444);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100">
+    <div class="min-h-screen p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-10">
+                <h1 class="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+                    Sistema de Recrutamento e Seleção
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    Gerencie processos seletivos e candidatos de forma inteligente e eficiente
+                </p>
+            </div>
+
+            <div class="tabs">
+                <div class="tabs-list grid w-full grid-cols-4 gap-8 mb-8 justify-items-center">
+                    <button class="tab-trigger flex flex-col items-center gap-2 py-4 px-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200" data-tab="processos">
+                        <i class="fas fa-bullseye w-5 h-5"></i>
+                        <span class="text-sm font-medium">Processos</span>
+                    </button>
+                    <button class="tab-trigger flex flex-col items-center gap-2 py-4 px-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200" data-tab="candidatos">
+                        <i class="fas fa-users w-5 h-5"></i>
+                        <span class="text-sm font-medium">Candidatos</span>
+                    </button>
+                    <button class="tab-trigger flex flex-col items-center gap-2 py-4 px-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200" data-tab="ranking">
+                        <i class="fas fa-chart-line w-5 h-5"></i>
+                        <span class="text-sm font-medium">Ranking</span>
+                    </button>
+                    <button class="tab-trigger flex flex-col items-center gap-2 py-4 px-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200" data-tab="swot">
+                        <i class="fas fa-clipboard-check w-5 h-5"></i>
+                        <span class="text-sm font-medium">SWOT</span>
+                    </button>
+                </div>
+
+                <div id="tab-content-processos" class="tab-content space-y-8">
+                    <div class="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-xl p-6">
+                            <h2 class="flex items-center gap-3 text-xl font-bold">
+                                <i class="fas fa-plus w-6 h-6"></i>
+                                Criar Novo Processo Seletivo
+                            </h2>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Nome do Processo</label>
+                                    <input id="nome-processo" type="text" placeholder="Ex: Desenvolvedor Full Stack" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Formação Desejada</label>
+                                    <input id="formacao-processo" type="text" placeholder="Ex: Engenheiro de Produção" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-lg font-semibold">Cursos e PDIs</label>
+                                <input id="cursos-processo" type="text" placeholder="Ex: Lean Six Sigma, Gestão de Projetos, Excel Avançado" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Experiência Mínima</label>
+                                    <input id="tempo-exp" type="number" placeholder="Ex: 2" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Unidade de Tempo</label>
+                                    <select id="unidade-exp-processo" class="h-12 border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="meses">Meses</option>
+                                        <option value="dias">Dias</option>
+                                        <option value="anos">Anos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="criarProcesso()" class="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg text-white rounded-lg transition-colors">
+                                Criar Processo Seletivo
+                            </button>
+                        </div>
+                    </div>
+                    <div id="processos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
+                <div id="tab-content-candidatos" class="tab-content space-y-8 hidden">
+                    <div class="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-xl p-6">
+                            <h2 class="flex items-center gap-3 text-xl font-bold">
+                                <i class="fas fa-users w-6 h-6"></i>
+                                Adicionar Candidato
+                            </h2>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-lg font-semibold">Selecionar Processo Seletivo</label>
+                                <select id="processo-select" class="h-12 border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500" onchange="setProcessoSelecionado(this.value)">
+                                    <option value="">Escolha um processo seletivo</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Nome do Candidato</label>
+                                    <input id="nome-candidato" type="text" placeholder="Nome completo" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Data de Nascimento</label>
+                                    <input id="data-nascimento" type="date" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-lg font-semibold">Formação</label>
+                                <input id="formacao-candidato" type="text" placeholder="Ex: Engenheiro de Produção" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-lg font-semibold">Cursos e PDIs</label>
+                                <input id="cursos-candidato" type="text" placeholder="Ex: Lean Six Sigma, Gestão de Projetos" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Experiência</label>
+                                    <input id="tempo-candidato" type="number" placeholder="Ex: 3" class="h-12 text-lg border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-lg font-semibold">Unidade de Tempo</label>
+                                    <select id="unidade-candidato" class="h-12 border border-gray-300 rounded-lg px-3 w-full focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="meses">Meses</option>
+                                        <option value="dias">Dias</option>
+                                        <option value="anos">Anos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="adicionarCandidato()" class="w-full h-14 text-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg text-white rounded-lg transition-colors">
+                                Adicionar Candidato
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-content-ranking" class="tab-content space-y-8 hidden">
+                    <div class="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-xl p-6">
+                            <h2 class="flex items-center gap-3 text-xl font-bold">
+                                <i class="fas fa-chart-line w-6 h-6"></i>
+                                Ranking de Candidatos
+                            </h2>
+                        </div>
+                        <div class="p-8">
+                            <div class="mb-6 space-y-2">
+                                <label class="text-lg font-semibold">Selecionar Processo para Ranking</label>
+                                <select id="processo-ranking" class="h-12 w-full border border-gray-300 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="setProcessoSelecionado(this.value); renderRanking();">
+                                    <option value="">Escolha um processo seletivo</option>
+                                </select>
+                            </div>
+                            <div id="ranking-container" class="space-y-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-content-swot" class="tab-content space-y-8 hidden">
+                    <div class="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                        <div class="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-t-xl p-6">
+                            <h2 class="flex items-center gap-3 text-xl font-bold">
+                                <i class="fas fa-clipboard-check w-6 h-6"></i>
+                                Matriz SWOT - Análise Estratégica
+                            </h2>
+                        </div>
+                        <div class="p-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                                <div class="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl overflow-hidden">
+                                    <div class="bg-green-100 rounded-t-xl p-4">
+                                        <h3 class="text-green-800 flex items-center gap-3 text-lg font-bold">
+                                            <i class="fas fa-check-circle w-6 h-6"></i>
+                                            Fortalezas
+                                        </h3>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="space-y-4">
+                                            <p class="font-semibold text-green-700 text-lg">Formações Disponíveis:</p>
+                                            <div id="fortalezas-badges" class="flex flex-wrap gap-2"></div>
+                                            <p class="text-green-600 font-medium">
+                                                Total de processos ativos: <span id="total-processos" class="text-xl">0</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl overflow-hidden">
+                                    <div class="bg-blue-100 rounded-t-xl p-4">
+                                        <h3 class="text-blue-800 flex items-center gap-3 text-lg font-bold">
+                                            <i class="fas fa-chart-line w-6 h-6"></i>
+                                            Oportunidades
+                                        </h3>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="space-y-4">
+                                            <p class="font-semibold text-blue-700 text-lg">Cursos e PDIs Buscados:</p>
+                                            <div id="oportunidades-badges" class="flex flex-wrap gap-2"></div>
+                                            <p class="text-blue-600 font-medium">
+                                                Candidatos cadastrados: <span id="total-candidatos" class="text-xl">0</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl overflow-hidden">
+                                    <div class="bg-yellow-100 rounded-t-xl p-4">
+                                        <h3 class="text-yellow-800 flex items-center gap-3 text-lg font-bold">
+                                            <i class="fas fa-exclamation-triangle w-6 h-6"></i>
+                                            Fraquezas
+                                        </h3>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="space-y-3">
+                                            <div id="fraquezas-list"></div>
+                                            <p class="text-yellow-600 font-medium">
+                                                Compatibilidade média: <span id="media-compat-swot" class="text-xl">0%</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50 rounded-xl overflow-hidden">
+                                    <div class="bg-red-100 rounded-t-xl p-4">
+                                        <h3 class="text-red-800 flex items-center gap-3 text-lg font-bold">
+                                            <i class="fas fa-exclamation-triangle w-6 h-6"></i>
+                                            Ameaças
+                                        </h3>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="space-y-3">
+                                            <div id="ameacas-list"></div>
+                                            <p class="text-red-600 font-medium">
+                                                Candidatos com baixa compatibilidade: <span id="baixa-compat" class="text-xl">0</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="my-8 h-px bg-gray-300"></div>
+                            <div class="border-0 shadow-2xl bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl overflow-hidden">
+                                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-xl p-6">
+                                    <h3 class="text-xl font-bold">Resumo Estratégico</h3>
+                                </div>
+                                <div class="p-8">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div class="p-6 bg-white rounded-xl shadow-lg text-center hover:shadow-xl transition-shadow">
+                                            <h4 class="font-bold text-gray-800 mb-3 text-lg">Taxa de Compatibilidade</h4>
+                                            <div id="media-compat" class="text-4xl font-bold text-indigo-600 mb-2">0%</div>
+                                            <p class="text-gray-600">Média geral</p>
+                                        </div>
+                                        <div class="p-6 bg-white rounded-xl shadow-lg text-center hover:shadow-xl transition-shadow">
+                                            <h4 class="font-bold text-gray-800 mb-3 text-lg">Candidatos Qualificados</h4>
+                                            <div id="candidatos-qual" class="text-4xl font-bold text-green-600 mb-2">0</div>
+                                            <p class="text-gray-600">Alta compatibilidade</p>
+                                        </div>
+                                        <div class="p-6 bg-white rounded-xl shadow-lg text-center hover:shadow-xl transition-shadow">
+                                            <h4 class="font-bold text-gray-800 mb-3 text-lg">Processos Ativos</h4>
+                                            <div id="processos-ativos" class="text-4xl font-bold text-blue-600 mb-2">0</div>
+                                            <p class="text-gray-600">Em andamento</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeTab = 'processos';
+        let processos = [];
+        let candidatos = [];
+        let processoSelecionado = '';
+
+        function converterParaMeses(exp) {
+            switch (exp.unidade) {
+                case 'dias': return exp.tempo / 30;
+                case 'meses': return exp.tempo;
+                case 'anos': return exp.tempo * 12;
+                default: return 0;
+            }
+        }
+
+        function calcularCompatibilidade(candidato, processo) {
+            let pontos = 0;
+            if (candidato.formacao.toLowerCase().includes(processo.formacao.toLowerCase()) ||
+                processo.formacao.toLowerCase().includes(candidato.formacao.toLowerCase())) {
+                pontos += 30;
+            }
+            const cursosProcesso = processo.cursosEPdis.toLowerCase().split(',').map(c => c.trim()).filter(Boolean);
+            const cursosCandidato = candidato.cursosEPdis.toLowerCase().split(',').map(c => c.trim()).filter(Boolean);
+            const cursosComuns = cursosProcesso.filter(cp =>
+                cursosCandidato.some(cc => cc.includes(cp) || cp.includes(cc))
+            );
+            pontos += (cursosComuns.length / Math.max(cursosProcesso.length, 1)) * 25;
+            const expCandidatoMeses = converterParaMeses(candidato.experiencia);
+            const expProcessoMeses = converterParaMeses(processo.experiencia);
+            if (expCandidatoMeses >= expProcessoMeses) {
+                pontos += 25;
+            } else {
+                pontos += (expCandidatoMeses / expProcessoMeses) * 25;
+            }
+            if (expCandidatoMeses > expProcessoMeses * 1.5) {
+                pontos += 20;
+            } else if (expCandidatoMeses > expProcessoMeses) {
+                pontos += 10;
+            }
+            return Math.min(Math.round(pontos), 100);
+        }
+
+        function getCompatibilidadeColor(compatibilidade) {
+            if (compatibilidade >= 70) return 'bg-green-500';
+            if (compatibilidade >= 40) return 'bg-yellow-500';
+            return 'bg-red-500';
+        }
+
+        function getCompatibilidadeLabel(compatibilidade) {
+            if (compatibilidade >= 70) return 'Alta Compatibilidade';
+            if (compatibilidade >= 40) return 'Média Compatibilidade';
+            return 'Baixa Compatibilidade';
+        }
+
+        function criarProcesso() {
+            const nomeProcesso = document.getElementById('nome-processo').value.trim();
+            const cursosProcesso = document.getElementById('cursos-processo').value.trim();
+            const formacaoProcesso = document.getElementById('formacao-processo').value.trim();
+            const tempoExpProcesso = document.getElementById('tempo-exp').value.trim();
+            const unidadeExpProcesso = document.getElementById('unidade-exp-processo').value;
+            if (!nomeProcesso || !cursosProcesso || !formacaoProcesso || !tempoExpProcesso) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
+            const novoProcesso = {
+                id: Date.now().toString(),
+                nome: nomeProcesso,
+                cursosEPdis: cursosProcesso,
+                formacao: formacaoProcesso,
+                experiencia: {
+                    tempo: parseInt(tempoExpProcesso),
+                    unidade: unidadeExpProcesso
+                }
+            };
+            processos.push(novoProcesso);
+            document.getElementById('nome-processo').value = '';
+            document.getElementById('cursos-processo').value = '';
+            document.getElementById('formacao-processo').value = '';
+            document.getElementById('tempo-exp').value = '';
+            renderProcessos();
+            renderSelects();
+        }
+
+        function adicionarCandidato() {
+            const nomeCandidato = document.getElementById('nome-candidato').value.trim();
+            const dataNascimento = document.getElementById('data-nascimento').value;
+            const formacaoCandidato = document.getElementById('formacao-candidato').value.trim();
+            const cursosCandidato = document.getElementById('cursos-candidato').value.trim();
+            const tempoCandidato = document.getElementById('tempo-candidato').value.trim();
+            const unidadeCandidato = document.getElementById('unidade-candidato').value;
+            if (!nomeCandidato || !dataNascimento || !formacaoCandidato || !cursosCandidato || !tempoCandidato || !processoSelecionado) {
+                alert('Preencha todos os campos obrigatórios e selecione um processo');
+                return;
+            }
+            const novoCandidato = {
+                id: Date.now().toString(),
+                processoId: processoSelecionado,
+                nome: nomeCandidato,
+                dataNascimento,
+                experiencia: {
+                    tempo: parseInt(tempoCandidato),
+                    unidade: unidadeCandidato
+                },
+                formacao: formacaoCandidato,
+                cursosEPdis: cursosCandidato
+            };
+            const processo = processos.find(p => p.id === processoSelecionado);
+            if (processo) {
+                novoCandidato.compatibilidade = calcularCompatibilidade(novoCandidato, processo);
+            }
+            candidatos.push(novoCandidato);
+            document.getElementById('nome-candidato').value = '';
+            document.getElementById('data-nascimento').value = '';
+            document.getElementById('formacao-candidato').value = '';
+            document.getElementById('cursos-candidato').value = '';
+            document.getElementById('tempo-candidato').value = '';
+            renderSelects();
+        }
+
+        function renderProcessos() {
+            const grid = document.getElementById('processos-grid');
+            grid.innerHTML = '';
+            processos.forEach(processo => {
+                const count = candidatos.filter(c => c.processoId === processo.id).length;
+                const html = `
+                    <div class="hover:shadow-2xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm overflow-hidden rounded-xl">
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 pb-4 pt-6 px-6">
+                            <h3 class="text-xl font-bold text-gray-800">${processo.nome}</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3 text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-blue-600">Formação:</strong>
+                                    <span class="text-sm">${processo.formacao}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-blue-600">Cursos/PDIs:</strong>
+                                    <span class="text-sm">${processo.cursosEPdis}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-blue-600">Experiência:</strong>
+                                    <span class="text-sm">${processo.experiencia.tempo} ${processo.experiencia.unidade}</span>
+                                </div>
+                                <span class="inline-block mt-3 px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200 rounded-full text-sm">
+                                    ${count} candidatos
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        function renderRanking() {
+            const container = document.getElementById('ranking-container');
+            container.innerHTML = '';
+            if (!processoSelecionado) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-xl text-gray-500">Nenhum candidato encontrado para este processo.</p>
+                    </div>
+                `;
+                return;
+            }
+            let candidatosRankeados = candidatos
+                .filter(c => c.processoId === processoSelecionado)
+                .sort((a, b) => (b.compatibilidade || 0) - (a.compatibilidade || 0));
+            if (candidatosRankeados.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-xl text-gray-500">Nenhum candidato encontrado para este processo.</p>
+                    </div>
+                `;
+                return;
+            }
+            candidatosRankeados.forEach((candidato, index) => {
+                const colorClass = getCompatibilidadeColor(candidato.compatibilidade || 0);
+                const label = getCompatibilidadeLabel(candidato.compatibilidade || 0);
+                const html = `
+                    <div class="border-l-4 border-l-purple-500 hover:shadow-xl transition-all duration-300 bg-white/60 rounded-xl">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <span class="px-3 py-1 text-lg border-2 border-purple-300 rounded-full bg-white text-purple-600 font-bold">
+                                            #${index + 1}
+                                        </span>
+                                        <h3 class="font-bold text-2xl text-gray-800">${candidato.nome}</h3>
+                                        <span class="${colorClass} text-white px-4 py-2 text-lg font-semibold shadow-md rounded-full whitespace-pre-line text-center">
+                                            ${candidato.compatibilidade}%<br>
+                                            <span class="text-sm">${label}</span>
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-700">
+                                        <div class="space-y-1">
+                                            <strong class="text-purple-600">Formação:</strong>
+                                            <p class="text-sm">${candidato.formacao}</p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <strong class="text-purple-600">Experiência:</strong>
+                                            <p class="text-sm">${candidato.experiencia.tempo} ${candidato.experiencia.unidade}</p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <strong class="text-purple-600">Cursos:</strong>
+                                            <p class="text-sm">${candidato.cursosEPdis}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function renderSWOT() {
+            const uniqueForm = [...new Set(processos.map(p => p.formacao).filter(Boolean))];
+            document.getElementById('fortalezas-badges').innerHTML = uniqueForm.map(form => `
+                <span class="border border-green-300 text-green-700 bg-green-100 px-3 py-1 rounded-full text-sm">${form}</span>
+            `).join('');
+            document.getElementById('total-processos').textContent = processos.length;
+            const allCursos = processos.flatMap(p => p.cursosEPdis.split(',').map(c => c.trim()).filter(Boolean));
+            const uniqueCursos = [...new Set(allCursos)];
+            document.getElementById('oportunidades-badges').innerHTML = uniqueCursos.slice(0, 8).map(curso => `
+                <span class="border border-blue-300 text-blue-700 bg-blue-100 px-3 py-1 rounded-full text-sm">${curso}</span>
+            `).join('');
+            document.getElementById('total-candidatos').textContent = candidatos.length;
+            const fraquezas = ['Falta de diversidade em algumas áreas', 'Processos seletivos longos'];
+            document.getElementById('fraquezas-list').innerHTML = fraquezas.map(f => `
+                <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <p class="text-yellow-700 text-sm">${f}</p>
+                </div>
+            `).join('');
+            const media = candidatos.length > 0 ? Math.round(candidatos.reduce((acc, c) => acc + (c.compatibilidade || 0), 0) / candidatos.length) : 0;
+            document.getElementById('media-compat-swot').textContent = media + '%';
+            document.getElementById('media-compat').textContent = media + '%';
+            const qual = candidatos.filter(c => (c.compatibilidade || 0) >= 70).length;
+            document.getElementById('candidatos-qual').textContent = qual;
+            document.getElementById('processos-ativos').textContent = processos.length;
+            const ameacas = ['Concorrência por talentos', 'Mudanças tecnológicas rápidas'];
+            document.getElementById('ameacas-list').innerHTML = ameacas.map(a => `
+                <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <p class="text-red-700 text-sm">${a}</p>
+                </div>
+            `).join('');
+            const baixa = candidatos.filter(c => (c.compatibilidade || 0) < 40).length;
+            document.getElementById('baixa-compat').textContent = baixa;
+        }
+
+        function renderSelects() {
+            const selectIds = ['processo-select', 'processo-ranking'];
+            selectIds.forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">Escolha um processo seletivo</option>';
+                processos.forEach(p => {
+                    sel.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+                });
+                if (currentVal && processos.some(p => p.id === currentVal)) {
+                    sel.value = currentVal;
+                }
+            });
+        }
+
+        function setProcessoSelecionado(val) {
+            processoSelecionado = val;
+            if (activeTab === 'ranking') {
+                renderRanking();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const triggers = document.querySelectorAll('.tab-trigger');
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    activeTab = tab;
+                    triggers.forEach(t => t.classList.remove('active-class'));
+                    this.classList.add('active-class');
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+                    if (tab === 'processos') {
+                        renderProcessos();
+                        renderSelects();
+                    } else if (tab === 'ranking') {
+                        renderSelects();
+                        renderRanking();
+                    } else if (tab === 'swot') {
+                        renderSWOT();
+                    } else if (tab === 'candidatos') {
+                        renderSelects();
+                    }
+                });
+            });
+            document.querySelector('[data-tab="processos"]').classList.add('active-class');
+            document.getElementById('tab-content-processos').classList.remove('hidden');
+            renderProcessos();
+            renderSelects();
+        });
+    </script>
+</body>
+</html>
+```
