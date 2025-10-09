@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Orçamentário Pessoal Inteligente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white p-8">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-6">📊 Dashboard de Gestão Pessoal Orçamentária Inteligente</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- ENTRADAS -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold mb-4">💰 Entradas Mensais</h2>
+        <label class="block mb-2">Salário (R$):</label>
+        <input id="salario" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3500" />
+
+        <label class="block mt-4 mb-2">Bonificações (R$):</label>
+        <input id="bonus" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 500" />
+      </div>
+
+      <!-- DESPESAS -->
+      <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold mb-4">💸 Despesas</h2>
+        <label class="block mb-2">Recorrentes (R$):</label>
+        <input id="recorrentes" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 2000" />
+
+        <label class="block mt-4 mb-2">Ocasional/Fundamental (R$):</label>
+        <input id="ocasionais" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 800" />
+
+        <label class="block mt-4 mb-2">Extras (R$):</label>
+        <input id="extras" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 300" />
+
+        <label class="block mt-4 mb-2">Investimentos (R$):</label>
+        <input id="investimentos" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 400" />
+      </div>
+    </div>
+
+    <!-- BOTÃO -->
+    <div class="text-center mt-8">
+      <button onclick="calcular()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-bold">
+        Calcular Orçamento
+      </button>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div id="resultados" class="bg-gray-800 mt-10 p-6 rounded-2xl shadow-xl hidden">
+      <h2 class="text-2xl font-semibold mb-4">📈 Resultados</h2>
+      <p id="totalEntradas"></p>
+      <p id="totalDespesas"></p>
+      <p id="saldo"></p>
+      <hr class="my-4 border-gray-600" />
+
+      <h3 class="text-xl font-semibold mb-2">💹 Distribuição Percentual:</h3>
+      <p id="percentuais"></p>
+
+      <hr class="my-4 border-gray-600" />
+      <h3 class="text-xl font-semibold mb-2">🗓️ Projeções de Caixa:</h3>
+      <p id="diario"></p>
+      <p id="semanal"></p>
+      <p id="mensal"></p>
+
+      <hr class="my-4 border-gray-600" />
+      <h3 class="text-xl font-semibold mb-2">🤖 Sugestão Inteligente (IA):</h3>
+      <p id="promptIA" class="italic text-green-400"></p>
+    </div>
+  </div>
+
+  <script>
+    function calcular() {
+      const salario = parseFloat(document.getElementById("salario").value) || 0;
+      const bonus = parseFloat(document.getElementById("bonus").value) || 0;
+      const recorrentes = parseFloat(document.getElementById("recorrentes").value) || 0;
+      const ocasionais = parseFloat(document.getElementById("ocasionais").value) || 0;
+      const extras = parseFloat(document.getElementById("extras").value) || 0;
+      const investimentos = parseFloat(document.getElementById("investimentos").value) || 0;
+
+      const totalEntradas = salario + bonus;
+      const totalDespesas = recorrentes + ocasionais + extras + investimentos;
+      const saldo = totalEntradas - totalDespesas;
+
+      // Percentuais
+      const pRecorrente = ((recorrentes / totalEntradas) * 100).toFixed(1);
+      const pOcasional = ((ocasionais / totalEntradas) * 100).toFixed(1);
+      const pExtra = ((extras / totalEntradas) * 100).toFixed(1);
+      const pInvest = ((investimentos / totalEntradas) * 100).toFixed(1);
+
+      // Projeções
+      const diario = (saldo / 30).toFixed(2);
+      const semanal = (saldo / 7).toFixed(2);
+      const mensal = saldo.toFixed(2);
+
+      // Exibição
+      document.getElementById("resultados").classList.remove("hidden");
+      document.getElementById("totalEntradas").innerHTML = `💵 Total de Entradas: R$ ${totalEntradas.toFixed(2)}`;
+      document.getElementById("totalDespesas").innerHTML = `💳 Total de Despesas: R$ ${totalDespesas.toFixed(2)}`;
+      document.getElementById("saldo").innerHTML = `🧾 Saldo Final: <strong class="${saldo >= 0 ? 'text-green-400' : 'text-red-400'}">R$ ${saldo.toFixed(2)}</strong>`;
+
+      document.getElementById("percentuais").innerHTML = `
+        🏠 Despesas Recorrentes: ${pRecorrente}%<br>
+        🧺 Ocasional/Fundamental: ${pOcasional}%<br>
+        🎉 Extras: ${pExtra}%<br>
+        💼 Investimentos: ${pInvest}%<br>
+        <strong>Total = 100%</strong> (Meta ideal: 25% / 25% / 20% / 30%)
+      `;
+
+      document.getElementById("diario").innerHTML = `💡 Saldo Diário: R$ ${diario}`;
+      document.getElementById("semanal").innerHTML = `📆 Saldo Semanal: R$ ${semanal}`;
+      document.getElementById("mensal").innerHTML = `🗓️ Saldo Mensal: R$ ${mensal}`;
+
+      // IA – geração de prompt automático
+      let sugestao = "";
+      if (pRecorrente > 40) {
+        sugestao = "Suas despesas fixas ultrapassam a meta de 25%. Tente otimizar contas fixas como aluguel, energia e assinaturas.";
+      } else if (pOcasional > 30) {
+        sugestao = "Gastos ocasionais estão altos. Avalie se todos são realmente fundamentais.";
+      } else if (pExtra > 25) {
+        sugestao = "Despesas extras estão elevadas. Reduza lazer, delivery ou compras supérfluas.";
+      } else if (pInvest < 25) {
+        sugestao = "Invista mais: a meta ideal é destinar cerca de 30% do total mensal para investimentos e reserva.";
+      } else if (saldo < 0) {
+        sugestao = "Seu orçamento está negativo. Reveja gastos e estabeleça prioridade financeira.";
+      } else {
+        sugestao = "Excelente equilíbrio financeiro! Você está dentro do padrão 25/25/20/30.";
+      }
+
+      document.getElementById("promptIA").innerHTML = sugestao;
+    }
+  </script>
+</body>
+</html>
