@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard Profissional Modular — Investimentos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .tooltip { cursor:help; opacity:0.9; }
+  .tab { cursor:pointer; }
+  .small { font-size:0.85rem; color:#cbd5e1; }
+  .card-scroll { max-height:68vh; overflow:auto; padding-right:6px; }
+  pre { white-space:pre-wrap; word-break:break-word; }
+</style>
+</head>
+<body class="bg-gray-900 text-white">
+
+<div class="max-w-7xl mx-auto p-6">
+  <h1 class="text-3xl font-bold text-center mb-6">📊 Dashboard Profissional Modular — Investimentos</h1>
+
+  <!-- Tabs -->
+  <div class="mb-4">
+    <nav class="flex gap-2 flex-wrap">
+      <button class="tab px-4 py-2 rounded bg-sky-600" data-tab="fund">Modelos Fundamentais</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/80" data-tab="dcf">Fluxo de Caixa / Valor</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/60" data-tab="risk">Risco & Retorno</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/60" data-tab="div">Dividendos</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/60" data-tab="liquid">Liquidez / Estrutura</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/60" data-tab="tech">Técnicos / Preço</button>
+      <button class="tab px-4 py-2 rounded bg-sky-600/80" data-tab="op">Operacional / RH</button>
+      <button id="tabSummary" class="tab px-4 py-2 rounded bg-emerald-600 ml-auto" data-tab="summary">Resumo, Rankings & IA</button>
+    </nav>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left column: Inputs area (tabs) -->
+    <div class="col-span-2 bg-gray-800 p-4 rounded-2xl card-scroll">
+      <div id="panelArea">
+        <!-- FUNDAMENTALS -->
+        <section id="fund" class="tabPanel">
+          <h2 class="text-xl font-semibold mb-3">🔎 Modelos Fundamentais</h2>
+          <div class="grid grid-cols-2 gap-3">
+
+            <!-- Graham -->
+            <div class="bg-gray-700 p-3 rounded">
+              <div class="flex justify-between items-start">
+                <h3 class="font-semibold">Graham (Conservador / Agressivo)</h3>
+                <span class="tooltip small" title="Fórmula conservadora: Valor Intrínseco = EPS × (8.5 + 2 × g). Versão alternativa: √(22.5 × EPS × BVPS) (Graham tradicional)">ℹ️</span>
+              </div>
+              <p class="small mt-1">Ex: EPS=5, g=10% → VI = 5*(8.5+2*10)=5*(28.5)=142.5</p>
+              <label class="small mt-2">EPS (Lucro por ação)</label>
+              <input id="inp_eps" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 5"/>
+              <label class="small mt-2">Crescimento g (%)</label>
+              <input id="inp_g" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Book value por ação (VPA)</label>
+              <input id="inp_vpa" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 20"/>
+              <label class="small mt-2">Preço atual</label>
+              <input id="inp_price" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 50"/>
+            </div>
+
+            <!-- Bazin -->
+            <div class="bg-gray-700 p-3 rounded">
+              <div class="flex justify-between items-start">
+                <h3 class="font-semibold">Bazin</h3>
+                <span class="tooltip small" title="Fórmula: Valor Justo = Dividendos Anuais × 10 (ou multiplicador definido pelo investidor)">ℹ️</span>
+              </div>
+              <p class="small mt-1">Ex: Dividendo=3 → Valor Justo = 3×10 = 30</p>
+              <label class="small mt-2">Dividendo Anual por ação (D)</label>
+              <input id="inp_divBazin" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+            </div>
+
+            <!-- Gordon -->
+            <div class="bg-gray-700 p-3 rounded">
+              <div class="flex justify-between items-start">
+                <h3 class="font-semibold">Gordon (DDM)</h3>
+                <span class="tooltip small" title="Fórmula: P0 = D1 / (k - g). D1: dividendo esperado, k: taxa exigida, g: crescimento">ℹ️</span>
+              </div>
+              <p class="small mt-1">Ex: D1=2, k=0.10, g=0.03 → P0 = 2/(0.10-0.03) = 28.57</p>
+              <label class="small mt-2">Dividendo esperado D1</label>
+              <input id="inp_D1" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 2"/>
+              <label class="small mt-2">Taxa exigida k (%)</label>
+              <input id="inp_k" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Crescimento g (%)</label>
+              <input id="inp_g_gordon" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+            </div>
+
+            <!-- PEG, P/L, P/B, DY -->
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">P/L, PEG, P/VP, Dividend Yield</h3>
+              <p class="small mt-1">Exemplos: P/L = Preço / EPS; PEG = (P/L) / crescimento%</p>
+              <label class="small mt-2">Preço</label>
+              <input id="inp_price2" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 50"/>
+              <label class="small mt-2">Lucro por ação (EPS)</label>
+              <input id="inp_eps2" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 5"/>
+              <label class="small mt-2">Crescimento esperado (%)</label>
+              <input id="inp_growthPercent" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Valor patrimonial por ação (VPA)</label>
+              <input id="inp_vpa2" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 40"/>
+              <label class="small mt-2">Dividendos Anuais por ação</label>
+              <input id="inp_divYield_base" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+            </div>
+
+            <!-- EV/EBITDA -->
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">EV / EBITDA</h3>
+              <span class="tooltip small" title="EV = MarketCap + Dívida - Caixa; EV/EBITDA = EV / EBITDA">ℹ️</span>
+              <label class="small mt-2">EV (Enterprise Value)</label>
+              <input id="inp_ev" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 500000000"/>
+              <label class="small mt-2">EBITDA</label>
+              <input id="inp_ebitda" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 100000000"/>
+            </div>
+
+            <!-- EPS, ROE, ROA -->
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">EPS, ROE, ROA</h3>
+              <label class="small mt-2">Lucro Líquido</label>
+              <input id="inp_netIncome" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 4000000"/>
+              <label class="small mt-2">Patrimônio Líquido</label>
+              <input id="inp_equity" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 20000000"/>
+              <label class="small mt-2">Ativo Total</label>
+              <input id="inp_totalAssets" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 50000000"/>
+              <label class="small mt-2">Nº de ações em circulação</label>
+              <input id="inp_shares" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 1000000"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- DCF & FCFF/FCFE -->
+        <section id="dcf" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">💸 Fluxo de Caixa & Valuation</h2>
+
+          <div class="grid grid-cols-2 gap-3">
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">DCF (simplificado) — insira fluxos</h3>
+              <p class="small">Cole fluxos livres (FCF) por período separados por vírgula (ex: 50000,60000,70000)</p>
+              <textarea id="inp_cashflows" rows="3" class="w-full p-2 rounded text-black" placeholder="Ex: 50000,60000,70000"></textarea>
+              <label class="small mt-2">Taxa de desconto k (%)</label>
+              <input id="inp_k_dcf" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Valor Terminal (opcional)</label>
+              <input id="inp_terminal" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 1000000"/>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">FCFF / FCFE</h3>
+              <p class="small">Insira: EBIT, Impostos (%), Depreciação, CAPEX, ΔCapital de Giro, Juros, Empréstimos Líquidos</p>
+              <label class="small mt-2">EBIT</label><input id="inp_ebit" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">Taxa Impostos (%)</label><input id="inp_taxRate" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">Depreciação</label><input id="inp_dep" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">CAPEX</label><input id="inp_capex" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">Δ Capital de Giro</label><input id="inp_deltaWC" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">Juros pagos</label><input id="inp_interestPaid" type="number" class="w-full p-2 rounded text-black"/>
+              <label class="small mt-2">Empréstimos líquidos (LP)</label><input id="inp_netBorrowing" type="number" class="w-full p-2 rounded text-black"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- RISK & RETURN -->
+        <section id="risk" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">⚖️ Risco & Retorno</h2>
+          <div class="grid grid-cols-2 gap-3">
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">CAPM / Beta / Alpha</h3>
+              <p class="small">CAPM: RE = RF + β(RM-RF)</p>
+              <label class="small mt-2">Taxa livre RF (%)</label><input id="inp_rf" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+              <label class="small mt-2">Retorno Mercado RM (%)</label><input id="inp_rm" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Beta do ativo</label><input id="inp_beta" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 1.2"/>
+              <label class="small mt-2">Retorno Real (%) (para Alpha)</label><input id="inp_realReturn" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 12"/>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">Sharpe / Sortino / Treynor</h3>
+              <label class="small mt-2">Retorno da carteira (%)</label><input id="inp_portReturn" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 15"/>
+              <label class="small mt-2">Desvio padrão (%)</label><input id="inp_std" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 10"/>
+              <label class="small mt-2">Downside Std (%) (Sortino)</label><input id="inp_downStd" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 6"/>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">Maximum Drawdown & Volatilidade</h3>
+              <label class="small mt-2">Max Drawdown (%)</label><input id="inp_mdd" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 30"/>
+              <label class="small mt-2">Volatilidade anual σ (%)</label><input id="inp_vol" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 20"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- DIVIDENDOS -->
+        <section id="div" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">💰 Dividendos & Política</h2>
+          <div class="grid grid-cols-2 gap-3">
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">Payout / Retention / DY</h3>
+              <label class="small mt-2">Dividendos Anuais por Ação (D)</label><input id="inp_D" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+              <label class="small mt-2">Lucro por ação (EPS)</label><input id="inp_eps_div" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 5"/>
+              <label class="small mt-2">Preço da ação</label><input id="inp_price_div" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 50"/>
+            </div>
+
+            <div class="bg-gray-700 p-3 rounded">
+              <h3 class="font-semibold">Crescimento de Dividendos</h3>
+              <label class="small mt-2">Dividendo último D0</label><input id="inp_D0" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 2.5"/>
+              <label class="small mt-2">Dividendo esperado D1</label><input id="inp_D1div" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- LIQUIDEZ / ESTRUTURA -->
+        <section id="liquid" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">🏦 Liquidez & Estrutura de Capital</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">Caixa</label><input id="inp_cash" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Bancos</label><input id="inp_banks" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Contas a receber</label><input id="inp_ar" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Estoques</label><input id="inp_inventory2" type="number" class="w-full p-2 rounded text-black" />
+            </div>
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">Fornecedores (CP)</label><input id="inp_ap" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Empréstimos CP</label><input id="inp_shortDebt" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Dívida LP</label><input id="inp_longDebt" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Passivo Circulante (opcional)</label><input id="inp_currentLiab" type="number" class="w-full p-2 rounded text-black" />
+            </div>
+          </div>
+        </section>
+
+        <!-- TECHNICAL -->
+        <section id="tech" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">📊 Técnicos & Séries</h2>
+          <p class="small">Cole série de preços (fechamentos) separados por vírgula.</p>
+          <textarea id="inp_prices" rows="4" class="w-full p-2 rounded text-black" placeholder="Ex: 10,10.5,11,10.8,11.2"></textarea>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">RSI (14) — será calculado</label>
+              <p class="small">Último RSI será mostrado no resumo.</p>
+            </div>
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">MACD (EMA12-EMA26)</label>
+              <p class="small">MACD último será mostrado no resumo.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- OP / RH -->
+        <section id="op" class="tabPanel hidden">
+          <h2 class="text-xl font-semibold mb-3">🧑‍💼 Operacional e Gestão de Pessoas</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">Nº Colaboradores</label><input id="inp_emp" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Total despesas com pessoal</label><input id="inp_payroll" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Saídas no período</label><input id="inp_exits" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Colaboradores início período</label><input id="inp_empStart" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Colaboradores fim período</label><input id="inp_empEnd" type="number" class="w-full p-2 rounded text-black" />
+            </div>
+            <div class="bg-gray-700 p-3 rounded">
+              <label class="small mt-2">Horas não trabalhadas</label><input id="inp_hoursNot" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Horas programadas</label><input id="inp_hoursProg" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Pontuação satisfação (0-100)</label><input id="inp_sat" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Projetos entregues no prazo</label><input id="inp_projOnTime" type="number" class="w-full p-2 rounded text-black" />
+              <label class="small mt-2">Total projetos</label><input id="inp_projTotal" type="number" class="w-full p-2 rounded text-black" />
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Buttons row -->
+      <div class="flex gap-2 mt-4">
+        <button id="btnCalc" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded font-bold">Calcular Tudo</button>
+        <button id="btnSave" class="bg-sky-600 hover:bg-sky-700 px-4 py-2 rounded">Salvar (local)</button>
+        <button id="btnLoad" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">Carregar (local)</button>
+        <button id="btnExport" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Exportar CSV</button>
+        <button id="btnClear" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded ml-auto">Limpar campos</button>
+      </div>
+    </div>
+
+    <!-- Right column: Summary, charts, ranking -->
+    <div class="bg-gray-800 p-4 rounded-2xl">
+      <h2 class="text-xl font-semibold mb-3">📈 Resumo, Rankings & Gráficos</h2>
+
+      <div class="mb-4">
+        <canvas id="chartStacked" height="160"></canvas>
+      </div>
+
+      <div class="mb-4">
+        <h3 class="font-semibold">Radar por Categoria (média dos scores)</h3>
+        <canvas id="chartRadar" height="200"></canvas>
+      </div>
+
+      <div class="mb-3">
+        <label class="small">Filtrar ranking por categoria</label>
+        <select id="selCategory" class="w-full p-2 rounded text-black">
+          <option value="All">Todas as categorias</option>
+          <option value="Fundamentais">Fundamentais</option>
+          <option value="Fluxo de Caixa">Fluxo de Caixa</option>
+          <option value="Risco/Retorno">Risco/Retorno</option>
+          <option value="Dividendos">Dividendos</option>
+          <option value="Liquidez">Liquidez</option>
+          <option value="Técnicos">Técnicos</option>
+          <option value="Operacional / RH">Operacional / RH</option>
+        </select>
+      </div>
+
+      <div class="mb-3 flex gap-2">
+        <button id="sortAsc" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Do pior ao melhor</button>
+        <button id="sortDesc" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded">Do melhor ao pior</button>
+      </div>
+
+      <div id="ranking" class="text-sm space-y-1"></div>
+
+      <hr class="my-3 border-gray-700" />
+      <div>
+        <h3 class="font-semibold">Sugestão IA (resumo)</h3>
+        <div id="iaSuggestion" class="small p-2 bg-gray-900/50 rounded"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Detailed table -->
+  <div class="bg-gray-800 p-4 rounded-2xl mt-6">
+    <h2 class="text-xl font-semibold mb-3">📋 Tabela Detalhada de KPIs</h2>
+    <div id="tableDetailed" class="text-sm overflow-auto max-h-[40vh]"></div>
+  </div>
+
+</div>
+
+<script>
+/* -------------------------
+   Utility helpers
+   ------------------------- */
+function $(id){ return document.getElementById(id); }
+function toNum(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
+function round(v,dec=2){ if(v===null||v===undefined||isNaN(v)) return 'N/A'; return Math.round((v+Number.EPSILON)*Math.pow(10,dec))/Math.pow(10,dec); }
+function parseSeries(text){ if(!text) return []; return text.split(',').map(s=>parseFloat(s.trim())).filter(x=>!isNaN(x)); }
+
+/* RSI / EMA / SMA / MACD helpers (basic) */
+function sma(series,period){
+  if(!series || series.length < period) return null;
+  const res = [];
+  for(let i=0;i<=series.length-period;i++){
+    const s = series.slice(i,i+period);
+    res.push(s.reduce((a,b)=>a+b,0)/period);
+  }
+  return res;
+}
+function ema(series,period){
+  if(!series || series.length < period) return null;
+  const k = 2/(period+1);
+  let res=[ series.slice(0,period).reduce((a,b)=>a+b,0)/period ];
+  for(let i=period;i<series.length;i++){
+    res.push(series[i]*k + res[res.length-1]*(1-k));
+  }
+  return res;
+}
+function rsi(series,period=14){
+  if(!series || series.length <= period) return null;
+  let gains=0,losses=0;
+  for(let i=1;i<=period;i++){
+    const diff = series[i]-series[i-1];
+    if(diff>0) gains+=diff; else losses+=Math.abs(diff);
+  }
+  let avgGain = gains/period, avgLoss = losses/period;
+  const out=[];
+  for(let i=period+1;i<series.length;i++){
+    const diff = series[i]-series[i-1];
+    if(diff>0){ avgGain = (avgGain*(period-1)+diff)/period; avgLoss = (avgLoss*(period-1))/period; }
+    else { avgLoss = (avgLoss*(period-1)+Math.abs(diff))/period; avgGain = (avgGain*(period-1))/period; }
+    const rs = avgLoss===0? 100 : (avgGain/avgLoss);
+    const r = 100 - (100/(1+rs));
+    out.push(r);
+  }
+  return out;
+}
+function macd(series){
+  const e12 = ema(series,12);
+  const e26 = ema(series,26);
+  if(!e12 || !e26) return null;
+  // align e12 end with e26 end
+  const offset = e12.length - e26.length;
+  const out=[];
+  for(let i=0;i<e26.length;i++){
+    out.push(e12[i+offset]-e26[i]);
+  }
+  return out;
+}
+
+/* -------------------------
+   Thresholds and classification map
+   ------------------------- */
+const TH = {
+  // thresholds are tuned as examples; adjust to sector
+  'Graham_ratio': {ruim:1.2, medio:0.95}, // ratio price/VI: ideal <1 (price < VI)
+  'EV_EBITDA': {ruim:10, medio:6},
+  'PEG': {ruim:2, medio:1},
+  'DY': {ruim:2, medio:5}, // percent
+  'P_E': {ruim:25, medio:15},
+  'P_B': {ruim:3, medio:1},
+  'ROE': {ruim:0.10, medio:0.15}, // ratio
+  'ROA': {ruim:0.05, medio:0.10},
+  'CAPM_excess': {ruim:-0.01, medio:0.01},
+  'Sharpe': {ruim:0.5, medio:1},
+  'Sortino': {ruim:0.5, medio:1},
+  'Treynor': {ruim:0.05, medio:0.1},
+  'Beta': {ruim:1.5, medio:1.0},
+  'MDD': {ruim:50, medio:20}, // percent
+  'RSI': {ruim:80, medio:70}, // high->overbought bad
+  'PAYOUT': {ruim:80, medio:50}, // percent (higher may be risky)
+  'Liquidity_current': {ruim:0.8, medio:1.2},
+  'Debt_equity': {ruim:2.0, medio:1.0}
+};
+
+function classify(value, key){
+  if(value===null || value===undefined || value==='N/A') return 'N/A';
+  const t = TH[key];
+  if(!t) return 'N/A';
+  // decide direction: for many metrics lower is better (EV/EBITDA, PEG, P/E) — we'll assume:
+  const lowerBetterKeys = ['EV_EBITDA','PEG','P_E','P_B','MDD','RSI','Debt_equity'];
+  const higherBetterKeys = ['ROE','ROA','Sharpe','Sortino','Treynor','DY','Liquidity_current'];
+  if(lowerBetterKeys.includes(key)){
+    if(value >= t.ruim) return 'Ruim';
+    if(value >= t.medio) return 'Médio';
+    return 'Bom';
+  } else if(higherBetterKeys.includes(key)){
+    if(value <= t.ruim) return 'Ruim';
+    if(value <= t.medio) return 'Médio';
+    return 'Bom';
+  } else {
+    // fallback for others: treat higher better
+    if(value <= t.ruim) return 'Ruim';
+    if(value <= t.medio) return 'Médio';
+    return 'Bom';
+  }
+}
+
+/* -------------------------
+   Core calculation function
+   ------------------------- */
+let chartStacked = null, chartRadar = null;
+
+function calcAllAndRender(){
+  // --- Read inputs (many)
+  // Fundamentals / valuation
+  const EPS = toNum($('inp_eps').value) ?? toNum($('inp_eps2').value);
+  const g = (toNum($('inp_g').value) ?? 0)/100;
+  const VPA = toNum($('inp_vpa').value) ?? toNum($('inp_vpa2').value);
+  const price = toNum($('inp_price').value) ?? toNum($('inp_price2').value) ?? toNum($('inp_price_div').value);
+  const shares = toNum($('inp_shares').value);
+  const marketCap = shares && price ? shares * price : null;
+
+  // Bazin/Gordon inputs
+  const divBazin = toNum($('inp_divBazin').value) ?? toNum($('inp_divYield_base').value) ?? toNum($('inp_D').value);
+  const D1 = toNum($('inp_D1').value) ?? toNum($('inp_D1div').value);
+  const k = (toNum($('inp_k').value) ?? 10)/100;
+  const g_gordon = (toNum($('inp_g_gordon').value) ?? (toNum($('inp_growthPercent').value) ?? 0))/100;
+
+  // EV / EBITDA
+  const EV = toNum($('inp_ev').value);
+  const EBITDA = toNum($('inp_ebitda').value) ?? toNum($('inp_ebit').value) + toNum($('inp_dep').value) || null;
+
+  // EPS, P/L, P/B
+  const EPS2 = toNum($('inp_eps2').value) ?? EPS;
+  const price2 = toNum($('inp_price2').value) ?? price;
+  const growthPercent = (toNum($('inp_growthPercent').value) ?? (g*100)) /100;
+
+  // ROE, ROA
+  const netIncome = toNum($('inp_netIncome').value);
+  const equity = toNum($('inp_equity').value);
+  const totalAssets = toNum($('inp_totalAssets').value);
+
+  // DCF inputs
+  const cashflows = parseSeries($('inp_cashflows').value);
+  const k_dcf = (toNum($('inp_k_dcf').value) ?? 10)/100;
+  const terminal = toNum($('inp_terminal').value);
+
+  // FCFF/FCFE
+  const EBIT = toNum($('inp_ebit').value);
+  const taxRate = (toNum($('inp_taxRate').value) ?? 0)/100;
+  const dep = toNum($('inp_dep').value);
+  const capex = toNum($('inp_capex').value) ?? toNum($('inp_capex').value);
+  const deltaWC = toNum($('inp_deltaWC').value);
+  const interestPaid = toNum($('inp_interestPaid').value) ?? 0;
+  const netBorrowing = toNum($('inp_netBorrowing').value) ?? 0;
+
+  // Risk & return
+  const RF = (toNum($('inp_rf').value) ?? 3)/100;
+  const RM = (toNum($('inp_rm').value) ?? 10)/100;
+  const beta = toNum($('inp_beta').value) ?? toNum($('inp_beta').value) ?? 0;
+  const realReturn = (toNum($('inp_realReturn').value) ?? 0)/100;
+  const portReturn = (toNum($('inp_portReturn').value) ?? 0)/100;
+  const std = (toNum($('inp_std').value) ?? 0)/100;
+  const downStd = (toNum($('inp_downStd').value) ?? 0)/100;
+
+  // MDD, vol
+  const mdd = toNum($('inp_mdd').value);
+  const vol = (toNum($('inp_vol').value) ?? 0)/100;
+
+  // Dividends
+  const D = toNum($('inp_D').value) ?? toNum($('inp_divYield_base').value);
+  const EPS_div = toNum($('inp_eps_div').value) ?? EPS;
+  const price_div = toNum($('inp_price_div').value) ?? price;
+  const D0 = toNum($('inp_D0').value);
+  const D1_div = toNum($('inp_D1div').value) ?? D1;
+
+  // Liquidity & structure
+  const cash = toNum($('inp_cash').value) ?? toNum($('inp_cash').value);
+  const banks = toNum($('inp_banks').value);
+  const ar = toNum($('inp_ar').value);
+  const inv = toNum($('inp_inventory2').value);
+  const ap = toNum($('inp_ap').value);
+  const shortDebt = toNum($('inp_shortDebt').value);
+  const longDebt = toNum($('inp_longDebt').value);
+  const currentLiab = toNum($('inp_currentLiab').value) ?? (ap + shortDebt);
+
+  // Technical series
+  const priceSeries = parseSeries($('inp_prices').value);
+
+  // Operational / HR
+  const emp = toNum($('inp_emp').value);
+  const payroll = toNum($('inp_payroll').value);
+  const exits = toNum($('inp_exits').value);
+  const empStart = toNum($('inp_empStart').value) ?? emp;
+  const empEnd = toNum($('inp_empEnd').value) ?? emp;
+  const hoursNot = toNum($('inp_hoursNot').value);
+  const hoursProg = toNum($('inp_hoursProg').value);
+  const sat = toNum($('inp_sat').value);
+  const projOnTime = toNum($('inp_projOnTime').value);
+  const projTotal = toNum($('inp_projTotal').value);
+
+  // --- Calculations
+
+  const results = {}; // store name->{value,formula,explain,category}
+
+  // FUNDAMENTALS
+  // Graham conservative (EPS*(8.5+2*g*100? we used g in ratio) ) and alternative sqrt formula
+  const g_pct = (toNum($('inp_g').value) ?? 0); // percent
+  const grahamConserv = (EPS!==null) ? EPS * (8.5 + 2 * g_pct) : null;
+  const grahamSqrt = (EPS!==null && VPA!==null) ? Math.sqrt(22.5 * EPS * VPA) : null;
+  const grahamAgg = grahamConserv !== null ? grahamConserv * 1.2 : null;
+  results['Graham (conservador VI)'] = { value: grahamConserv, formula:'EPS * (8.5 + 2 * g%)', explain:'Valor intrínseco segundo Graham (conservador). Usado para margem de segurança.', category:'Fundamentais', example:`EPS=${EPS}, g%=${g_pct}` };
+  results['Graham (sqrt clássico)'] = { value: grahamSqrt, formula:'√(22.5 × EPS × VPA)', explain:'Fórmula clássica de Graham, alternativa para valuation conservador.', category:'Fundamentais', example:`EPS=${EPS}, VPA=${VPA}` };
+  results['Graham (agressivo)'] = { value: grahamAgg, formula:'Graham_conservador × 1.2', explain:'Versão mais agressiva do valuation Graham.', category:'Fundamentais' };
+
+  // Bazin
+  const bazinVal = divBazin !== null ? divBazin * 10 : null;
+  results['Bazin (valor)'] = { value: bazinVal, formula:'Dividendo Anual × 10', explain:'Focado em empresas pagadoras de dividendos. Valor justo segundo Bazin.', category:'Fundamentais', example:`Dividendo=${divBazin}` };
+
+  // Gordon
+  const gordonVal = (D1 !== null && k !== null && g_gordon !== null && (k > g_gordon)) ? (D1 / (k - g_gordon)) : null;
+  results['Gordon (P0)'] = { value: gordonVal, formula:'D1 / (k - g)', explain:'Modelo de desconto de dividendos (crescimento estável).', category:'Fundamentais', example:`D1=${D1}, k=${k}, g=${g_gordon}` };
+
+  // PEG, P/E, P/B, DY
+  const P_E = (price2 && EPS2) ? (price2 / EPS2) : null;
+  const PEG = (P_E !== null && growthPercent) ? (P_E / (growthPercent*100)) : null; // careful: growthPercent is fraction; user may intend %; we use growthPercent already fraction
+  const P_B = (price2 && VPA) ? (price2 / VPA) : null;
+  const DY = (toNum($('inp_divYield_base').value) !== null && price2) ? (toNum($('inp_divYield_base').value) / price2 * 100) : ((D && price_div) ? (D / price_div * 100) : null);
+
+  results['P/L (P/E)'] = { value: P_E, formula:'Preço / EPS', explain:'Avalia quanto investidores pagam por unidade de lucro.', category:'Fundamentais' };
+  results['PEG'] = { value: PEG, formula:'P/E ÷ Crescimento (%)', explain:'Ajusta P/E pelo crescimento — útil para empresas de crescimento.', category:'Fundamentais' };
+  results['P/VP (P/B)'] = { value: P_B, formula:'Preço / VPA', explain:'Compara preço ao valor contábil por ação.', category:'Fundamentais' };
+  results['Dividend Yield (%)'] = { value: DY, formula:'Dividendo Anual / Preço ×100', explain:'Retorno direto de dividendos sobre o preço.', category:'Fundamentais' };
+
+  // EV/EBITDA
+  const evEbitda = (EV !== null && EBITDA !== null && EBITDA !== 0) ? (EV/EBITDA) : null;
+  results['EV/EBITDA'] = { value: evEbitda, formula:'EV / EBITDA', explain:'Avalia preço da firma em relação à capacidade operacional (comparável por setor).', category:'Fundamentais' };
+
+  // ROE/ROA/EPS
+  const ROE = (netIncome !== null && equity !== null && equity!==0) ? (netIncome / equity) : null;
+  const ROA = (netIncome !== null && totalAssets !== null && totalAssets!==0) ? (netIncome / totalAssets) : null;
+  const EPS_calc = (netIncome !== null && shares !== null && shares!==0) ? (netIncome / shares) : EPS2;
+  results['EPS (calculado)'] = { value: EPS_calc, formula:'Lucro Líquido / Nº ações', explain:'Lucro por ação; base para P/E e valuation.', category:'Fundamentais' };
+  results['ROE'] = { value: ROE, formula:'Lucro Líquido / Patrimônio Líquido', explain:'Retorno sobre o capital próprio — eficiência de uso do capital.', category:'Fundamentais' };
+  results['ROA'] = { value: ROA, formula:'Lucro Líquido / Ativo Total', explain:'Eficiência em gerar lucro sobre ativos.', category:'Fundamentais' };
+
+  // DCF
+  let dcfValue = null;
+  if(cashflows && cashflows.length){
+    let pv=0;
+    for(let i=0;i<cashflows.length;i++){
+      pv += cashflows[i]/Math.pow(1+k_dcf,(i+1));
+    }
+    if(terminal) pv += terminal/Math.pow(1+k_dcf,cashflows.length+1);
+    dcfValue = pv;
+  }
+  results['DCF (VP)'] = { value: dcfValue, formula:'Σ FCF/(1+k)^t', explain:'Valuation via desconto de fluxos de caixa livres.', category:'Fluxo de Caixa' };
+
+  // FCFF, FCFE
+  const FCFF = (EBIT !== null) ? (EBIT*(1-taxRate) + dep - capex - (deltaWC||0)) : null;
+  const FCFE = (FCFF !== null) ? (FCFF - interestPaid*(1-taxRate) + (netBorrowing||0)) : null;
+  results['FCFF'] = { value: FCFF, formula:'EBIT*(1-T)+Dep - CAPEX - ΔWC', explain:'Fluxo de caixa disponível para toda a firma.', category:'Fluxo de Caixa' };
+  results['FCFE'] = { value: FCFE, formula:'FCFF - Juros*(1-T) + Empréstimos', explain:'Fluxo de caixa disponível para acionistas.', category:'Fluxo de Caixa' };
+
+  // EVA & ROIC (simplified)
+  const NOPAT = EBIT !== null ? (EBIT*(1-taxRate)) : null;
+  const CapitalInvested = totalAssets !== null && equity !== null ? (totalAssets - (toNum($('inp_longDebt').value) || 0)) : null;
+  const ROIC = (NOPAT !== null && CapitalInvested !== null && CapitalInvested!==0) ? (NOPAT / CapitalInvested) : null;
+  const EVA = (NOPAT !== null && CapitalInvested !== null) ? (NOPAT - CapitalInvested*(k_dcf)) : null;
+  results['EVA'] = { value: EVA, formula:'NOPAT - Capital * custo', explain:'Mede criação de valor econômico acima do custo do capital.', category:'Fluxo de Caixa' };
+  results['ROIC'] = { value: ROIC, formula:'NOPAT / Capital Investido', explain:'Eficiência no uso do capital investido.', category:'Fluxo de Caixa' };
+
+  // CAPM / Beta / Alpha
+  const CAPM = RF + (beta * (RM - RF));
+  const alpha = realReturn - CAPM;
+  results['CAPM (expected)'] = { value: CAPM, formula:'RF + β(RM-RF)', explain:'Retorno esperado baseado em risco sistemático.', category:'Risco/Retorno' };
+  results['Alpha'] = { value: alpha, formula:'Retorno Real - CAPM', explain:'Performance acima do esperado dado risco de mercado.', category:'Risco/Retorno' };
+
+  // Sharpe / Sortino / Treynor
+  const Sharpe = (portReturn - RF) / (std || 1);
+  const Sortino = (portReturn - RF) / (downStd || 1);
+  const Treynor = (portReturn - RF) / (beta || 1);
+  results['Sharpe'] = { value: Sharpe, formula:'(Rp-Rf)/σp', explain:'Retorno por unidade de risco total (volatilidade).', category:'Risco/Retorno' };
+  results['Sortino'] = { value: Sortino, formula:'(Rp-Rf)/σd', explain:'Sem penalizar volatilidade positiva; foca perdas.', category:'Risco/Retorno' };
+  results['Treynor'] = { value: Treynor, formula:'(Rp-Rf)/β', explain:'Retorno por unidade de risco sistemático.', category:'Risco/Retorno' };
+
+  // MDD/Vol
+  results['MDD (%)'] = { value: mdd, formula:'(Max-Min)/Max', explain:'Maior perda histórica; risco de queda.', category:'Risco/Retorno' };
+  results['Volatilidade (%)'] = { value: vol*100, formula:'σ anual', explain:'Medida de risco total (desvio padrão).', category:'Risco/Retorno' };
+
+  // Dividend metrics
+  const payout = (D !== null && EPS_div !== null && EPS_div!==0) ? (D / EPS_div * 100) : null;
+  const retention = (payout !== null) ? (100 - payout) : null;
+  const divGrowth = (D0 !== null && D1_div !== null && D0!==0) ? ((D1_div - D0)/D0*100) : null;
+  results['Dividend Yield (%)'] = { value: DY, formula:'Dividendo / Preço ×100', explain:'Rentabilidade por dividendos', category:'Dividendos' };
+  results['Payout (%)'] = { value: payout, formula:'Dividendos / Lucro ×100', explain:'Percentual do lucro distribuído', category:'Dividendos' };
+  results['Retention (%)'] = { value: retention, formula:'100 - Payout', explain:'Percentual reinvestido', category:'Dividendos' };
+  results['Dividend Growth (%)'] = { value: divGrowth, formula:'(D1-D0)/D0 ×100', explain:'Crescimento de dividendos ano a ano', category:'Dividendos' };
+
+  // Liquidity ratios
+  const currentAssets = (cash||0) + (banks||0) + (ar||0) + (inv||0);
+  const currentRatio = (currentAssets && currentLiab) ? (currentAssets / currentLiab) : null;
+  const quickRatio = (currentAssets && inv!==null && currentLiab) ? ((currentAssets - inv)/currentLiab) : null;
+  const debtEquity = (longDebt !== null && equity !== null && equity!==0) ? ((longDebt + shortDebt)/equity) : null;
+  results['Current Ratio'] = { value: currentRatio, formula:'Ativo Circulante / Passivo Circulante', explain:'Liquidez de curto prazo', category:'Liquidez' };
+  results['Quick Ratio'] = { value: quickRatio, formula:'(Ativo Circulante - Estoque) / Passivo Circulante', explain:'Liquidez sem depender de estoque', category:'Liquidez' };
+  results['Debt / Equity'] = { value: debtEquity, formula:'Dívida / Patrimônio', explain:'Grau de alavancagem financeira', category:'Liquidez' };
+
+  // Technical indicators
+  let lastRSI = null, lastMACD = null;
+  if(priceSeries && priceSeries.length>0){
+    const r = rsi(priceSeries,14);
+    lastRSI = r && r.length ? r[r.length-1] : null;
+    const m = macd(priceSeries);
+    lastMACD = m && m.length ? m[m.length-1] : null;
+  }
+  results['RSI (último)'] = { value: lastRSI, formula:'RSI(14) do series', explain:'Indicador de sobrecompra/sobrevenda', category:'Técnicos' };
+  results['MACD (último)'] = { value: lastMACD, formula:'EMA12 - EMA26', explain:'Momentum e cruzamentos de média', category:'Técnicos' };
+
+  // Operational / HR KPIs
+  const productivity = (emp && totalAssets) ? (totalAssets / emp) : null;
+  const costPerEmployee = (emp && payroll) ? (payroll / emp) : null;
+  const turnover = (exits && ((empStart && empEnd)? ((empStart+empEnd)/2) : emp)) ? (exits/((empStart+empEnd)/2)*100) : null;
+  const absenteeism = (hoursNot && hoursProg) ? (hoursNot / hoursProg * 100) : null;
+  const projOnTimePct = (projOnTime && projTotal) ? (projOnTime / projTotal * 100) : null;
+
+  results['Produtividade por colaborador'] = { value: productivity, formula:'Receita/Colaborador (proxy)', explain:'Eficiência por colaborador', category:'Operacional / RH' };
+  results['Custo por colaborador'] = { value: costPerEmployee, formula:'Despesas pessoais / Nº colaboradores', explain:'Custo médio por funcionário', category:'Operacional / RH' };
+  results['Turnover (%)'] = { value: turnover, formula:'Saídas / média colaboradores *100', explain:'Taxa de rotatividade', category:'Operacional / RH' };
+  results['Absenteísmo (%)'] = { value: absenteeism, formula:'Horas não trabalhadas / horas programadas *100', explain:'Indicador de faltas/afastamentos', category:'Operacional / RH' };
+  results['Projetos no prazo (%)'] = { value: projOnTimePct, formula:'Projetos no prazo / total *100', explain:'Cumprimento de cronogramas', category:'Operacional / RH' };
+
+  // ---- Build table and classifications ----
+  const tableDiv = $('tableDetailed');
+  let html = `<table class="min-w-full text-xs"><thead><tr class="text-left text-gray-300"><th>Indicador</th><th>Valor</th><th>Classificação</th><th>Fórmula</th><th>Para que serve</th></tr></thead><tbody>`;
+  const categories = {}; // for radar and stacked
+  for(const key in results){
+    const r = results[key];
+    const cat = r.category || 'Outros';
+    if(!categories[cat]) categories[cat] = [];
+    // classification key mapping heuristics
+    let clsKey = null;
+    if(key.includes('Graham')) clsKey='Graham_ratio';
+    else if(key==='EV/EBITDA') clsKey='EV_EBITDA';
+    else if(key==='PEG') clsKey='PEG';
+    else if(key==='Dividend Yield (%)') clsKey='DY';
+    else if(key==='P/L (P/E)') clsKey='P_E';
+    else if(key==='P/VP (P/B)') clsKey='P_B';
+    else if(key==='ROE') clsKey='ROE';
+    else if(key==='ROA') clsKey='ROA';
+    else if(key==='CAPM (expected)') clsKey='CAPM_excess';
+    else if(key==='Sharpe') clsKey='Sharpe';
+    else if(key==='Sortino') clsKey='Sortino';
+    else if(key==='Treynor') clsKey='Treynor';
+    else if(key==='Beta') clsKey='Beta';
+    else if(key==='MDD (%)') clsKey='MDD';
+    else if(key==='RSI (último)') clsKey='RSI';
+    else if(key==='Payout (%)') clsKey='PAYOUT';
+    else if(key==='Debt / Equity') clsKey='Debt_equity';
+    else if(key==='Current Ratio') clsKey='Liquidity_current';
+    else clsKey = null;
+
+    let classif='N/A';
+    if(clsKey) classif = classify(r.value, clsKey);
+    // score numeric for radar (1=ruim,2=médio,3=bom scaled to 0-100)
+    let score = null;
+    if(classif==='Bom') score=100;
+    else if(classif==='Médio') score=50;
+    else if(classif==='Ruim') score=0;
+    else score = r.value!==null && typeof r.value==='number' ? Math.min(100,Math.max(0, r.value)) : 0;
+
+    categories[cat].push(score);
+
+    const color = classif==='Bom'? 'bg-green-600': classif==='Médio'? 'bg-yellow-500' : classif==='Ruim'? 'bg-red-600' : 'bg-gray-600';
+    html += `<tr class="border-t border-gray-700"><td class="py-1 pr-2">${key}</td><td>${(r.value===null?'N/A':round(r.value,3))}</td><td><span class="px-2 py-0.5 rounded ${color}">${classif}</span></td><td class="text-gray-400">${r.formula||''}</td><td class="text-gray-300">${r.explain||''}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  tableDiv.innerHTML = html;
+
+  // ---- Build stacked chart data (percent bom/medio/ruim per category) ----
+  const catLabels = Object.keys(categories);
+  const bomArr = [], medArr = [], ruimArr = [];
+  for(const c of catLabels){
+    const arr = categories[c];
+    const total = arr.length;
+    const bom = arr.filter(x=>x===100).length;
+    const med = arr.filter(x=>x===50).length;
+    const ruim = arr.filter(x=>x===0).length;
+    bomArr.push(total? (bom/total*100):0);
+    medArr.push(total? (med/total*100):0);
+    ruimArr.push(total? (ruim/total*100):0);
+  }
+
+  const ctxStack = $('chartStacked').getContext('2d');
+  if(chartStacked) chartStacked.destroy();
+  chartStacked = new Chart(ctxStack, {
+    type:'bar',
+    data:{
+      labels:catLabels,
+      datasets:[
+        { label:'Bom (%)', data:bomArr, backgroundColor:'#16a34a' },
+        { label:'Médio (%)', data:medArr, backgroundColor:'#f59e0b' },
+        { label:'Ruim (%)', data:ruimArr, backgroundColor:'#ef4444' }
+      ]
+    },
+    options:{ responsive:true, scales:{ y:{ beginAtZero:true, max:100 } } }
+  });
+
+  // Radar chart (average score per category)
+  const radarLabels = catLabels;
+  const radarData = radarLabels.map(l => {
+    const arr = categories[l];
+    if(!arr || arr.length===0) return 0;
+    return Math.round(arr.reduce((a,b)=>a+(b||0),0)/arr.length);
+  });
+  const ctxRadar = $('chartRadar').getContext('2d');
+  if(chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(ctxRadar, {
+    type:'radar',
+    data:{
+      labels:radarLabels,
+      datasets:[{ label:'Score médio por categoria', data:radarData, backgroundColor:'rgba(34,197,94,0.2)', borderColor:'#22c55e', pointBackgroundColor:'#22c55e' }]
+    },
+    options:{ responsive:true, scales:{ r:{ beginAtZero:true, max:100 } } }
+  });
+
+  // Ranking (combined list)
+  const rankingDiv = $('ranking');
+  const allItems = [];
+  for(const key in results){
+    // determine class again
+    let clsKey=null;
+    if(key.includes('Graham')) clsKey='Graham_ratio';
+    else if(key==='EV/EBITDA') clsKey='EV_EBITDA';
+    else if(key==='PEG') clsKey='PEG';
+    else if(key==='Dividend Yield (%)') clsKey='DY';
+    else if(key==='P/L (P/E)') clsKey='P_E';
+    else if(key==='P/VP (P/B)') clsKey='P_B';
+    else if(key==='ROE') clsKey='ROE';
+    else if(key==='ROA') clsKey='ROA';
+    else if(key==='CAPM (expected)') clsKey='CAPM_excess';
+    else if(key==='Sharpe') clsKey='Sharpe';
+    else if(key==='Sortino') clsKey='Sortino';
+    else if(key==='Treynor') clsKey='Treynor';
+    else if(key==='Beta') clsKey='Beta';
+    else if(key==='MDD (%)') clsKey='MDD';
+    else if(key==='RSI (último)') clsKey='RSI';
+    else if(key==='Payout (%)') clsKey='PAYOUT';
+    else if(key==='Debt / Equity') clsKey='Debt_equity';
+    else clsKey=null;
+    const r = results[key];
+    const clas = clsKey? classify(r.value,clsKey) : 'N/A';
+    let score = (clas==='Bom')?3 : (clas==='Médio')?2 : (clas==='Ruim')?1 : 0;
+    allItems.push({ name:key, score, value:r.value, classif:clas, category:r.category });
+  }
+  // store ranking data
+  window._rankingFull = allItems;
+
+  // Show top 10 by default
+  renderRanking('All','desc');
+
+  // IA suggestion: build explanation based on counts
+  const counts = { bom:0, med:0, ruim:0 };
+  allItems.forEach(i=>{ if(i.classif==='Bom') counts.bom++; else if(i.classif==='Médio') counts.med++; else if(i.classif==='Ruim') counts.ruim++; });
+  const tot = allItems.length;
+  let suggestion = '';
+  if(counts.ruim / tot > 0.3){
+    suggestion += '⚠️ ALERTA: Uma parte significativa dos indicadores está RUIM. Priorize avaliação de liquidez e endividamento, reduza alavancagem e reveja política de dividendos. Considere reduzir exposição ou operar hedge.\n\n';
+  } else if(counts.bom / tot > 0.5){
+    suggestion += '✅ Situação Favorável: Maioria dos indicadores está em nível BOM. A empresa apresenta sinais positivos — avalie posição crescente com gerenciamento do risco (tamanho de posição, stop loss) e monitoramento contínuo.\n\n';
+  } else {
+    suggestion += 'ℹ️ Situação Mista: Indicadores mostram pontos fortes e fracos. Priorize ações para corrigir indicadores críticos: caixa, cobertura de juros, MDD e eficiência operacional.\n\n';
+  }
+  // Add concrete next steps
+  suggestion += 'Sugestões práticas:\n';
+  suggestion += '- Se Liquidez estiver fraca (Current Ratio baixo): priorize aumentar reserva de caixa ou renegociar passivos de curto prazo.\n';
+  suggestion += '- Se Dívida/Equity alta: reavalie capital structure, considerar amortização de dívida ou aumento de equity.\n';
+  suggestion += '- Se Payout elevado (>80%): cuidado com sustentabilidade; considere corte de dividendos para reinvestimento.\n';
+  suggestion += '- Se MDD alto: ajuste tamanho de posição e definir estratégia de saída (stop) e hedge.\n';
+  suggestion += '- Se Graham/Gordon indicam subavaliação (valor > preço): avaliar compra com escala e stop. Caso contrário, aguardar sinal de reversão.\n\n';
+  suggestion += 'Próximos passos: rodar DCF com cenários de crescimento (base/moderado/otimista), simular impacto de redução de custos e stress test do fluxo de caixa.';
+
+  $('iaSuggestion').innerText = suggestion;
+
+  // Save last results in memory for export/save
+  window._lastResults = { results, categories, allItems };
+
+}
+
+/* --------------
+   Ranking render and interactions
+   -------------- */
+function renderRanking(category, order='desc'){
+  const container = $('ranking');
+  const data = window._rankingFull || [];
+  let filtered = data;
+  if(category && category !== 'All') filtered = data.filter(d=>d.category === category);
+  if(order==='desc') filtered = filtered.sort((a,b)=>b.score - a.score || (b.value||0)-(a.value||0));
+  else filtered = filtered.sort((a,b)=>a.score - b.score || (a.value||0)-(b.value||0));
+  container.innerHTML = '';
+  filtered.forEach((it,idx)=>{
+    const color = it.classif==='Bom' ? 'bg-green-600' : it.classif==='Médio' ? 'bg-yellow-500' : it.classif==='Ruim' ? 'bg-red-600' : 'bg-gray-600';
+    container.innerHTML += `<div class="p-2 rounded ${color}"><strong>${idx+1}. ${it.name}</strong> — ${it.classif} — ${it.category} — Valor: ${it.value===null?'N/A':it.value}</div>`;
+  });
+}
+
+/* --------------
+   Save / Load / Export
+   -------------- */
+$('btnSave').addEventListener('click', ()=>{
+  const state = {};
+  // gather all input values
+  document.querySelectorAll('input,textarea,select').forEach(el=>{
+    state[el.id] = el.value;
+  });
+  localStorage.setItem('investDashState', JSON.stringify(state));
+  alert('Salvo localmente.');
+});
+$('btnLoad').addEventListener('click', ()=>{
+  const s = localStorage.getItem('investDashState');
+  if(!s) return alert('Nenhum salvamento local encontrado.');
+  const state = JSON.parse(s);
+  for(const id in state) { const el = $(id); if(el) el.value = state[id]; }
+  alert('Carregado.');
+});
+
+$('btnExport').addEventListener('click', ()=>{
+  if(!window._lastResults) return alert('Rode os cálculos antes de exportar.');
+  const rows = [];
+  rows.push(['Indicador','Valor','Classificação','Fórmula','Categoria','Para que serve']);
+  for(const k in window._lastResults.results){
+    const r = window._lastResults.results[k];
+    const clsKey = null;
+    // find classification again
+    let classif='N/A';
+    // search in _rankingFull
+    const rank = (window._rankingFull||[]).find(x=>x.name===k);
+    if(rank) classif = rank.classif;
+    rows.push([k, r.value===null?'N/A':r.value, classif, r.formula||'', r.category, r.explain||'']);
+  }
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'invest_dashboard_export.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* --------------
+   Tab navigation
+   -------------- */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tabPanel').forEach(p=>p.classList.add('hidden'));
+    const sel = document.getElementById(tab);
+    if(sel) sel.classList.remove('hidden');
+    // highlight tab (simple)
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('ring-2','ring-sky-400'));
+    btn.classList.add('ring-2','ring-sky-400');
+  });
+});
+// default: show fundamentals
+document.querySelector('.tab[data-tab="fund"]').click();
+
+/* --------------
+   Buttons
+   -------------- */
+$('btnCalc').addEventListener('click', ()=>{ calcAllAndRender(); });
+$('sortAsc').addEventListener('click', ()=>{ renderRanking($('selCategory').value,'asc'); });
+$('sortDesc').addEventListener('click', ()=>{ renderRanking($('selCategory').value,'desc'); });
+$('selCategory').addEventListener('change', ()=>{ renderRanking($('selCategory').value,'desc'); });
+$('btnClear').addEventListener('click', ()=>{
+  if(!confirm('Limpar todos os campos?')) return;
+  document.querySelectorAll('input,textarea').forEach(i=>i.value='');
+});
+
+</script>
+</body>
+</html>
+
+Conserte código acima
