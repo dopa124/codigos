@@ -1,0 +1,1507 @@
+```html
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Gestão Financeira</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .tab-buttons { display: flex; flex-wrap: wrap; }
+        .tab-button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #f0f0f0; margin-right: 5px; }
+        .tab-button.active { background: #fff; border-bottom: none; }
+        .tab-content { display: none; border: 1px solid #ccc; padding: 20px; }
+        .tab-content.active { display: block; }
+        details { margin-bottom: 15px; border: 1px solid #eee; padding: 10px; }
+        summary { font-weight: bold; cursor: pointer; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="number"] { width: 150px; }
+        .kpi { margin-top: 15px; font-size: 1.2em; }
+        .error { color: red; }
+        canvas { max-width: 600px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de Gestão Financeira</h1>
+    <div id="tab-buttons" class="tab-buttons"></div>
+    <div id="tab-contents"></div>
+
+    <script>
+        const categories = [
+            {
+                "name": "Liquidez e Estrutura de Capital",
+                "indicators": [
+                    {
+                        "name": "Liquidez Corrente",
+                        "formula": "Total de ativos circulantes dividido pelo total de passivos circulantes",
+                        "elements": {
+                            "Ativo circulante": ["caixa", "bancos", "aplicações financeiras de curto prazo", "contas a receber", "estoques", "adiantamentos a fornecedores", "títulos a receber", "duplicatas", "cheques a receber"],
+                            "Passivo circulante": ["fornecedores", "salários a pagar", "impostos a recolher", "encargos sociais", "empréstimos de curto prazo", "contas de consumo e serviços"]
+                        },
+                        "applications": "Planejar pagamento de salários, férias, 13º, benefícios, bônus e encargos sociais",
+                        "example": "Ativos circulantes = 150.000, Passivos circulantes = 100.000 → Liquidez Corrente = 150.000 / 100.000 = 1,5",
+                        "ruim": 1.0,
+                        "medio": 1.2,
+                        "bom": 2.0,
+                        "comparison": "<",
+                        "category": "Liquidez",
+                        "solutions": [
+                            "Pagar dívidas de curto prazo",
+                            "Vender ativos não utilizados",
+                            "Melhorar a coleta de recebíveis",
+                            "Reduzir o excesso de estoque",
+                            "Negociar melhores termos com fornecedores"
+                        ]
+                    },
+                    {
+                        "name": "Liquidez Seca",
+                        "formula": "Subtração dos estoques do total de ativos circulantes, dividida pelo total de passivos circulantes",
+                        "elements": {
+                            "Ativo circulante sem estoques": ["caixa", "bancos", "aplicações de curto prazo", "contas a receber", "duplicatas", "adiantamentos"],
+                            "Estoque": ["estoque"],
+                            "Passivo circulante": ["fornecedores", "salários", "impostos", "encargos sociais", "empréstimos CP"]
+                        },
+                        "applications": "Garantir pagamento de salários e benefícios sem depender da venda de estoque, planejar adiantamentos e provisões de rescisão",
+                        "example": "Ativos circulantes = 150.000, Estoque = 50.000, Passivos circulantes = 100.000 → Liquidez Seca = (150.000-50.000)/100.000 = 1,0",
+                        "ruim": 0.8,
+                        "medio": 1.0,
+                        "bom": 1.5,
+                        "comparison": "<",
+                        "category": "Liquidez",
+                        "solutions": [
+                            "Rotatividade de estoque mais rápida",
+                            "Melhorar o gerenciamento de contas a receber",
+                            "Venda de ativos fixos ociosos e excesso de estoque",
+                            "Melhor gerenciamento de estoque",
+                            "Aumentar ativos líquidos"
+                        ]
+                    },
+                    {
+                        "name": "Liquidez Imediata",
+                        "formula": "Total de caixa dividido pelo total de passivos circulantes",
+                        "elements": {
+                            "Caixa e equivalentes": ["dinheiro em espécie", "saldo em conta corrente", "cheques à vista", "depósitos bancários"],
+                            "Passivo circulante": ["salários", "encargos", "fornecedores", "impostos", "empréstimos CP"]
+                        },
+                        "applications": "Planejar adiantamentos salariais, pagamentos de benefícios imediatos, folhas de pagamento extraordinárias",
+                        "example": "Caixa = 40.000, Passivo circulante = 100.000 → Liquidez Imediata = 40.000 / 100.000 = 0,4",
+                        "ruim": 0.3,
+                        "medio": 0.3,
+                        "bom": 0.5,
+                        "comparison": "<",
+                        "category": "Liquidez",
+                        "solutions": [
+                            "Ter mais dinheiro em mãos",
+                            "Encurtar os Dias de Vendas Pendentes (DSO)",
+                            "Converter contas a receber em dinheiro mais rápido",
+                            "Aumentar o capital de giro com opções de financiamento",
+                            "Melhorar a previsão de fluxo de caixa"
+                        ]
+                    },
+                    {
+                        "name": "Liquidez Geral",
+                        "formula": "Soma dos ativos circulantes com realizável a longo prazo, dividida pela soma dos passivos circulantes com exigível a longo prazo",
+                        "elements": {
+                            "Ativo circulante": ["caixa", "bancos", "contas a receber", "estoques", "adiantamentos"],
+                            "Realizável LP": ["empréstimos concedidos", "recebíveis LP", "aplicações financeiras LP", "depósitos judiciais", "investimentos futuros"],
+                            "Passivo circulante": ["fornecedores", "salários", "impostos", "encargos"],
+                            "Exigível LP": ["financiamentos", "debêntures", "parcelas de empréstimos LP", "provisões LP", "obrigações trabalhistas LP"]
+                        },
+                        "applications": "Planejar provisões de rescisão, benefícios futuros, 13º, férias, pagamentos de longo prazo e bônus",
+                        "example": "Ativos circulantes = 150.000, Realizável LP = 50.000, Passivos circulantes = 100.000, Exigível LP = 50.000 → Liquidez Geral = (150.000+50.000)/(100.000+50.000) = 1,33",
+                        "ruim": 1.0,
+                        "medio": 1.0,
+                        "bom": 2.0,
+                        "comparison": "<",
+                        "category": "Liquidez",
+                        "solutions": [
+                            "Reduzir despesas gerais",
+                            "Acelerar as coleções",
+                            "Encurtar os termos de pagamento com fornecedores",
+                            "Melhorar a previsão de fluxo de caixa",
+                            "Eliminar gastos não essenciais"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Rentabilidade",
+                "indicators": [
+                    {
+                        "name": "Margem Bruta",
+                        "formula": "Subtração do custo dos produtos vendidos da receita líquida, dividida pela receita líquida, multiplicada por 100",
+                        "elements": {
+                            "Receita líquida": ["vendas de produtos", "serviços prestados", "devoluções", "descontos concedidos", "impostos sobre vendas", "receitas financeiras operacionais"],
+                            "Custo dos produtos vendidos": ["matéria-prima", "insumos", "fretes", "embalagens", "mão de obra direta", "energia de produção", "manutenção de equipamentos", "comissões de vendas atreladas ao produto"]
+                        },
+                        "applications": "Avaliar impacto da equipe de produção sobre lucratividade, planejamento de bônus por produtividade, dimensionamento de equipes",
+                        "example": "Receita líquida = 200.000, Custo dos produtos vendidos = 120.000 → Margem Bruta = (200.000-120.000)/200.000*100 = 40%",
+                        "ruim": 30,
+                        "medio": 40,
+                        "bom": 50,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Renegociar com fornecedores por melhores negócios",
+                            "Reduzir despesas comerciais",
+                            "Melhorar o gerenciamento de estoque",
+                            "Investir em desenvolvimento",
+                            "Preços dinâmicos e agrupamento"
+                        ]
+                    },
+                    {
+                        "name": "Margem Operacional",
+                        "formula": "Lucro operacional dividido pela receita líquida, multiplicado por 100",
+                        "elements": {
+                            "Lucro operacional": ["receita líquida menos despesas operacionais (vendas, administrativas, depreciação)"],
+                            "Receita líquida": ["vendas líquidas de devoluções, descontos, impostos"]
+                        },
+                        "applications": "Planejar custo da equipe administrativa, salários e benefícios sem comprometer lucro operacional",
+                        "example": "Lucro operacional = 60.000, Receita líquida = 200.000 → Margem Operacional = 60.000/200.000*100 = 30%",
+                        "ruim": 20,
+                        "medio": 30,
+                        "bom": 40,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Melhores controles de gerenciamento",
+                            "Uso eficiente de recursos",
+                            "Preços melhorados",
+                            "Marketing eficaz",
+                            "Determinar metas de fluxo de caixa ou lucro"
+                        ]
+                    },
+                    {
+                        "name": "Margem Líquida",
+                        "formula": "Lucro líquido dividido pela receita líquida, multiplicado por 100",
+                        "elements": {
+                            "Lucro líquido": ["lucro após impostos, juros e despesas financeiras"],
+                            "Receita líquida": ["vendas e serviços prestados, líquidos de devoluções e impostos"]
+                        },
+                        "applications": "Planejar bônus, benefícios e ajustes de salários de acordo com lucro final",
+                        "example": "Lucro líquido = 40.000, Receita líquida = 200.000 → Margem Líquida = 40.000/200.000*100 = 20%",
+                        "ruim": 10,
+                        "medio": 20,
+                        "bom": 30,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Reduzir despesas comerciais",
+                            "Melhorar o gerenciamento de estoque",
+                            "Inspirar a equipe",
+                            "Eliminar bens de baixo desempenho",
+                            "Investir em desenvolvimento"
+                        ]
+                    },
+                    {
+                        "name": "Retorno sobre Ativo",
+                        "formula": "Lucro líquido dividido pelo total de ativos, multiplicado por 100",
+                        "elements": {
+                            "Lucro líquido": ["resultado após impostos e despesas financeiras"],
+                            "Ativo total": ["caixa", "bancos", "contas a receber", "estoques", "imobilizado", "investimentos"]
+                        },
+                        "applications": "Avaliar retorno do investimento em treinamentos, capacitação e produtividade da equipe",
+                        "example": "Lucro líquido = 40.000, Ativo total = 400.000 → ROA = 40.000/400.000*100 = 10%",
+                        "ruim": 5,
+                        "medio": 10,
+                        "bom": 15,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Aumentar a margem de lucro",
+                            "Use ativos de forma mais eficiente",
+                            "Reduzir ativos atuais como dinheiro e estoque",
+                            "Otimizar o gerenciamento de ativos",
+                            "Investir em ativos que aumentam a receita"
+                        ]
+                    },
+                    {
+                        "name": "Retorno sobre Patrimônio Líquido",
+                        "formula": "Lucro líquido dividido pelo patrimônio líquido, multiplicado por 100",
+                        "elements": {
+                            "Lucro líquido": ["resultado após despesas financeiras e impostos"],
+                            "Patrimônio líquido": ["capital social", "reservas", "lucros acumulados"]
+                        },
+                        "applications": "Avaliar impacto de políticas de RH, treinamento e incentivos sobre retorno ao sócio",
+                        "example": "Lucro líquido = 40.000, Patrimônio líquido = 200.000 → ROE = 40.000/200.000*100 = 20%",
+                        "ruim": 10,
+                        "medio": 20,
+                        "bom": 25,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Use mais alavancagem financeira",
+                            "Aumentar o lucro operacional",
+                            "Reduzir o capital próprio",
+                            "Melhorar as margens de lucro",
+                            "Gerenciar a dívida com cuidado"
+                        ]
+                    },
+                    {
+                        "name": "Margem EBITDA",
+                        "formula": "EBITDA dividido pela receita líquida, multiplicado por 100",
+                        "elements": {
+                            "EBITDA": ["lucro operacional mais depreciação e amortização"],
+                            "Receita líquida": ["vendas líquidas"]
+                        },
+                        "applications": "Avaliar desempenho operacional sem impacto direto de salários e impostos, planejar bônus e equipe de suporte",
+                        "example": "EBITDA = 70.000, Receita líquida = 200.000 → Margem EBITDA = 70.000/200.000*100 = 35%",
+                        "ruim": 25,
+                        "medio": 35,
+                        "bom": 45,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Reduzir despesas comerciais",
+                            "Preços dinâmicos",
+                            "Preços baseados em valor",
+                            "Agrupamento de produtos",
+                            "Automação e digitalização"
+                        ]
+                    },
+                    {
+                        "name": "Retorno sobre Investimento",
+                        "formula": "(Ganho do investimento - Custo do investimento) dividido pelo custo do investimento, multiplicado por 100",
+                        "elements": {
+                            "Ganho do investimento": ["aumento de receita", "economias de custo", "aumento de margem", "produtividade de pessoal"],
+                            "Custo do investimento": ["aquisição de ativos", "treinamento", "contratação de pessoal", "softwares"]
+                        },
+                        "applications": "Avaliar retorno de treinamento de equipe ou novas contratações",
+                        "example": "Ganho = 50.000, Custo = 20.000 → ROI = (50.000-20.000)/20.000*100 = 150%",
+                        "ruim": 50,
+                        "medio": 100,
+                        "bom": 150,
+                        "comparison": "<",
+                        "category": "Rentabilidade",
+                        "solutions": [
+                            "Reduzir custos",
+                            "Aumentar eficiência",
+                            "Focar em marketing de alto retorno",
+                            "Decisões baseadas em dados",
+                            "Otimizar operações"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Eficiência / Atividade",
+                "indicators": [
+                    {
+                        "name": "Giro do Ativo",
+                        "formula": "Receita líquida dividida pelo total de ativos",
+                        "elements": {
+                            "Receita líquida": ["vendas de produtos e serviços", "devoluções", "descontos", "impostos", "receitas financeiras operacionais"],
+                            "Ativo total": ["caixa", "bancos", "contas a receber", "estoques", "imobilizado", "investimentos", "intangíveis"]
+                        },
+                        "applications": "Avaliar produtividade de equipes em relação ao uso de ativos, otimizar alocação de colaboradores",
+                        "example": "Receita líquida = 200.000, Ativo total = 400.000 → Giro do Ativo = 200.000 / 400.000 = 0,5",
+                        "ruim": 0.4,
+                        "medio": 0.5,
+                        "bom": 0.7,
+                        "comparison": "<",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Aumentar o volume de vendas",
+                            "Otimizar o gerenciamento de estoque",
+                            "Melhorar a utilização de ativos",
+                            "Dispor de ativos subutilizados",
+                            "Melhorar a eficiência operacional"
+                        ]
+                    },
+                    {
+                        "name": "Giro de Estoques",
+                        "formula": "Custo das mercadorias vendidas dividido pelo estoque médio",
+                        "elements": {
+                            "Custo das mercadorias vendidas": ["matéria-prima", "insumos", "fretes", "embalagens", "mão de obra direta", "energia", "manutenção"],
+                            "Estoque médio": ["estoque inicial", "estoque final", "produtos em trânsito", "produtos em processo"]
+                        },
+                        "applications": "Planejar equipe de estoque, logística e reposição, evitar excesso de pessoal ou faltas",
+                        "example": "Custo CMV = 120.000, Estoque médio = 40.000 → Giro de Estoques = 120.000 / 40.000 = 3",
+                        "ruim": 2,
+                        "medio": 3,
+                        "bom": 4,
+                        "comparison": "<",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Previsão apropriada",
+                            "Automação",
+                            "Marketing eficaz",
+                            "Incentivar a venda de estoque antigo",
+                            "Reabastecimento eficiente"
+                        ]
+                    },
+                    {
+                        "name": "Prazo Médio de Estocagem",
+                        "formula": "Estoque médio dividido pelo custo das mercadorias vendidas multiplicado por 360 dias",
+                        "elements": {
+                            "Estoque médio": ["estoque inicial", "estoque final", "produtos em trânsito", "estoques de segurança", "produtos em processo"],
+                            "Custo CMV": ["matéria-prima", "insumos", "mão de obra direta"]
+                        },
+                        "applications": "Avaliar tempo que a equipe mantém estoque, otimizar dimensionamento de colaboradores",
+                        "example": "Estoque médio = 40.000, Custo CMV = 120.000 → PME = 40.000 / 120.000 * 360 = 120 dias",
+                        "ruim": 180,
+                        "medio": 120,
+                        "bom": 90,
+                        "comparison": ">",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Prever a demanda verdadeira",
+                            "Empregar distribuição de Pareto",
+                            "Melhorar a previsão de demanda",
+                            "Otimizar estoque de segurança",
+                            "Compras e produção lean"
+                        ]
+                    },
+                    {
+                        "name": "Prazo Médio de Recebimento",
+                        "formula": "Contas a receber dividido pela receita líquida multiplicado por 360 dias",
+                        "elements": {
+                            "Contas a receber": ["duplicatas", "boletos", "contratos a prazo", "clientes inadimplentes"],
+                            "Receita líquida": ["vendas líquidas de devoluções e impostos"]
+                        },
+                        "applications": "Avaliar eficiência da equipe de cobrança, minimizar atrasos que impactam folha e benefícios",
+                        "example": "Contas a receber = 50.000, Receita líquida = 200.000 → PMR = 50.000 / 200.000 * 360 = 90 dias",
+                        "ruim": 120,
+                        "medio": 90,
+                        "bom": 60,
+                        "comparison": ">",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Automatizar lembretes de pagamento",
+                            "Oferecer incentivos para pagamento antecipado",
+                            "Opções de pagamento diversas",
+                            "Revisões regulares de contas a receber",
+                            "Práticas consistentes de faturamento"
+                        ]
+                    },
+                    {
+                        "name": "Prazo Médio de Pagamento",
+                        "formula": "Contas a pagar dividido pelas compras multiplicado por 360 dias",
+                        "elements": {
+                            "Contas a pagar": ["fornecedores", "salários", "encargos", "impostos", "empréstimos CP"],
+                            "Compras": ["matéria-prima", "insumos", "produtos para revenda", "serviços terceirizados"]
+                        },
+                        "applications": "Planejar pagamento de salários, férias, bônus sem comprometer caixa",
+                        "example": "Contas a pagar = 30.000, Compras = 120.000 → PMP = 30.000 / 120.000 * 360 = 90 dias",
+                        "ruim": 60,
+                        "medio": 90,
+                        "bom": 120,
+                        "comparison": "<",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Automatizar lembretes",
+                            "Termos de pagamento claros",
+                            "Descontos por pagamento antecipado",
+                            "Encolher DSO",
+                            "Usar faturamento eletrônico"
+                        ]
+                    },
+                    {
+                        "name": "Ciclo Operacional",
+                        "formula": "Prazo médio de estocagem + prazo médio de recebimento",
+                        "elements": {
+                            "Prazo médio de estocagem": ["estoque médio e CMV"],
+                            "Prazo médio de recebimento": ["contas a receber e receita líquida"]
+                        },
+                        "applications": "Avaliar tempo total entre compra de insumos e recebimento de vendas, planejamento de equipe",
+                        "example": "PME = 120, PMR = 90 → Ciclo Operacional = 120 + 90 = 210 dias",
+                        "ruim": 300,
+                        "medio": 210,
+                        "bom": 150,
+                        "comparison": ">",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Ferramentas automatizadas de A/R",
+                            "Compras e produção lean",
+                            "Encurtar Dias de Estoque Pendentes (DIO)",
+                            "Melhorar a eficiência operacional",
+                            "Otimizar o gerenciamento de estoque"
+                        ]
+                    },
+                    {
+                        "name": "Ciclo Financeiro",
+                        "formula": "Ciclo operacional - prazo médio de pagamento",
+                        "elements": {
+                            "Ciclo operacional": ["prazo médio de estocagem + prazo médio de recebimento"],
+                            "Prazo médio de pagamento": ["contas a pagar e compras"]
+                        },
+                        "applications": "Planejar fluxo de caixa para pagamento de salários e benefícios, evitar atrasos",
+                        "example": "Ciclo Operacional = 210, PMP = 90 → Ciclo Financeiro = 210 - 90 = 120 dias",
+                        "ruim": 180,
+                        "medio": 120,
+                        "bom": 90,
+                        "comparison": ">",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Virar o estoque mais rápido",
+                            "Estabelecer processos lean",
+                            "Encurtar Dias de Vendas Pendentes (DSO)",
+                            "Otimizar a eficiência operacional",
+                            "Negociar termos favoráveis de pagamento"
+                        ]
+                    },
+                    {
+                        "name": "Taxa de Rotatividade de Estoque por SKU",
+                        "formula": "Número de vendas de cada SKU dividido pelo estoque médio do SKU",
+                        "elements": {
+                            "Vendas por SKU": ["quantidade vendida", "devoluções", "promoções", "sazonalidade"],
+                            "Estoque médio por SKU": ["estoque inicial", "estoque final", "produtos em trânsito", "estoque de segurança"]
+                        },
+                        "applications": "Avaliar eficiência do time de estoque e logística, dimensionamento de colaboradores",
+                        "example": "Vendas = 600, Estoque médio = 200 → Rotatividade = 600 / 200 = 3",
+                        "ruim": 2,
+                        "medio": 3,
+                        "bom": 4,
+                        "comparison": "<",
+                        "category": "Eficiência / Atividade",
+                        "solutions": [
+                            "Melhorar a previsão de demanda",
+                            "Priorizar estoque",
+                            "Reordenar de forma mais inteligente",
+                            "Categorizar estoque",
+                            "Usar rastreamento automatizado"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Endividamento e Estrutura de Capital",
+                "indicators": [
+                    {
+                        "name": "Endividamento Total",
+                        "formula": "Passivo total dividido pelo ativo total multiplicado por 100",
+                        "elements": {
+                            "Passivo total": ["dívidas de curto e longo prazo", "fornecedores", "salários e encargos", "impostos a recolher", "provisões"],
+                            "Ativo total": ["caixa", "bancos", "contas a receber", "estoques", "imobilizado", "investimentos", "intangíveis"]
+                        },
+                        "applications": "Planejar contratação de pessoal, folha de pagamento e benefícios sem comprometer liquidez",
+                        "example": "Passivo total = 200.000, Ativo total = 400.000 → Endividamento Total = 200.000/400.000*100 = 50%",
+                        "ruim": 70,
+                        "medio": 50,
+                        "bom": 30,
+                        "comparison": ">",
+                        "category": "Endividamento",
+                        "solutions": [
+                            "Aumentar o patrimônio líquido",
+                            "Pagar dívidas",
+                            "Melhorar a rentabilidade",
+                            "Desinvestir ativos não essenciais",
+                            "Melhorar o gerenciamento de fluxo de caixa"
+                        ]
+                    },
+                    {
+                        "name": "Dívida Líquida sobre EBITDA",
+                        "formula": "(Dívida bruta - caixa) dividido pelo EBITDA",
+                        "elements": {
+                            "Dívida bruta": ["empréstimos CP e LP", "financiamentos", "debêntures"],
+                            "Caixa": ["dinheiro", "bancos", "aplicações de curto prazo"],
+                            "EBITDA": ["lucro operacional + depreciação + amortização"]
+                        },
+                        "applications": "Avaliar capacidade de manter folha de pagamento e bônus sem comprometer endividamento",
+                        "example": "Dívida bruta = 150.000, Caixa = 50.000, EBITDA = 70.000 → Dívida Líquida/EBITDA = (150.000-50.000)/70.000 = 1,43",
+                        "ruim": 3,
+                        "medio": 1.5,
+                        "bom": 1,
+                        "comparison": ">",
+                        "category": "Endividamento",
+                        "solutions": [
+                            "Reduzir dívida líquida",
+                            "Aumentar EBITDA",
+                            "Otimizar capital de giro",
+                            "Negociar termos de pagamento",
+                            "Melhorar o gerenciamento de estoque"
+                        ]
+                    },
+                    {
+                        "name": "Cobertura de Juros",
+                        "formula": "Lucro operacional dividido pelo total de despesa de juros",
+                        "elements": {
+                            "Lucro operacional": ["receita líquida - despesas operacionais"],
+                            "Despesa de juros": ["juros sobre empréstimos", "debêntures", "financiamentos"]
+                        },
+                        "applications": "Planejar pagamento de salários e encargos sem comprometer capacidade de pagar juros",
+                        "example": "Lucro operacional = 60.000, Juros = 20.000 → Cobertura de Juros = 60.000 / 20.000 = 3",
+                        "ruim": 1,
+                        "medio": 2,
+                        "bom": 4,
+                        "comparison": "<",
+                        "category": "Endividamento",
+                        "solutions": [
+                            "Gerenciar níveis de dívida",
+                            "Negociar melhores termos",
+                            "Pagar dívidas",
+                            "Melhorar o lucro operacional",
+                            "Controlar despesas com juros"
+                        ]
+                    },
+                    {
+                        "name": "Alavancagem Financeira",
+                        "formula": "Ativo total dividido pelo patrimônio líquido",
+                        "elements": {
+                            "Ativo total": ["caixa", "bancos", "contas a receber", "estoques", "imobilizado", "intangíveis"],
+                            "Patrimônio líquido": ["capital social", "reservas", "lucros acumulados"]
+                        },
+                        "applications": "Avaliar risco de contratar novos funcionários ou aumentar benefícios sem aumentar capital próprio",
+                        "example": "Ativo total = 400.000, Patrimônio líquido = 200.000 → Alavancagem = 400.000 / 200.000 = 2",
+                        "ruim": 3,
+                        "medio": 2,
+                        "bom": 1.5,
+                        "comparison": ">",
+                        "category": "Endividamento",
+                        "solutions": [
+                            "Gerenciamento de fluxo de caixa",
+                            "Cortar custos desnecessários",
+                            "Diversificar fontes de financiamento",
+                            "Usar financiamento de patrimônio",
+                            "Pagar antecipadamente dívidas de alto juro"
+                        ]
+                    },
+                    {
+                        "name": "Composição do Endividamento Curto e Longo Prazo",
+                        "formula": "Passivo circulante dividido pelo passivo total multiplicado por 100",
+                        "elements": {
+                            "Passivo circulante": ["fornecedores", "salários", "encargos", "impostos", "empréstimos CP"],
+                            "Passivo total": ["passivo circulante + passivo LP"]
+                        },
+                        "applications": "Planejar pagamento de salários, férias, benefícios e encargos de acordo com endividamento de curto prazo",
+                        "example": "Passivo circulante = 60.000, Passivo total = 150.000 → Composição = 60.000/150.000*100 = 40%",
+                        "ruim": 60,
+                        "medio": 50,
+                        "bom": 30,
+                        "comparison": ">",
+                        "category": "Endividamento",
+                        "solutions": [
+                            "Consolidar empréstimos",
+                            "Cortar custos",
+                            "Melhorar o fluxo de caixa",
+                            "Buscar subsídios",
+                            "Buscar financiamento de patrimônio"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Crescimento e Gestão Comercial",
+                "indicators": [
+                    {
+                        "name": "Crescimento da Receita",
+                        "formula": "(Receita do período atual - Receita do período anterior) dividido pela Receita do período anterior, multiplicado por 100",
+                        "elements": {
+                            "Receita atual": ["vendas de produtos, serviços, contratos ativos, receitas financeiras operacionais, devoluções, descontos"],
+                            "Receita anterior": ["mesmo do período anterior"]
+                        },
+                        "applications": "Avaliar desempenho da equipe comercial, definir metas, comissões e bônus",
+                        "example": "Receita atual = 220.000, Receita anterior = 200.000 → Crescimento = (220.000-200.000)/200.000*100 = 10%",
+                        "ruim": 0,
+                        "medio": 10,
+                        "bom": 20,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Otimizar estratégias de preços",
+                            "Diversificar produtos ou serviços",
+                            "Focar na retenção de clientes",
+                            "Investir em marketing",
+                            "Melhorar a eficiência operacional"
+                        ]
+                    },
+                    {
+                        "name": "Crescimento do Lucro Líquido",
+                        "formula": "(Lucro líquido atual - Lucro líquido anterior) dividido pelo Lucro líquido anterior, multiplicado por 100",
+                        "elements": {
+                            "Lucro líquido atual": ["resultado após impostos, juros e despesas financeiras"],
+                            "Lucro líquido anterior": ["mesmo do período anterior"]
+                        },
+                        "applications": "Planejar bônus e incentivos, ajustar folha e benefícios de acordo com lucro",
+                        "example": "Lucro líquido atual = 50.000, Lucro líquido anterior = 40.000 → Crescimento = (50.000-40.000)/40.000*100 = 25%",
+                        "ruim": 0,
+                        "medio": 15,
+                        "bom": 30,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Rastrear eficiência",
+                            "Desenvolver estratégias de vendas",
+                            "Aumentar a retenção de clientes",
+                            "Avaliar desempenho do produto",
+                            "Investir em desenvolvimento"
+                        ]
+                    },
+                    {
+                        "name": "Crescimento do Ativo",
+                        "formula": "(Ativo total atual - Ativo total anterior) dividido pelo Ativo total anterior, multiplicado por 100",
+                        "elements": {
+                            "Ativo total atual": ["caixa, bancos, contas a receber, estoques, imobilizado, investimentos, intangíveis"],
+                            "Ativo total anterior": ["mesmo do período anterior"]
+                        },
+                        "applications": "Avaliar necessidade de equipe adicional, capacitação e treinamento para suportar expansão",
+                        "example": "Ativo atual = 450.000, Ativo anterior = 400.000 → Crescimento = (450.000-400.000)/400.000*100 = 12,5%",
+                        "ruim": 0,
+                        "medio": 10,
+                        "bom": 20,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Cortar custos",
+                            "Melhorar métricas de desempenho financeiro",
+                            "Diversificar fluxos de receita",
+                            "Melhorar o gerenciamento de fluxo de caixa",
+                            "Investir em oportunidades de crescimento"
+                        ]
+                    },
+                    {
+                        "name": "Crescimento do Patrimônio Líquido",
+                        "formula": "(Patrimônio líquido atual - Patrimônio líquido anterior) dividido pelo Patrimônio líquido anterior, multiplicado por 100",
+                        "elements": {
+                            "Patrimônio líquido atual": ["capital social, reservas, lucros acumulados"],
+                            "Patrimônio líquido anterior": ["mesmo do período anterior"]
+                        },
+                        "applications": "Planejar reinvestimento em treinamento, benefícios e contratações",
+                        "example": "PL atual = 220.000, PL anterior = 200.000 → Crescimento = (220.000-200.000)/200.000*100 = 10%",
+                        "ruim": 0,
+                        "medio": 10,
+                        "bom": 20,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Automatizar processamento financeiro",
+                            "Gerenciar despesas",
+                            "Diversificar receita",
+                            "Planejamento fiscal",
+                            "Monitorar demonstrações financeiras"
+                        ]
+                    },
+                    {
+                        "name": "Taxa de Retenção de Clientes",
+                        "formula": "Número de clientes ativos ao final do período dividido pelo número de clientes no início do período, multiplicado por 100",
+                        "elements": {
+                            "Clientes finais": ["clientes que compraram no período, contratos renovados, clientes regulares"],
+                            "Clientes iniciais": ["base inicial de clientes"]
+                        },
+                        "applications": "Avaliar desempenho da equipe de atendimento, vendas e relacionamento, planejamento de treinamentos de equipe",
+                        "example": "Clientes finais = 180, Clientes iniciais = 200 → Retenção = 180/200*100 = 90%",
+                        "ruim": 70,
+                        "medio": 85,
+                        "bom": 95,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Experiências personalizadas",
+                            "Realizar pesquisas de satisfação",
+                            "Melhorar tempos de resposta",
+                            "Oferecer programas de recompensas",
+                            "Portais de autoatendimento"
+                        ]
+                    },
+                    {
+                        "name": "Taxa de Conversão de Vendas",
+                        "formula": "Número de vendas concluídas dividido pelo número de leads ou oportunidades, multiplicado por 100",
+                        "elements": {
+                            "Vendas concluídas": ["contratos assinados", "produtos entregues", "serviços prestados"],
+                            "Leads / oportunidades": ["prospects", "contatos qualificados", "propostas enviadas"]
+                        },
+                        "applications": "Avaliar eficiência da equipe comercial, definir metas, comissões e necessidade de treinamento",
+                        "example": "Vendas = 50, Leads = 200 → Conversão = 50/200*100 = 25%",
+                        "ruim": 10,
+                        "medio": 20,
+                        "bom": 30,
+                        "comparison": "<",
+                        "category": "Crescimento e Gestão Comercial",
+                        "solutions": [
+                            "Otimizar para busca",
+                            "Criar conteúdo gated",
+                            "Adicionar formulários pop-up",
+                            "Facilitar o contato",
+                            "Usar alertas SMS"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Fluxo de Caixa e Valor Econômico",
+                "indicators": [
+                    {
+                        "name": "Fluxo de Caixa Operacional",
+                        "formula": "Entradas de caixa operacionais menos saídas de caixa operacionais",
+                        "elements": {
+                            "Entradas": ["recebimentos de clientes", "vendas à vista", "receitas de serviços", "juros recebidos"],
+                            "Saídas": ["pagamentos a fornecedores", "salários", "encargos sociais", "impostos", "despesas operacionais", "benefícios", "folha"]
+                        },
+                        "applications": "Planejar pagamentos de salários, bônus, benefícios e encargos sem comprometer operações",
+                        "example": "Entradas = 200.000, Saídas = 150.000 → Fluxo Operacional = 200.000-150.000 = 50.000",
+                        "ruim": 0,
+                        "medio": 20000,
+                        "bom": 50000,
+                        "comparison": "<",
+                        "category": "Fluxo de Caixa e Valor Econômico",
+                        "solutions": [
+                            "Alugar em vez de comprar",
+                            "Oferecer descontos para pagamento antecipado",
+                            "Realizar verificações de crédito",
+                            "Melhorar o gerenciamento de estoque",
+                            "Enviar faturas imediatamente"
+                        ]
+                    },
+                    {
+                        "name": "Fluxo de Caixa Livre",
+                        "formula": "Fluxo de caixa operacional menos investimentos em ativos fixos",
+                        "elements": {
+                            "Fluxo operacional": ["conforme acima"],
+                            "Investimentos": ["aquisição de máquinas", "equipamentos", "software", "veículos", "reformas", "treinamento e capacitação"]
+                        },
+                        "applications": "Planejar bônus, novos contratos e capacitação da equipe, investimentos em RH",
+                        "example": "Fluxo operacional = 50.000, Investimentos = 20.000 → Fluxo Livre = 50.000-20.000 = 30.000",
+                        "ruim": 0,
+                        "medio": 10000,
+                        "bom": 40000,
+                        "comparison": "<",
+                        "category": "Fluxo de Caixa e Valor Econômico",
+                        "solutions": [
+                            "Alugar em vez de comprar",
+                            "Oferecer descontos para pagamento antecipado",
+                            "Melhorar o estoque",
+                            "Enviar faturas imediatamente",
+                            "Negociar com fornecedores"
+                        ]
+                    },
+                    {
+                        "name": "Valor Econômico Adicionado (EVA)",
+                        "formula": "Lucro líquido operacional após impostos menos custo do capital investido",
+                        "elements": {
+                            "Lucro líquido operacional após impostos": ["receita líquida menos despesas operacionais e impostos"],
+                            "Custo do capital": ["patrimônio líquido", "capital de terceiros", "taxa de retorno exigida"]
+                        },
+                        "applications": "Avaliar retorno de treinamentos, capacitação e políticas de RH em termos financeiros",
+                        "example": "Lucro líquido operacional = 60.000, Custo do capital = 50.000 → EVA = 60.000-50.000 = 10.000",
+                        "ruim": 0,
+                        "medio": 5000,
+                        "bom": 15000,
+                        "comparison": "<",
+                        "category": "Fluxo de Caixa e Valor Econômico",
+                        "solutions": [
+                            "Aumentar preços ou vender mais bens",
+                            "Melhorar a eficiência",
+                            "Alcançar economias de escala",
+                            "Aumentar o lucro operacional",
+                            "Reduzir o capital empregado"
+                        ]
+                    },
+                    {
+                        "name": "Índice de Cobertura de Caixa",
+                        "formula": "Caixa e equivalentes dividido pelo passivo circulante",
+                        "elements": {
+                            "Caixa e equivalentes": ["dinheiro", "bancos", "aplicações LP/CP"],
+                            "Passivo circulante": ["fornecedores", "salários", "encargos", "impostos", "empréstimos CP"]
+                        },
+                        "applications": "Garantir que a folha de pagamento possa ser atendida sem recorrer a empréstimos",
+                        "example": "Caixa = 40.000, Passivo circulante = 100.000 → Índice = 40.000/100.000 = 0,4",
+                        "ruim": 0.3,
+                        "medio": 0.4,
+                        "bom": 0.6,
+                        "comparison": "<",
+                        "category": "Fluxo de Caixa e Valor Econômico",
+                        "solutions": [
+                            "Reduzir níveis de dívida",
+                            "Melhorar o gerenciamento de fluxo de caixa",
+                            "Reestruturação de dívida",
+                            "Pagar dívidas de alto juro",
+                            "Otimizar despesas operacionais"
+                        ]
+                    },
+                    {
+                        "name": "Taxa de Geração de Caixa",
+                        "formula": "Fluxo de caixa operacional dividido pelo lucro líquido, multiplicado por 100",
+                        "elements": {
+                            "Fluxo operacional": ["entradas - saídas"],
+                            "Lucro líquido": ["resultado final após impostos e despesas financeiras"]
+                        },
+                        "applications": "Planejar pagamentos de salários, benefícios e bônus de forma sustentável",
+                        "example": "Fluxo operacional = 50.000, Lucro líquido = 40.000 → Taxa = 50.000/40.000*100 = 125%",
+                        "ruim": 80,
+                        "medio": 100,
+                        "bom": 150,
+                        "comparison": "<",
+                        "category": "Fluxo de Caixa e Valor Econômico",
+                        "solutions": [
+                            "Criar um orçamento e monitorar o fluxo de caixa",
+                            "Implementar gerenciamento eficiente de estoque",
+                            "Coletar recebíveis mais rápido",
+                            "Negociar termos de pagamento favoráveis",
+                            "Otimizar operações"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Outros Operacionais e Indicadores de Projetos",
+                "indicators": [
+                    {
+                        "name": "Eficiência Operacional",
+                        "formula": "Produção efetiva dividida pela produção planejada, multiplicado por 100",
+                        "elements": {
+                            "Produção efetiva": ["produtos produzidos", "serviços entregues", "tarefas concluídas"],
+                            "Produção planejada": ["metas", "planejamento de produção", "cronogramas"]
+                        },
+                        "applications": "Avaliar desempenho da equipe, dimensionamento de pessoal e produtividade",
+                        "example": "Produção efetiva = 950, Produção planejada = 1.000 → Eficiência = 950/1.000*100 = 95%",
+                        "ruim": 80,
+                        "medio": 90,
+                        "bom": 95,
+                        "comparison": "<",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Otimizar processos de negócios",
+                            "Aproveitar automação",
+                            "Alinhar finanças com estratégia",
+                            "Melhorar o gerenciamento de capital de giro",
+                            "Melhorar o gerenciamento de fluxo de caixa"
+                        ]
+                    },
+                    {
+                        "name": "Índice de Satisfação de Colaboradores",
+                        "formula": "Pontuação média em pesquisa de clima e satisfação dividida pelo total de pontos possíveis, multiplicado por 100",
+                        "elements": {
+                            "Pontuação média": ["questões sobre gestão, benefícios, comunicação, ambiente, oportunidades"],
+                            "Total de pontos possíveis": ["somatório máximo da pesquisa"]
+                        },
+                        "applications": "Planejar políticas de retenção, benefícios, treinamentos e programas de incentivo",
+                        "example": "Pontuação média = 80, Total = 100 → Índice = 80/100*100 = 80%",
+                        "ruim": 60,
+                        "medio": 75,
+                        "bom": 85,
+                        "comparison": "<",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Fornecer ferramentas de engajamento e desenvolvimento",
+                            "Tratar funcionários com respeito",
+                            "Coletar feedback através de pesquisas",
+                            "Abordar equilíbrio entre trabalho e vida pessoal",
+                            "Reconhecer conquistas"
+                        ]
+                    },
+                    {
+                        "name": "Cumprimento de Prazo de Projetos",
+                        "formula": "Número de projetos entregues no prazo dividido pelo total de projetos, multiplicado por 100",
+                        "elements": {
+                            "Projetos entregues no prazo": ["projetos concluídos conforme cronograma"],
+                            "Total de projetos": ["planejados no período"]
+                        },
+                        "applications": "Avaliar eficiência de equipes de projetos, dimensionamento e treinamentos necessários",
+                        "example": "Projetos entregues = 8, Total = 10 → Cumprimento = 8/10*100 = 80%",
+                        "ruim": 70,
+                        "medio": 80,
+                        "bom": 90,
+                        "comparison": "<",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Usar gráficos Gantt e gerenciamento de recursos",
+                            "Definir metas e prazos claros",
+                            "Melhorar o gerenciamento de tempo",
+                            "Rastrear progresso",
+                            "Ter planos de contingência"
+                        ]
+                    },
+                    {
+                        "name": "Produtividade por Colaborador",
+                        "formula": "Produção efetiva dividida pelo número de colaboradores",
+                        "elements": {
+                            "Produção efetiva": ["produtos, serviços ou tarefas concluídas"],
+                            "Número de colaboradores": ["funcionários alocados na atividade"]
+                        },
+                        "applications": "Avaliar produtividade individual e coletiva, definir metas e treinamentos",
+                        "example": "Produção efetiva = 1.000, Colaboradores = 10 → Produtividade = 1.000/10 = 100 unidades/colaborador",
+                        "ruim": 70,
+                        "medio": 90,
+                        "bom": 110,
+                        "comparison": "<",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Definir metas claras",
+                            "Fornecer treinamento",
+                            "Incentivar trabalho flexível",
+                            "Focar na saúde do funcionário",
+                            "Reconhecer conquistas"
+                        ]
+                    },
+                    {
+                        "name": "Custo por Colaborador",
+                        "formula": "Total de despesas com pessoal dividido pelo número de colaboradores",
+                        "elements": {
+                            "Despesas com pessoal": ["salários", "encargos", "benefícios", "bônus", "treinamentos"]
+                        },
+                        "applications": "Planejar folha, benefícios e orçamento de RH",
+                        "example": "Despesas = 500.000, Colaboradores = 50 → Custo = 500.000/50 = 10.000 por colaborador",
+                        "ruim": 15000,
+                        "medio": 10000,
+                        "bom": 8000,
+                        "comparison": ">",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Simplificar recrutamento",
+                            "Focar na retenção",
+                            "Aproveitar tecnologia",
+                            "Evitar multas por não conformidade",
+                            "Terceirizar funções não essenciais"
+                        ]
+                    },
+                    {
+                        "name": "Turnover (Rotatividade de Pessoal)",
+                        "formula": "Número de colaboradores que saíram no período dividido pelo número médio de colaboradores, multiplicado por 100",
+                        "elements": {
+                            "Colaboradores que saíram": ["demissões voluntárias", "rescisões", "aposentadorias"],
+                            "Número médio de colaboradores": ["média do início e fim do período"]
+                        },
+                        "applications": "Avaliar impacto em treinamento, custos de contratação, estabilidade da equipe",
+                        "example": "Saídas = 5, Média = 50 → Turnover = 5/50*100 = 10%",
+                        "ruim": 20,
+                        "medio": 12,
+                        "bom": 8,
+                        "comparison": ">",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Contratar os funcionários certos",
+                            "Oferecer salários e benefícios competitivos",
+                            "Manter comunicação frequente",
+                            "Delinear caminhos claros de carreira",
+                            "Incentivar equilíbrio entre trabalho e vida pessoal"
+                        ]
+                    },
+                    {
+                        "name": "Absenteísmo",
+                        "formula": "Total de horas não trabalhadas dividido pelo total de horas programadas, multiplicado por 100",
+                        "elements": {
+                            "Horas não trabalhadas": ["faltas", "licenças", "atrasos", "afastamentos médicos"],
+                            "Horas programadas": ["jornada total de colaboradores"]
+                        },
+                        "applications": "Planejar escala, dimensionamento de equipe, política de incentivo e saúde ocupacional",
+                        "example": "Horas não trabalhadas = 200, Horas programadas = 4.000 → Absenteísmo = 200/4.000*100 = 5%",
+                        "ruim": 10,
+                        "medio": 6,
+                        "bom": 3,
+                        "comparison": ">",
+                        "category": "Operacional / Projetos",
+                        "solutions": [
+                            "Permitir agendamento flexível ou trabalho remoto",
+                            "Oferecer dias de doença pagos",
+                            "Implementar programas de bem-estar",
+                            "Abordar ausências não autorizadas imediatamente",
+                            "Recompensar boa presença"
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        let kpiData = {};
+
+        function buildUI() {
+            const tabButtonsDiv = document.getElementById('tab-buttons');
+            const tabContentsDiv = document.getElementById('tab-contents');
+
+            // Add Visão Geral tab
+            const overviewButton = document.createElement('div');
+            overviewButton.classList.add('tab-button');
+            overviewButton.textContent = 'Visão Geral';
+            overviewButton.onclick = () => openSpecialTab('overview');
+            tabButtonsDiv.appendChild(overviewButton);
+
+            const overviewContent = document.createElement('div');
+            overviewContent.classList.add('tab-content');
+            overviewContent.id = 'tab-overview';
+            tabContentsDiv.appendChild(overviewContent);
+
+            // Add Relatório tab
+            const reportButton = document.createElement('div');
+            reportButton.classList.add('tab-button');
+            reportButton.textContent = 'Relatório';
+            reportButton.onclick = () => openSpecialTab('report');
+            tabButtonsDiv.appendChild(reportButton);
+
+            const reportContent = document.createElement('div');
+            reportContent.classList.add('tab-content');
+            reportContent.id = 'tab-report';
+            tabContentsDiv.appendChild(reportContent);
+
+            categories.forEach((cat, catIndex) => {
+                const button = document.createElement('div');
+                button.classList.add('tab-button');
+                button.textContent = cat.name;
+                button.onclick = () => openTab(catIndex);
+                tabButtonsDiv.appendChild(button);
+
+                const content = document.createElement('div');
+                content.classList.add('tab-content');
+                content.id = `tab-${catIndex}`;
+
+                const header = document.createElement('h2');
+                header.textContent = cat.name;
+                content.appendChild(header);
+
+                cat.indicators.forEach((ind, indIndex) => {
+                    const indDiv = document.createElement('div');
+                    indDiv.id = `ind-${catIndex}-${indIndex}`;
+
+                    const subheader = document.createElement('h3');
+                    subheader.textContent = ind.name;
+                    indDiv.appendChild(subheader);
+
+                    // Formula in details
+                    const formulaDetails = document.createElement('details');
+                    const formulaSummary = document.createElement('summary');
+                    formulaSummary.textContent = 'Fórmula';
+                    formulaDetails.appendChild(formulaSummary);
+                    const formulaP = document.createElement('p');
+                    formulaP.textContent = ind.formula;
+                    formulaDetails.appendChild(formulaP);
+                    indDiv.appendChild(formulaDetails);
+
+                    // Example in details
+                    const exampleDetails = document.createElement('details');
+                    const exampleSummary = document.createElement('summary');
+                    exampleSummary.textContent = 'Exemplo prático';
+                    exampleDetails.appendChild(exampleSummary);
+                    const exampleP = document.createElement('p');
+                    exampleP.textContent = ind.example;
+                    exampleDetails.appendChild(exampleP);
+                    indDiv.appendChild(exampleDetails);
+
+                    const applications = document.createElement('p');
+                    applications.innerHTML = `<strong>Aplicações em Gestão de Pessoas:</strong> ${ind.applications}`;
+                    indDiv.appendChild(applications);
+
+                    for (const key in ind.elements) {
+                        const details = document.createElement('details');
+                        const summary = document.createElement('summary');
+                        summary.textContent = `Detalhes dos ${key}`;
+                        details.appendChild(summary);
+
+                        ind.elements[key].forEach(elem => {
+                            const label = document.createElement('label');
+                            label.textContent = `${elem}: `;
+                            const input = document.createElement('input');
+                            input.type = 'number';
+                            input.value = 0;
+                            input.dataset.cat = catIndex;
+                            input.dataset.ind = indIndex;
+                            input.dataset.group = key;
+                            input.onchange = () => calculate(catIndex, indIndex);
+                            label.appendChild(input);
+                            details.appendChild(label);
+                        });
+
+                        indDiv.appendChild(details);
+                    }
+
+                    if (ind.name === "Custo por Colaborador") {
+                        const label = document.createElement('label');
+                        label.textContent = 'Número de colaboradores: ';
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.value = 1;
+                        input.dataset.cat = catIndex;
+                        input.dataset.ind = indIndex;
+                        input.dataset.group = 'nc';
+                        input.onchange = () => calculate(catIndex, indIndex);
+                        label.appendChild(input);
+                        indDiv.appendChild(label);
+                    }
+
+                    const kpiDiv = document.createElement('div');
+                    kpiDiv.classList.add('kpi');
+                    kpiDiv.id = `kpi-${catIndex}-${indIndex}`;
+                    indDiv.appendChild(kpiDiv);
+
+                    content.appendChild(indDiv);
+                });
+
+                tabContentsDiv.appendChild(content);
+            });
+
+            openSpecialTab('overview');
+        }
+
+        function openTab(index) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.tab-button:nth-child(${index + 3})`).classList.add('active'); // +3 for two special tabs
+            document.getElementById(`tab-${index}`).classList.add('active');
+
+            categories[index].indicators.forEach((_, indIndex) => calculate(index, indIndex));
+        }
+
+        function openSpecialTab(type) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const buttonIndex = type === 'overview' ? 0 : 1;
+            document.querySelector(`.tab-button:nth-child(${buttonIndex + 1})`).classList.add('active');
+            document.getElementById(`tab-${type}`).classList.add('active');
+
+            // Calculate all KPIs first
+            categories.forEach((cat, catIndex) => {
+                cat.indicators.forEach((_, indIndex) => calculate(catIndex, indIndex));
+            });
+
+            generateSpecialContent(type);
+        }
+
+        function getValues(catIndex, indIndex) {
+            const values = {};
+            const inputs = document.querySelectorAll(`input[data-cat="${catIndex}"][data-ind="${indIndex}"]`);
+            inputs.forEach(input => {
+                const group = input.dataset.group;
+                if (!values[group]) values[group] = 0;
+                values[group] += parseFloat(input.value) || 0;
+            });
+            return values;
+        }
+
+        function calculate(catIndex, indIndex) {
+            const ind = categories[catIndex].indicators[indIndex];
+            const values = getValues(catIndex, indIndex);
+            let value = 0;
+
+            try {
+                switch (ind.name) {
+                    case "Liquidez Corrente":
+                        value = values["Passivo circulante"] !== 0 ? values["Ativo circulante"] / values["Passivo circulante"] : 0;
+                        break;
+                    case "Liquidez Seca":
+                        value = values["Passivo circulante"] !== 0 ? (values["Ativo circulante sem estoques"] - values["Estoque"]) / values["Passivo circulante"] : 0;
+                        break;
+                    case "Liquidez Imediata":
+                        value = values["Passivo circulante"] !== 0 ? values["Caixa e equivalentes"] / values["Passivo circulante"] : 0;
+                        break;
+                    case "Liquidez Geral":
+                        const totalPass = values["Passivo circulante"] + values["Exigível LP"];
+                        value = totalPass !== 0 ? (values["Ativo circulante"] + values["Realizável LP"]) / totalPass : 0;
+                        break;
+                    case "Margem Bruta":
+                        value = values["Receita líquida"] !== 0 ? ((values["Receita líquida"] - values["Custo dos produtos vendidos"]) / values["Receita líquida"] * 100) : 0;
+                        break;
+                    case "Margem Operacional":
+                        value = values["Receita líquida"] !== 0 ? (values["Lucro operacional"] / values["Receita líquida"] * 100) : 0;
+                        break;
+                    case "Margem Líquida":
+                        value = values["Receita líquida"] !== 0 ? (values["Lucro líquido"] / values["Receita líquida"] * 100) : 0;
+                        break;
+                    case "Retorno sobre Ativo":
+                        value = values["Ativo total"] !== 0 ? (values["Lucro líquido"] / values["Ativo total"] * 100) : 0;
+                        break;
+                    case "Retorno sobre Patrimônio Líquido":
+                        value = values["Patrimônio líquido"] !== 0 ? (values["Lucro líquido"] / values["Patrimônio líquido"] * 100) : 0;
+                        break;
+                    case "Margem EBITDA":
+                        value = values["Receita líquida"] !== 0 ? (values["EBITDA"] / values["Receita líquida"] * 100) : 0;
+                        break;
+                    case "Retorno sobre Investimento":
+                        value = values["Custo do investimento"] !== 0 ? ((values["Ganho do investimento"] - values["Custo do investimento"]) / values["Custo do investimento"] * 100) : 0;
+                        break;
+                    case "Giro do Ativo":
+                        value = values["Ativo total"] !== 0 ? values["Receita líquida"] / values["Ativo total"] : 0;
+                        break;
+                    case "Giro de Estoques":
+                        value = values["Estoque médio"] !== 0 ? values["Custo das mercadorias vendidas"] / values["Estoque médio"] : 0;
+                        break;
+                    case "Prazo Médio de Estocagem":
+                        value = values["Custo CMV"] !== 0 ? (values["Estoque médio"] / values["Custo CMV"] * 360) : 0;
+                        break;
+                    case "Prazo Médio de Recebimento":
+                        value = values["Receita líquida"] !== 0 ? (values["Contas a receber"] / values["Receita líquida"] * 360) : 0;
+                        break;
+                    case "Prazo Médio de Pagamento":
+                        value = values["Compras"] !== 0 ? (values["Contas a pagar"] / values["Compras"] * 360) : 0;
+                        break;
+                    case "Ciclo Operacional":
+                        value = values["Prazo médio de estocagem"] + values["Prazo médio de recebimento"];
+                        break;
+                    case "Ciclo Financeiro":
+                        value = values["Ciclo operacional"] - values["Prazo médio de pagamento"];
+                        break;
+                    case "Taxa de Rotatividade de Estoque por SKU":
+                        value = values["Estoque médio por SKU"] !== 0 ? values["Vendas por SKU"] / values["Estoque médio por SKU"] : 0;
+                        break;
+                    case "Endividamento Total":
+                        value = values["Ativo total"] !== 0 ? (values["Passivo total"] / values["Ativo total"] * 100) : 0;
+                        break;
+                    case "Dívida Líquida sobre EBITDA":
+                        value = values["EBITDA"] !== 0 ? (values["Dívida bruta"] - values["Caixa"]) / values["EBITDA"] : 0;
+                        break;
+                    case "Cobertura de Juros":
+                        value = values["Despesa de juros"] !== 0 ? values["Lucro operacional"] / values["Despesa de juros"] : 0;
+                        break;
+                    case "Alavancagem Financeira":
+                        value = values["Patrimônio líquido"] !== 0 ? values["Ativo total"] / values["Patrimônio líquido"] : 0;
+                        break;
+                    case "Composição do Endividamento Curto e Longo Prazo":
+                        value = values["Passivo total"] !== 0 ? (values["Passivo circulante"] / values["Passivo total"] * 100) : 0;
+                        break;
+                    case "Crescimento da Receita":
+                        value = values["Receita anterior"] !== 0 ? ((values["Receita atual"] - values["Receita anterior"]) / values["Receita anterior"] * 100) : 0;
+                        break;
+                    case "Crescimento do Lucro Líquido":
+                        value = values["Lucro líquido anterior"] !== 0 ? ((values["Lucro líquido atual"] - values["Lucro líquido anterior"]) / values["Lucro líquido anterior"] * 100) : 0;
+                        break;
+                    case "Crescimento do Ativo":
+                        value = values["Ativo total anterior"] !== 0 ? ((values["Ativo total atual"] - values["Ativo total anterior"]) / values["Ativo total anterior"] * 100) : 0;
+                        break;
+                    case "Crescimento do Patrimônio Líquido":
+                        value = values["Patrimônio líquido anterior"] !== 0 ? ((values["Patrimônio líquido atual"] - values["Patrimônio líquido anterior"]) / values["Patrimônio líquido anterior"] * 100) : 0;
+                        break;
+                    case "Taxa de Retenção de Clientes":
+                        value = values["Clientes iniciais"] !== 0 ? (values["Clientes finais"] / values["Clientes iniciais"] * 100) : 0;
+                        break;
+                    case "Taxa de Conversão de Vendas":
+                        value = values["Leads / oportunidades"] !== 0 ? (values["Vendas concluídas"] / values["Leads / oportunidades"] * 100) : 0;
+                        break;
+                    case "Fluxo de Caixa Operacional":
+                        value = values["Entradas"] - values["Saídas"];
+                        break;
+                    case "Fluxo de Caixa Livre":
+                        value = values["Fluxo operacional"] - values["Investimentos"];
+                        break;
+                    case "Valor Econômico Adicionado (EVA)":
+                        value = values["Lucro líquido operacional após impostos"] - values["Custo do capital"];
+                        break;
+                    case "Índice de Cobertura de Caixa":
+                        value = values["Passivo circulante"] !== 0 ? values["Caixa e equivalentes"] / values["Passivo circulante"] : 0;
+                        break;
+                    case "Taxa de Geração de Caixa":
+                        value = values["Lucro líquido"] !== 0 ? (values["Fluxo operacional"] / values["Lucro líquido"] * 100) : 0;
+                        break;
+                    case "Eficiência Operacional":
+                        value = values["Produção planejada"] !== 0 ? (values["Produção efetiva"] / values["Produção planejada"] * 100) : 0;
+                        break;
+                    case "Índice de Satisfação de Colaboradores":
+                        value = values["Total de pontos possíveis"] !== 0 ? (values["Pontuação média"] / values["Total de pontos possíveis"] * 100) : 0;
+                        break;
+                    case "Cumprimento de Prazo de Projetos":
+                        value = values["Total de projetos"] !== 0 ? (values["Projetos entregues no prazo"] / values["Total de projetos"] * 100) : 0;
+                        break;
+                    case "Produtividade por Colaborador":
+                        value = values["Número de colaboradores"] !== 0 ? values["Produção efetiva"] / values["Número de colaboradores"] : 0;
+                        break;
+                    case "Custo por Colaborador":
+                        value = values["nc"] !== 0 ? values["Despesas com pessoal"] / values["nc"] : 0;
+                        break;
+                    case "Turnover (Rotatividade de Pessoal)":
+                        value = values["Número médio de colaboradores"] !== 0 ? (values["Colaboradores que saíram"] / values["Número médio de colaboradores"] * 100) : 0;
+                        break;
+                    case "Absenteísmo":
+                        value = values["Horas programadas"] !== 0 ? (values["Horas não trabalhadas"] / values["Horas programadas"] * 100) : 0;
+                        break;
+                    default:
+                        value = 0;
+                }
+
+                let color = 'green';
+                if (ind.comparison === '>') {
+                    if (value > ind.ruim) color = 'red';
+                    else if (value > ind.medio) color = 'yellow';
+                    else color = 'green';
+                } else {
+                    if (value < ind.ruim) color = 'red';
+                    else if (value <= ind.medio) color = 'yellow';
+                    else color = 'green';
+                }
+
+                const kpiDiv = document.getElementById(`kpi-${catIndex}-${indIndex}`);
+                kpiDiv.innerHTML = `<strong>${ind.name}:</strong> <span style="color: ${color}; font-weight: bold;">${value.toFixed(2)}</span>`;
+
+                // Store in kpiData
+                kpiData[`${catIndex}-${indIndex}`] = {
+                    catName: categories[catIndex].name,
+                    name: ind.name,
+                    value: value.toFixed(2),
+                    color,
+                    applications: ind.applications,
+                    solutions: ind.solutions || [],
+                    comparison: ind.comparison
+                };
+            } catch (e) {
+                const kpiDiv = document.getElementById(`kpi-${catIndex}-${indIndex}`);
+                kpiDiv.innerHTML = `<span class="error">Erro no cálculo: ${e.message}</span>`;
+            }
+        }
+
+        function generateSpecialContent(type) {
+            const content = document.getElementById(`tab-${type}`);
+            content.innerHTML = '';
+
+            if (type === 'overview') {
+                const header = document.createElement('h2');
+                header.textContent = 'Visão Geral';
+                content.appendChild(header);
+
+                // Individual graphs for each KPI
+                const graphsHeader = document.createElement('h3');
+                graphsHeader.textContent = 'Gráficos Individuais dos Indicadores';
+                content.appendChild(graphsHeader);
+
+                let kpiList = [];
+                categories.forEach((cat, catIndex) => {
+                    cat.indicators.forEach((ind, indIndex) => {
+                        const key = `${catIndex}-${indIndex}`;
+                        if (kpiData[key]) {
+                            kpiList.push({...kpiData[key], key});
+                        }
+                    });
+                });
+
+                kpiList.forEach((kpi, idx) => {
+                    const kpiHeader = document.createElement('h4');
+                    kpiHeader.textContent = `${idx + 1}. ${kpi.name} (${kpi.catName})`;
+                    content.appendChild(kpiHeader);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `individual-chart-${idx}`;
+                    content.appendChild(canvas);
+
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: [kpi.name],
+                            datasets: [{
+                                label: 'Valor',
+                                data: [parseFloat(kpi.value)],
+                                backgroundColor: kpi.color
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Radar chart
+                const radarHeader = document.createElement('h3');
+                radarHeader.textContent = 'Gráfico de Radar - Média dos KPIs por Categoria';
+                content.appendChild(radarHeader);
+
+                const radarCanvas = document.createElement('canvas');
+                radarCanvas.id = 'radar-chart';
+                content.appendChild(radarCanvas);
+
+                let categoryAverages = categories.map(cat => {
+                    let sum = 0;
+                    let count = 0;
+                    cat.indicators.forEach((ind, indIndex) => {
+                        const key = `${categories.indexOf(cat)}-${indIndex}`;
+                        if (kpiData[key]) {
+                            const colorScore = kpiData[key].color === 'green' ? 100 : kpiData[key].color === 'yellow' ? 50 : 0;
+                            sum += colorScore;
+                            count++;
+                        }
+                    });
+                    return count > 0 ? sum / count : 0;
+                });
+
+                new Chart(radarCanvas, {
+                    type: 'radar',
+                    data: {
+                        labels: categories.map(cat => cat.name),
+                        datasets: [{
+                            label: 'Média dos KPIs',
+                            data: categoryAverages,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+
+                // Ranking
+                const rankingHeader = document.createElement('h3');
+                rankingHeader.textContent = 'Ranking de KPIs';
+                content.appendChild(rankingHeader);
+
+                const select = document.createElement('select');
+                select.id = 'ranking-order';
+                const option1 = document.createElement('option');
+                option1.value = 'bestToWorst';
+                option1.textContent = 'Melhor para Pior';
+                select.appendChild(option1);
+                const option2 = document.createElement('option');
+                option2.value = 'worstToBest';
+                option2.textContent = 'Pior para Melhor';
+                select.appendChild(option2);
+                select.onchange = () => updateRanking(select.value);
+                content.appendChild(select);
+
+                const rankingDiv = document.createElement('div');
+                rankingDiv.id = 'ranking-list';
+                content.appendChild(rankingDiv);
+
+                updateRanking('bestToWorst');
+            } else if (type === 'report') {
+                const header = document.createElement('h2');
+                header.textContent = 'Relatório';
+                content.appendChild(header);
+
+                const list = document.createElement('ol');
+                let enumerator = 1;
+                categories.forEach((cat) => {
+                    cat.indicators.forEach((ind) => {
+                        const li = document.createElement('li');
+                        const key = `${categories.indexOf(cat)}-${cat.indicators.indexOf(ind)}`;
+                        const kpi = kpiData[key] || { value: '0.00', color: 'gray' };
+                        li.innerHTML = `<strong>${ind.name} (${cat.name}):</strong> <span style="color: ${kpi.color};">${kpi.value}</span><br><strong>Soluções possíveis:</strong><ul>`;
+                        ind.solutions.forEach(sol => {
+                            const solLi = document.createElement('li');
+                            solLi.textContent = sol;
+                            li.querySelector('ul').appendChild(solLi);
+                        });
+                        li.innerHTML += '</ul>';
+                        list.appendChild(li);
+                        enumerator++;
+                    });
+                });
+                content.appendChild(list);
+            }
+        }
+
+        function updateRanking(order) {
+            const rankingDiv = document.getElementById('ranking-list');
+            rankingDiv.innerHTML = '';
+
+            const rankingList = document.createElement('ol');
+            const kpis = Object.values(kpiData);
+            kpis.sort((a, b) => {
+                const scoreA = a.color === 'green' ? 3 : a.color === 'yellow' ? 2 : 1;
+                const scoreB = b.color === 'green' ? 3 : b.color === 'yellow' ? 2 : 1;
+                if (scoreA !== scoreB) {
+                    return order === 'bestToWorst' ? scoreB - scoreA : scoreA - scoreB;
+                }
+                const valA = parseFloat(a.value);
+                const valB = parseFloat(b.value);
+                if (order === 'bestToWorst') {
+                    return a.comparison === '<' ? valB - valA : valA - valB;
+                } else {
+                    return a.comparison === '<' ? valA - valB : valB - valA;
+                }
+            });
+
+            kpis.forEach(kpi => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${kpi.name} (${kpi.catName}):</strong> <span style="color: ${kpi.color};">${kpi.value}</span> - ${kpi.applications}`;
+                rankingList.appendChild(li);
+            });
+            rankingDiv.appendChild(rankingList);
+        }
+
+        buildUI();
+    </script>
+</body>
+</html>
+```
