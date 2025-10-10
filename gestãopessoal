@@ -1,77 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Orçamentário Pessoal Inteligente</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-gray-900 text-white p-8">
+<body class="bg-gray-900 text-white p-8 font-sans">
   <div class="max-w-5xl mx-auto">
     <h1 class="text-3xl font-bold text-center mb-6">📊 Dashboard de Gestão Pessoal Orçamentária Inteligente</h1>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      <!-- ENTRADAS -->
       <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
         <h2 class="text-xl font-semibold mb-4">💰 Entradas Mensais</h2>
-        <label class="block mb-2">Salário (R$):</label>
-        <input id="salario" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 3500" />
+        <label for="salario" class="block mb-2">Salário (R$):</label>
+        <input id="salario" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 3500" />
 
-        <label class="block mt-4 mb-2">Bonificações (R$):</label>
-        <input id="bonus" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 500" />
+        <label for="bonus" class="block mt-4 mb-2">Bonificações (R$):</label>
+        <input id="bonus" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 500" />
       </div>
 
-      <!-- DESPESAS -->
       <div class="bg-gray-800 p-6 rounded-2xl shadow-xl">
         <h2 class="text-xl font-semibold mb-4">💸 Despesas</h2>
-        <label class="block mb-2">Recorrentes (R$):</label>
-        <input id="recorrentes" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 2000" />
+        <label for="recorrentes" class="block mb-2">Recorrentes (R$):</label>
+        <input id="recorrentes" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 2000" />
 
-        <label class="block mt-4 mb-2">Ocasional/Fundamental (R$):</label>
-        <input id="ocasionais" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 800" />
+        <label for="ocasionais" class="block mt-4 mb-2">Ocasional/Fundamental (R$):</label>
+        <input id="ocasionais" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 800" />
 
-        <label class="block mt-4 mb-2">Extras (R$):</label>
-        <input id="extras" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 300" />
+        <label for="investimentos" class="block mt-4 mb-2">Investimentos (R$):</label>
+        <input id="investimentos" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 400" />
 
-        <label class="block mt-4 mb-2">Investimentos (R$):</label>
-        <input id="investimentos" type="number" class="w-full p-2 rounded text-black" placeholder="Ex: 400" />
+        <label for="extras" class="block mt-4 mb-2">Extras (R$):</label>
+        <input id="extras" type="number" class="w-full p-2 rounded text-black bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 300" />
       </div>
     </div>
 
-    <!-- BOTÃO -->
     <div class="text-center mt-8">
-      <button onclick="calcular()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-bold">
+      <button onclick="calcular()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-bold transition-transform transform hover:scale-105">
         Calcular Orçamento
       </button>
     </div>
 
-    <!-- RESULTADOS -->
     <div id="resultados" class="bg-gray-800 mt-10 p-6 rounded-2xl shadow-xl hidden">
       <h2 class="text-2xl font-semibold mb-4">📈 Resultados</h2>
-      <p id="totalEntradas"></p>
-      <p id="totalDespesas"></p>
-      <p id="saldo"></p>
+      <p id="totalEntradas" class="text-lg"></p>
+      <p id="totalDespesas" class="text-lg"></p>
+      <p id="saldo" class="text-lg"></p>
       <hr class="my-4 border-gray-600" />
 
-      <h3 class="text-xl font-semibold mb-2">💹 Distribuição Percentual:</h3>
-      <p id="percentuais"></p>
+      <h3 class="text-xl font-semibold mb-2">💹 Distribuição Percentual e de Valor:</h3>
+      <div id="percentuais" class="space-y-1"></div>
 
       <hr class="my-4 border-gray-600" />
-      <h3 class="text-xl font-semibold mb-2">🗓️ Projeções de Caixa:</h3>
-      <p id="diario"></p>
-      <p id="semanal"></p>
-      <p id="mensal"></p>
+      <h3 class="text-xl font-semibold mb-2">🎯 Metas Ideais em Valor (25/25/30/20):</h3>
+      <div id="metasIdeais" class="space-y-1"></div>
+      
+      <hr class="my-4 border-gray-600" />
+      <h3 class="text-xl font-semibold mb-2">📊 Comparativo: Gasto Real vs. Meta Ideal</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center mt-4">
+          <div class="relative h-64 md:h-80">
+              <canvas id="donutChart"></canvas>
+          </div>
+          <div id="diferencas" class="space-y-3 text-sm md:text-base">
+              </div>
+      </div>
+
+
+      <hr class="my-4 border-gray-600" />
+      <h3 class="text-xl font-semibold mb-2">🗓️ Projeções de Caixa (Gastos Reais):</h3>
+      <div id="projecaoReal" class="mt-4"></div>
+
+      <hr class="my-4 border-gray-600" />
+      <h3 class="text-xl font-semibold mb-2">📆 Projeção de Caixa Ideal (com base nas Metas):</h3>
+      <div id="projecaoIdeal" class="mt-4"></div>
 
       <hr class="my-4 border-gray-600" />
       <h3 class="text-xl font-semibold mb-2">🤖 Sugestão Inteligente (IA):</h3>
       <p id="promptIA" class="italic text-green-400"></p>
     </div>
-  </div>
 
+  </div>
   <script>
+    // To prevent chart duplication, we declare it in a broader scope.
+    let donutChart = null;
+
     function calcular() {
+      // Get values from inputs
       const salario = parseFloat(document.getElementById("salario").value) || 0;
       const bonus = parseFloat(document.getElementById("bonus").value) || 0;
       const recorrentes = parseFloat(document.getElementById("recorrentes").value) || 0;
@@ -79,57 +96,247 @@
       const extras = parseFloat(document.getElementById("extras").value) || 0;
       const investimentos = parseFloat(document.getElementById("investimentos").value) || 0;
 
+      // Main calculations
       const totalEntradas = salario + bonus;
       const totalDespesas = recorrentes + ocasionais + extras + investimentos;
       const saldo = totalEntradas - totalDespesas;
 
-      // Percentuais
-      const pRecorrente = ((recorrentes / totalEntradas) * 100).toFixed(1);
-      const pOcasional = ((ocasionais / totalEntradas) * 100).toFixed(1);
-      const pExtra = ((extras / totalEntradas) * 100).toFixed(1);
-      const pInvest = ((investimentos / totalEntradas) * 100).toFixed(1);
+      // Real percentage based on total income
+      const pRecorrente = totalEntradas > 0 ? ((recorrentes / totalEntradas) * 100).toFixed(1) : 0;
+      const pOcasional = totalEntradas > 0 ? ((ocasionais / totalEntradas) * 100).toFixed(1) : 0;
+      const pInvest = totalEntradas > 0 ? ((investimentos / totalEntradas) * 100).toFixed(1) : 0;
+      const pExtra = totalEntradas > 0 ? ((extras / totalEntradas) * 100).toFixed(1) : 0;
 
-      // Projeções
-      const diario = (saldo / 30).toFixed(2);
-      const semanal = (saldo / 7).toFixed(2);
-      const mensal = saldo.toFixed(2);
+      // Ideal goal values
+      const idealRecorrente = totalEntradas * 0.25;
+      const idealOcasional = totalEntradas * 0.25;
+      const idealInvest = totalEntradas * 0.30;
+      const idealExtra = totalEntradas * 0.20;
+      
+      // --- MODIFIED SECTION: Cash flow projections based on REAL expenses ---
+      const projecaoReal = `
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+          <div>
+            <p class="font-semibold">🔴 Recorrentes</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(recorrentes / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(recorrentes / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${recorrentes.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🔴 Ocasional/Fundamental</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(ocasionais / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(ocasionais / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${ocasionais.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🟡 Investimentos</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(investimentos / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(investimentos / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${investimentos.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🟢 Extras</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(extras / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(extras / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${extras.toFixed(2)}</li>
+            </ul>
+          </div>
+        </div>
+      `;
 
-      // Exibição
+      // --- MODIFIED SECTION: Cash flow projections based on IDEAL goals ---
+      const projecaoIdeal = `
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+          <div>
+            <p class="font-semibold">🔴 Recorrentes</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(idealRecorrente / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(idealRecorrente / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${idealRecorrente.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🔴 Ocasional/Fundamental</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(idealOcasional / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(idealOcasional / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${idealOcasional.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🟡 Investimentos</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(idealInvest / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(idealInvest / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${idealInvest.toFixed(2)}</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-semibold">🟢 Extras</p>
+            <ul class="text-sm mt-1 text-gray-300">
+              <li><strong>Diário:</strong> R$ ${(idealExtra / 30).toFixed(2)}</li>
+              <li><strong>Semanal:</strong> R$ ${(idealExtra / 4).toFixed(2)}</li>
+              <li><strong>Mensal:</strong> R$ ${idealExtra.toFixed(2)}</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      // Display results in HTML
       document.getElementById("resultados").classList.remove("hidden");
       document.getElementById("totalEntradas").innerHTML = `💵 Total de Entradas: R$ ${totalEntradas.toFixed(2)}`;
       document.getElementById("totalDespesas").innerHTML = `💳 Total de Despesas: R$ ${totalDespesas.toFixed(2)}`;
       document.getElementById("saldo").innerHTML = `🧾 Saldo Final: <strong class="${saldo >= 0 ? 'text-green-400' : 'text-red-400'}">R$ ${saldo.toFixed(2)}</strong>`;
 
       document.getElementById("percentuais").innerHTML = `
-        🏠 Despesas Recorrentes: ${pRecorrente}%<br>
-        🧺 Ocasional/Fundamental: ${pOcasional}%<br>
-        🎉 Extras: ${pExtra}%<br>
-        💼 Investimentos: ${pInvest}%<br>
-        <strong>Total = 100%</strong> (Meta ideal: 25% / 25% / 20% / 30%)
+        <p>🏠 Despesas Recorrentes: <strong>${pRecorrente}%</strong> (R$ ${recorrentes.toFixed(2)})</p>
+        <p>🧺 Ocasional/Fundamental: <strong>${pOcasional}%</strong> (R$ ${ocasionais.toFixed(2)})</p>
+        <p>💼 Investimentos: <strong>${pInvest}%</strong> (R$ ${investimentos.toFixed(2)})</p>
+        <p>🎉 Extras: <strong>${pExtra}%</strong> (R$ ${extras.toFixed(2)})</p>
+        <p class="mt-2"><strong>Meta ideal:</strong> 25% / 25% / 30% / 20%</p>
       `;
 
-      document.getElementById("diario").innerHTML = `💡 Saldo Diário: R$ ${diario}`;
-      document.getElementById("semanal").innerHTML = `📆 Saldo Semanal: R$ ${semanal}`;
-      document.getElementById("mensal").innerHTML = `🗓️ Saldo Mensal: R$ ${mensal}`;
+      document.getElementById("metasIdeais").innerHTML = `
+        <p>🔴 <strong>Recorrentes (25%)</strong>: R$ ${idealRecorrente.toFixed(2)}</p>
+        <p>🔴 <strong>Ocasional/Fundamental (25%)</strong>: R$ ${idealOcasional.toFixed(2)}</p>
+        <p>🟡 <strong>Investimentos (30%)</strong>: R$ ${idealInvest.toFixed(2)}</p>
+        <p>🟢 <strong>Extras (20%)</strong>: R$ ${idealExtra.toFixed(2)}</p>
+      `;
+      
+      document.getElementById("projecaoReal").innerHTML = projecaoReal;
+      document.getElementById("projecaoIdeal").innerHTML = projecaoIdeal;
+      
+      // --- CHART AND COMPARISON LOGIC ---
+      // NEW CALCULATION: gasto - meta
+      const diffRecorrente = recorrentes - idealRecorrente;
+      const diffOcasional = ocasionais - idealOcasional;
+      const diffInvest = investimentos - idealInvest;
+      const diffExtra = extras - idealExtra;
 
-      // IA – geração de prompt automático
+      const diferencasDiv = document.getElementById("diferencas");
+      diferencasDiv.innerHTML = ''; // Clear previous results
+
+      const categories = [
+        { name: 'Recorrentes', diff: diffRecorrente, ideal: idealRecorrente, real: recorrentes },
+        { name: 'Ocasional', diff: diffOcasional, ideal: idealOcasional, real: ocasionais },
+        { name: 'Investimentos', diff: diffInvest, ideal: idealInvest, real: investimentos },
+        { name: 'Extras', diff: diffExtra, ideal: idealExtra, real: extras }
+      ];
+
+      categories.forEach(cat => {
+        let colorClass = '';
+        let text = '';
+        // If diff > 0, it means gasto > meta (spent more)
+        if (cat.diff > 0) {
+          colorClass = 'text-red-400';
+          text = `Excedeu a meta em R$ ${cat.diff.toFixed(2)}.`;
+        // If diff < 0, it means gasto < meta (spent less)
+        } else if (cat.diff < 0) {
+          colorClass = 'text-green-400';
+          text = `Sobrou R$ ${Math.abs(cat.diff).toFixed(2)} da meta.`;
+        } else {
+          colorClass = 'text-yellow-400';
+          text = 'Você atingiu a meta exata!';
+        }
+        
+        diferencasDiv.innerHTML += `
+          <div>
+            <p class="font-bold">${cat.name}:</p>
+            <p class="text-xs text-gray-400">
+              (Meta: R$ ${cat.ideal.toFixed(2)} - Gasto: R$ ${cat.real.toFixed(2)})
+            </p>
+            <p class="${colorClass} font-semibold">${text}</p>
+          </div>
+        `;
+      });
+
+      // Donut Chart update
+      const ctx = document.getElementById('donutChart').getContext('2d');
+      const chartData = {
+          labels: ['Recorrentes', 'Ocasional', 'Investimentos', 'Extras'],
+          datasets: [{
+              label: 'Diferença para a Meta',
+              // We use the absolute value for the chart slices
+              data: [
+                Math.abs(diffRecorrente), 
+                Math.abs(diffOcasional), 
+                Math.abs(diffInvest), 
+                Math.abs(diffExtra)
+              ],
+              backgroundColor: [
+                  'rgba(255, 99, 132, 0.7)', // Red
+                  'rgba(54, 162, 235, 0.7)', // Blue
+                  'rgba(255, 206, 86, 0.7)', // Yellow
+                  'rgba(75, 192, 192, 0.7)'  // Green
+              ],
+              borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)'
+              ],
+              borderWidth: 1
+          }]
+      };
+
+      // Destroy the previous chart instance if it exists before creating a new one
+      if(donutChart) {
+        donutChart.destroy();
+      }
+
+      donutChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: chartData,
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      position: 'top',
+                      labels: {
+                        color: 'white'
+                      }
+                  },
+                  title: {
+                      display: true,
+                      text: 'Magnitude da Diferença (Real vs. Meta)',
+                      color: 'white'
+                  }
+              }
+          }
+      });
+
+      // --- AI SUGGESTION LOGIC ---
       let sugestao = "";
-      if (pRecorrente > 40) {
-        sugestao = "Suas despesas fixas ultrapassam a meta de 25%. Tente otimizar contas fixas como aluguel, energia e assinaturas.";
-      } else if (pOcasional > 30) {
-        sugestao = "Gastos ocasionais estão altos. Avalie se todos são realmente fundamentais.";
-      } else if (pExtra > 25) {
-        sugestao = "Despesas extras estão elevadas. Reduza lazer, delivery ou compras supérfluas.";
-      } else if (pInvest < 25) {
-        sugestao = "Invista mais: a meta ideal é destinar cerca de 30% do total mensal para investimentos e reserva.";
-      } else if (saldo < 0) {
-        sugestao = "Seu orçamento está negativo. Reveja gastos e estabeleça prioridade financeira.";
+      if (totalEntradas > 0) {
+        if (saldo < 0) {
+            sugestao = "Alerta: Seu orçamento está negativo. É crucial revisar todos os seus gastos, cortar o que não for essencial e estabelecer prioridades financeiras urgentes.";
+        } else if (pRecorrente > 28) {
+          sugestao = "Atenção: Suas despesas recorrentes estão acima do ideal. Tente otimizar contas fixas como aluguel, energia e assinaturas para se aproximar da meta de 25%.";
+        } else if (pOcasional > 28) {
+          sugestao = "Seus gastos ocasionais/fundamentais estão um pouco altos. Avalie se todos são realmente necessários e busque alternativas mais econômicas.";
+        } else if (pInvest < 28) {
+          sugestao = "Seu orçamento está saudável! Que tal potencializar seu futuro? A meta ideal é destinar cerca de 30% da sua renda para investimentos. Aumentar esse percentual pode acelerar seus objetivos.";
+        } else if (pExtra > 22) {
+          sugestao = "Cuidado com os gastos extras. Eles estão acima do recomendado (20%). Tente reduzir lazer, delivery ou compras supérfluas para manter o equilíbrio e direcionar mais para investimentos.";
+        } else {
+          sugestao = "Parabéns! Você demonstra um excelente equilíbrio financeiro e está gerenciando suas finanças de forma muito eficaz, seguindo o padrão recomendado. Continue assim!";
+        }
       } else {
-        sugestao = "Excelente equilíbrio financeiro! Você está dentro do padrão 25/25/20/30.";
+        sugestao = "Por favor, insira suas fontes de entrada para que a análise possa ser realizada."
       }
 
       document.getElementById("promptIA").innerHTML = sugestao;
     }
   </script>
 </body>
+
 </html>
+
