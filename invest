@@ -1,0 +1,800 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Inteligente de Investimentos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-8">
+  <h1 class="text-3xl font-bold mb-6 text-green-400">📊 Dashboard Inteligente de Investimentos</h1>
+
+  <!-- Input para código da ação -->
+  <div class="w-full max-w-6xl mb-6">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+      <h2 class="text-xl font-semibold mb-4 text-yellow-400">🔍 Buscar Dados da Ação</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="font-semibold">Chave da API (Alpha Vantage):</label>
+          <input id="apiKey" type="text" placeholder="Ex: NRKZRIDRXRH1WKIW" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Insira sua chave da API para puxar dados de tickers.</p>
+        </div>
+        <div class="flex space-x-4">
+          <div class="flex-1">
+            <label class="font-semibold">Código da Ação (Ticker):</label>
+            <input id="ticker" type="text" placeholder="Escreva o ticker..." class="w-full bg-gray-700 rounded p-1">
+            <p class="text-sm text-gray-400">💡 Exemplo: PETR4.SA (Petrobras na B3) ou AAPL (Apple na NASDAQ).</p>
+          </div>
+          <button onclick="puxarDados()" class="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Puxar</button>
+          <button onclick="buscarDadosAcao()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Buscar Dados</button>
+        </div>
+        <div id="tickerTableContainer" class="hidden">
+          <input id="tickerFilter" type="text" placeholder="Filtrar tickers..." class="w-full bg-gray-700 rounded p-1 mb-4">
+          <div class="overflow-y-auto max-h-96">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-700">
+                  <th class="p-2">#</th>
+                  <th class="p-2">Ticker</th>
+                  <th class="p-2">Nome</th>
+                  <th class="p-2">Bolsa</th>
+                  <th class="p-2">Tipo</th>
+                </tr>
+              </thead>
+              <tbody id="tickerTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full max-w-6xl">
+    <!-- Painel de inputs -->
+    <div class="bg-gray-800 p-6 rounded-xl shadow-xl">
+      <h2 class="text-xl font-semibold mb-4 text-yellow-400">📥 Inputs Financeiros</h2>
+      <div class="space-y-3">
+        <div>
+          <label class="font-semibold">Dividendo Esperado (D1):</label>
+          <input id="D1" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: R$3,50 (dividendo por ação no próximo ano). <span class="text-green-400">Bom: >3,0</span> | <span class="text-yellow-400">Médio: 1–3</span> | <span class="text-red-400">Ruim: <1</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Taxa de Retorno Exigida (k):</label>
+          <input id="r" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.10 = 10% ao ano. <span class="text-green-400">Bom: 0.08–0.12</span> | <span class="text-yellow-400">Médio: 0.12–0.15</span> | <span class="text-red-400">Ruim: >0.15</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Crescimento Esperado (g):</label>
+          <input id="g" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.05 = 5% ao ano. <span class="text-green-400">Bom: 0.04–0.08</span> | <span class="text-yellow-400">Médio: 0.02–0.04</span> | <span class="text-red-400">Ruim: <0.02</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Lucro por Ação (EPS):</label>
+          <input id="EPS" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: R$5,00 de lucro por ação. <span class="text-green-400">Bom: >4</span> | <span class="text-yellow-400">Médio: 2–4</span> | <span class="text-red-400">Ruim: <2</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Rendimento Médio de Títulos AAA (Y):</label>
+          <input id="Y" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 4.4 = rendimento de títulos AAA. <span class="text-green-400">Bom: 3–5</span> | <span class="text-yellow-400">Médio: 5–6</span> | <span class="text-red-400">Ruim: >6</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">ROE (%):</label>
+          <input id="ROE" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.15 = 15%. <span class="text-green-400">Bom: >0.15</span> | <span class="text-yellow-400">Médio: 0.10–0.15</span> | <span class="text-red-400">Ruim: <0.10</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Preço / Valor Contábil (P/B):</label>
+          <input id="PB" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.5 = preço é 1.5x o valor contábil. <span class="text-green-400">Bom: 0.8–1.5</span> | <span class="text-yellow-400">Médio: 1.5–2.0</span> | <span class="text-red-400">Ruim: >2.0</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Lucro Total (E):</label>
+          <input id="E" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.000.000. <span class="text-green-400">Bom: >500000</span> | <span class="text-yellow-400">Médio: 100000–500000</span> | <span class="text-red-400">Ruim: <100000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Dividendo Anual (D):</label>
+          <input id="D" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 2,00. <span class="text-green-400">Bom: >2</span> | <span class="text-yellow-400">Médio: 1–2</span> | <span class="text-red-400">Ruim: <1</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">P/E Alvo:</label>
+          <input id="PE" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 12. <span class="text-green-400">Bom: 8–15</span> | <span class="text-yellow-400">Médio: 15–25</span> | <span class="text-red-400">Ruim: >25</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Preço da Ação:</label>
+          <input id="preco_acao" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: R$50,00 (preço atual da ação no mercado). <span class="text-green-400">Bom: <20</span> | <span class="text-yellow-400">Médio: 20–50</span> | <span class="text-red-400">Ruim: >50</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Patrimônio Líquido:</label>
+          <input id="patrimonio_liquido" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.000.000 (patrimônio líquido da empresa). <span class="text-green-400">Bom: >1000000</span> | <span class="text-yellow-400">Médio: 500000–1000000</span> | <span class="text-red-400">Ruim: <500000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Número de Ações:</label>
+          <input id="numero_acoes" type="number" step="1" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 100.000 (total de ações emitidas). <span class="text-green-400">Bom: >100000</span> | <span class="text-yellow-400">Médio: 50000–100000</span> | <span class="text-red-400">Ruim: <50000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">EBIT:</label>
+          <input id="EBIT" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 50.000 (lucro antes de juros e impostos). <span class="text-green-400">Bom: >50000</span> | <span class="text-yellow-400">Médio: 20000–50000</span> | <span class="text-red-400">Ruim: <20000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Taxa de Impostos (T):</label>
+          <input id="T" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.20 = 20%. <span class="text-green-400">Bom: <0.20</span> | <span class="text-yellow-400">Médio: 0.20–0.30</span> | <span class="text-red-400">Ruim: >0.30</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Depreciação:</label>
+          <input id="depreciacao" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 5.000. <span class="text-green-400">Bom: <5000</span> | <span class="text-yellow-400">Médio: 5000–10000</span> | <span class="text-red-400">Ruim: >10000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">CAPEX:</label>
+          <input id="capex" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 10.000 (investimentos em ativos fixos). <span class="text-green-400">Bom: <10000</span> | <span class="text-yellow-400">Médio: 10000–20000</span> | <span class="text-red-400">Ruim: >20000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Variação de Capital de Giro (ΔCG):</label>
+          <input id="delta_cg" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 5.000. <span class="text-green-400">Bom: <5000</span> | <span class="text-yellow-400">Médio: 5000–10000</span> | <span class="text-red-400">Ruim: >10000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Juros Pagos:</label>
+          <input id="juros" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 5.000 (juros sobre dívidas). <span class="text-green-400">Bom: <5000</span> | <span class="text-yellow-400">Médio: 5000–10000</span> | <span class="text-red-400">Ruim: >10000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Empréstimos Líquidos:</label>
+          <input id="emprestimos_liquidos" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 2.000 (novos empréstimos menos reembolsos). <span class="text-green-400">Bom: >2000</span> | <span class="text-yellow-400">Médio: 1000–2000</span> | <span class="text-red-400">Ruim: <1000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Capital Investido:</label>
+          <input id="capital_investido" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 50.000. <span class="text-green-400">Bom: >50000</span> | <span class="text-yellow-400">Médio: 20000–50000</span> | <span class="text-red-400">Ruim: <20000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Custo de Capital:</label>
+          <input id="custo_capital" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.10 = 10%. <span class="text-green-400">Bom: <0.10</span> | <span class="text-yellow-400">Médio: 0.10–0.15</span> | <span class="text-red-400">Ruim: >0.15</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Fluxo de Caixa Livre (FCF):</label>
+          <input id="FCF" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 10.000 por ano. <span class="text-green-400">Bom: >10000</span> | <span class="text-yellow-400">Médio: 5000–10000</span> | <span class="text-red-400">Ruim: <5000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Período (t):</label>
+          <input id="t" type="number" step="1" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 5 anos. <span class="text-green-400">Bom: >5</span> | <span class="text-yellow-400">Médio: 3–5</span> | <span class="text-red-400">Ruim: <3</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Investimento Inicial:</label>
+          <input id="investimento_inicial" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 40.000. <span class="text-green-400">Bom: <40000</span> | <span class="text-yellow-400">Médio: 40000–80000</span> | <span class="text-red-400">Ruim: >80000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Taxa Livre de Risco (Rf):</label>
+          <input id="Rf" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.03 = 3%. <span class="text-green-400">Bom: <0.03</span> | <span class="text-yellow-400">Médio: 0.03–0.05</span> | <span class="text-red-400">Ruim: >0.05</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Beta (β):</label>
+          <input id="beta" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.0. <span class="text-green-400">Bom: <1</span> | <span class="text-yellow-400">Médio: ≈1</span> | <span class="text-red-400">Ruim: >1</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Retorno Esperado do Mercado (Rm):</label>
+          <input id="Rm" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.10 = 10%. <span class="text-green-400">Bom: >0.10</span> | <span class="text-yellow-400">Médio: 0.08–0.10</span> | <span class="text-red-400">Ruim: <0.08</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Retorno da Carteira (Rp):</label>
+          <input id="Rp" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.12 = 12%. <span class="text-green-400">Bom: >0.12</span> | <span class="text-yellow-400">Médio: 0.10–0.12</span> | <span class="text-red-400">Ruim: <0.10</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Desvio Padrão da Carteira (σp):</label>
+          <input id="sigma_p" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.15 = 15%. <span class="text-green-400">Bom: <0.15</span> | <span class="text-yellow-400">Médio: 0.15–0.20</span> | <span class="text-red-400">Ruim: >0.20</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Beta da Carteira (βp):</label>
+          <input id="beta_p" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.2. <span class="text-green-400">Bom: <1</span> | <span class="text-yellow-400">Médio: 1–1.2</span> | <span class="text-red-400">Ruim: >1.2</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Valor Máximo da Carteira:</label>
+          <input id="valor_max" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 100.000. <span class="text-green-400">Bom: >100000</span> | <span class="text-yellow-400">Médio: 50000–100000</span> | <span class="text-red-400">Ruim: <50000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Valor Mínimo da Carteira:</label>
+          <input id="valor_min" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 70.000. <span class="text-green-400">Bom: >70000</span> | <span class="text-yellow-400">Médio: 30000–70000</span> | <span class="text-red-400">Ruim: <30000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Valor da Carteira:</label>
+          <input id="valor_carteira" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 100.000. <span class="text-green-400">Bom: >100000</span> | <span class="text-yellow-400">Médio: 50000–100000</span> | <span class="text-red-400">Ruim: <50000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Zα (Quantil, 95%):</label>
+          <input id="Z_alpha" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1" value="1.65">
+          <p class="text-sm text-gray-400">💡 Exemplo: 1.65 para 95% de confiança. <span class="text-green-400">Bom: ≈1.65</span> | <span class="text-yellow-400">Médio: 1.5–1.8</span> | <span class="text-red-400">Ruim: Outros</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Total de Ativos:</label>
+          <input id="total_ativos" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 400.000 (total de ativos da empresa). <span class="text-green-400">Bom: >400000</span> | <span class="text-yellow-400">Médio: 200000–400000</span> | <span class="text-red-400">Ruim: <200000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Valor de Mercado:</label>
+          <input id="valor_mercado" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 200.000. <span class="text-green-400">Bom: >200000</span> | <span class="text-yellow-400">Médio: 100000–200000</span> | <span class="text-red-400">Ruim: <100000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Dívida Líquida:</label>
+          <input id="divida_liquida" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 50.000. <span class="text-green-400">Bom: <50000</span> | <span class="text-yellow-400">Médio: 50000–100000</span> | <span class="text-red-400">Ruim: >100000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">EBITDA:</label>
+          <input id="EBITDA" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 50.000. <span class="text-green-400">Bom: >50000</span> | <span class="text-yellow-400">Médio: 20000–50000</span> | <span class="text-red-400">Ruim: <20000</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Cov(Ra, Rm):</label>
+          <input id="cov_ra_rm" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.02 (covariância entre retorno do ativo e do mercado). <span class="text-green-400">Bom: >0.02</span> | <span class="text-yellow-400">Médio: 0.01–0.02</span> | <span class="text-red-400">Ruim: <0.01</span></p>
+        </div>
+        <div>
+          <label class="font-semibold">Var(Rm):</label>
+          <input id="var_rm" type="number" step="0.01" class="w-full bg-gray-700 rounded p-1">
+          <p class="text-sm text-gray-400">💡 Exemplo: 0.01 (variância do retorno do mercado). <span class="text-green-400">Bom: <0.01</span> | <span class="text-yellow-400">Médio: 0.01–0.02</span> | <span class="text-red-400">Ruim: >0.02</span></p>
+        </div>
+      </div>
+      <button onclick="calcular()" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full">Calcular</button>
+    </div>
+
+    <!-- Painel de resultados -->
+    <div class="bg-gray-800 p-4 rounded-xl shadow-xl">
+      <h2 class="text-xl font-semibold mb-2 text-blue-400">📈 Resultados</h2>
+      <div id="resultados" class="space-y-2 text-lg"></div>
+      <div id="ranking" class="space-y-2 text-lg mt-4"></div>
+      <div id="execucaoAcao" class="space-y-2 text-lg mt-4"></div>
+    </div>
+  </div>
+
+  <!-- Gráfico de Radar -->
+  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-3xl mb-8">
+    <h2 class="text-xl font-semibold mb-4 text-purple-400">📊 Gráfico de Radar dos Modelos</h2>
+    <canvas id="graficoRadar"></canvas>
+  </div>
+
+  <!-- Gráfico de Rosca -->
+  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-3xl mb-8">
+    <h2 class="text-xl font-semibold mb-4 text-purple-400">📊 Gráfico de Rosca da Média de Resultados</h2>
+    <canvas id="graficoRosca"></canvas>
+    <p id="resultadoFinal" class="text-center text-lg font-bold mt-4"></p>
+  </div>
+
+  <!-- Gráficos de Pizza por Categoria -->
+  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-6xl">
+    <h2 class="text-xl font-semibold mb-4 text-purple-400">📊 Distribuição de Indicadores por Categoria</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-blue-400">Modelos de Valor e Dividendos</h3>
+        <canvas id="graficoPizzaValuation"></canvas>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-blue-400">Fluxo de Caixa e Valor Econômico</h3>
+        <canvas id="graficoPizzaFluxo"></canvas>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-blue-400">Risco e Retorno</h3>
+        <canvas id="graficoPizzaRisco"></canvas>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold mb-2 text-blue-400">Análise Fundamental e Valuation</h3>
+        <canvas id="graficoPizzaFundamental"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relatório da IA -->
+  <div id="relatorioIA" class="mt-6 text-center text-lg font-semibold"></div>
+
+  <script>
+    let tickersData = [];
+
+    // Função para puxar dados de tickers via Alpha Vantage API
+    async function puxarDados() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('Por favor, insira a chave da API.');
+        return;
+      }
+
+      const url = `https://www.alphavantage.co/query?function=LISTING_STATUS&apikey=${apiKey}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.text();
+        const lines = data.split('\n');
+        tickersData = [];
+        for (let i = 1; i < lines.length; i++) {
+          const columns = lines[i].split(',');
+          if (columns.length >= 4) {
+            tickersData.push({
+              symbol: columns[0],
+              name: columns[1],
+              exchange: columns[2],
+              assetType: columns[3]
+            });
+          }
+        }
+        tickersData.sort((a, b) => a.symbol.localeCompare(b.symbol));
+        renderTickerTable(tickersData);
+        document.getElementById('tickerTableContainer').classList.remove('hidden');
+        alert('Dados de tickers carregados com sucesso!');
+      } catch (error) {
+        console.error('Erro ao puxar dados:', error);
+        alert('Erro ao puxar dados da API.');
+      }
+    }
+
+    // Função para renderizar a tabela de tickers
+    function renderTickerTable(data) {
+      const tableBody = document.getElementById('tickerTable');
+      tableBody.innerHTML = '';
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="p-2">${index + 1}</td>
+          <td class="p-2">${item.symbol}</td>
+          <td class="p-2">${item.name}</td>
+          <td class="p-2">${item.exchange}</td>
+          <td class="p-2">${item.assetType}</td>
+        `;
+        row.onclick = () => {
+          document.getElementById('ticker').value = item.symbol;
+        };
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Filtro para a tabela
+    document.getElementById('tickerFilter').addEventListener('input', (e) => {
+      const filter = e.target.value.toLowerCase();
+      const filteredData = tickersData.filter(item => 
+        item.symbol.toLowerCase().includes(filter) || 
+        item.name.toLowerCase().includes(filter)
+      );
+      renderTickerTable(filteredData);
+    });
+
+    // Função para buscar dados da ação via Alpha Vantage API
+    async function buscarDadosAcao() {
+      const ticker = document.getElementById('ticker').value.trim();
+      if (!ticker) {
+        alert('Por favor, insira o código da ação (ticker).');
+        return;
+      }
+
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (!apiKey) {
+        alert('Por favor, insira a chave da API.');
+        return;
+      }
+
+      const endpoints = [
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${apiKey}`,
+        `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`,
+        `https://www.alphavantage.co/query?function=EARNINGS&symbol=${ticker}&apikey=${apiKey}`
+      ];
+
+      try {
+        const [quoteResponse, overviewResponse, earningsResponse] = await Promise.all(
+          endpoints.map(url => fetch(url).then(res => res.json()))
+        );
+
+        // Verificar se os dados foram retornados com sucesso
+        if (quoteResponse['Global Quote'] && overviewResponse['Symbol'] && earningsResponse['quarterlyEarnings']) {
+          // Preço da ação
+          document.getElementById('preco_acao').value = parseFloat(quoteResponse['Global Quote']['05. price']) || 0;
+
+          // EPS (usar o mais recente disponível)
+          const latestEPS = parseFloat(overviewResponse['EPS']) || parseFloat(earningsResponse['quarterlyEarnings'][0]['reportedEPS']) || 0;
+          document.getElementById('EPS').value = latestEPS;
+
+          // Dividendo Anual (DividendYield do OVERVIEW, convertido para valor absoluto)
+          const dividendYield = parseFloat(overviewResponse['DividendYield']) || 0;
+          const precoAcao = parseFloat(quoteResponse['Global Quote']['05. price']) || 1;
+          document.getElementById('D').value = dividendYield * precoAcao || 0;
+          document.getElementById('D1').value = dividendYield * precoAcao * (1 + 0.05) || 0; // Assume 5% crescimento
+
+          // ROE
+          document.getElementById('ROE').value = parseFloat(overviewResponse['ReturnOnEquityTTM']) || 0;
+
+          // P/B
+          document.getElementById('PB').value = parseFloat(overviewResponse['PriceToBookRatio']) || 0;
+
+          // Lucro Total (estimado a partir de EPS e número de ações)
+          const sharesOutstanding = parseFloat(overviewResponse['SharesOutstanding']) || 100000;
+          document.getElementById('E').value = latestEPS * sharesOutstanding || 0;
+          document.getElementById('numero_acoes').value = sharesOutstanding;
+
+          // Patrimônio Líquido (estimado via P/B)
+          document.getElementById('patrimonio_liquido').value = (precoAcao / (parseFloat(overviewResponse['PriceToBookRatio']) || 1)) * sharesOutstanding || 0;
+
+          // EBITDA
+          document.getElementById('EBITDA').value = parseFloat(overviewResponse['EBITDA']) || 0;
+
+          // Dívida Líquida (estimativa, não diretamente disponível)
+          document.getElementById('divida_liquida').value = parseFloat(overviewResponse['TotalDebt']) || 0;
+
+          // Valor de Mercado
+          document.getElementById('valor_mercado').value = precoAcao * sharesOutstanding || 0;
+
+          // Beta
+          document.getElementById('beta').value = parseFloat(overviewResponse['Beta']) || 1;
+
+          // Outros valores padrão (não disponíveis diretamente via API)
+          document.getElementById('r').value = document.getElementById('r').value || 0.10;
+          document.getElementById('g').value = document.getElementById('g').value || 0.05;
+          document.getElementById('Y').value = document.getElementById('Y').value || 4.4;
+          document.getElementById('PE').value = document.getElementById('PE').value || 12;
+          document.getElementById('EBIT').value = document.getElementById('EBIT').value || 50000;
+          document.getElementById('T').value = document.getElementById('T').value || 0.20;
+          document.getElementById('depreciacao').value = document.getElementById('depreciacao').value || 5000;
+          document.getElementById('capex').value = document.getElementById('capex').value || 10000;
+          document.getElementById('delta_cg').value = document.getElementById('delta_cg').value || 5000;
+          document.getElementById('juros').value = document.getElementById('juros').value || 5000;
+          document.getElementById('emprestimos_liquidos').value = document.getElementById('emprestimos_liquidos').value || 2000;
+          document.getElementById('capital_investido').value = document.getElementById('capital_investido').value || 50000;
+          document.getElementById('custo_capital').value = document.getElementById('custo_capital').value || 0.10;
+          document.getElementById('FCF').value = document.getElementById('FCF').value || 10000;
+          document.getElementById('t').value = document.getElementById('t').value || 5;
+          document.getElementById('investimento_inicial').value = document.getElementById('investimento_inicial').value || 40000;
+          document.getElementById('Rf').value = document.getElementById('Rf').value || 0.03;
+          document.getElementById('Rm').value = document.getElementById('Rm').value || 0.10;
+          document.getElementById('Rp').value = document.getElementById('Rp').value || 0.12;
+          document.getElementById('sigma_p').value = document.getElementById('sigma_p').value || 0.15;
+          document.getElementById('beta_p').value = document.getElementById('beta_p').value || 1.2;
+          document.getElementById('valor_max').value = document.getElementById('valor_max').value || 100000;
+          document.getElementById('valor_min').value = document.getElementById('valor_min').value || 70000;
+          document.getElementById('valor_carteira').value = document.getElementById('valor_carteira').value || 100000;
+          document.getElementById('Z_alpha').value = document.getElementById('Z_alpha').value || 1.65;
+          document.getElementById('total_ativos').value = document.getElementById('total_ativos').value || 400000;
+          document.getElementById('cov_ra_rm').value = document.getElementById('cov_ra_rm').value || 0.02;
+          document.getElementById('var_rm').value = document.getElementById('var_rm').value || 0.01;
+
+          alert('Dados da ação carregados com sucesso!');
+        } else {
+          alert('Erro ao carregar dados da ação. Verifique o ticker ou tente novamente.');
+        }
+      } catch (error) {
+        console.error('Erro na API:', error);
+        alert('Erro ao conectar com a API. Por favor, insira os dados manualmente.');
+      }
+    }
+
+    function calcular() {
+      // Coleta de inputs (manter como no original)
+      const D1 = parseFloat(document.getElementById('D1').value) || 0;
+      const r = parseFloat(document.getElementById('r').value) || 0;
+      const g = parseFloat(document.getElementById('g').value) || 0;
+      const EPS = parseFloat(document.getElementById('EPS').value) || 0;
+      const Y = parseFloat(document.getElementById('Y').value) || 0;
+      const ROE = parseFloat(document.getElementById('ROE').value) || 0;
+      const PB = parseFloat(document.getElementById('PB').value) || 0;
+      const E = parseFloat(document.getElementById('E').value) || 0;
+      const D = parseFloat(document.getElementById('D').value) || 0;
+      const PE = parseFloat(document.getElementById('PE').value) || 0;
+      const preco_acao = parseFloat(document.getElementById('preco_acao').value) || 0;
+      const patrimonio_liquido = parseFloat(document.getElementById('patrimonio_liquido').value) || 0;
+      const numero_acoes = parseFloat(document.getElementById('numero_acoes').value) || 1;
+      const EBIT = parseFloat(document.getElementById('EBIT').value) || 0;
+      const T = parseFloat(document.getElementById('T').value) || 0;
+      const depreciacao = parseFloat(document.getElementById('depreciacao').value) || 0;
+      const capex = parseFloat(document.getElementById('capex').value) || 0;
+      const delta_cg = parseFloat(document.getElementById('delta_cg').value) || 0;
+      const juros = parseFloat(document.getElementById('juros').value) || 0;
+      const emprestimos_liquidos = parseFloat(document.getElementById('emprestimos_liquidos').value) || 0;
+      const capital_investido = parseFloat(document.getElementById('capital_investido').value) || 0;
+      const custo_capital = parseFloat(document.getElementById('custo_capital').value) || 0;
+      const FCF = parseFloat(document.getElementById('FCF').value) || 0;
+      const t = parseFloat(document.getElementById('t').value) || 0;
+      const investimento_inicial = parseFloat(document.getElementById('investimento_inicial').value) || 0;
+      const Rf = parseFloat(document.getElementById('Rf').value) || 0;
+      const beta = parseFloat(document.getElementById('beta').value) || 0;
+      const Rm = parseFloat(document.getElementById('Rm').value) || 0;
+      const Rp = parseFloat(document.getElementById('Rp').value) || 0;
+      const sigma_p = parseFloat(document.getElementById('sigma_p').value) || 0;
+      const beta_p = parseFloat(document.getElementById('beta_p').value) || 0;
+      const valor_max = parseFloat(document.getElementById('valor_max').value) || 0;
+      const valor_min = parseFloat(document.getElementById('valor_min').value) || 0;
+      const valor_carteira = parseFloat(document.getElementById('valor_carteira').value) || 0;
+      const Z_alpha = parseFloat(document.getElementById('Z_alpha').value) || 1.65;
+      const total_ativos = parseFloat(document.getElementById('total_ativos').value) || 0;
+      const valor_mercado = parseFloat(document.getElementById('valor_mercado').value) || 0;
+      const divida_liquida = parseFloat(document.getElementById('divida_liquida').value) || 0;
+      const EBITDA = parseFloat(document.getElementById('EBITDA').value) || 0;
+      const cov_ra_rm = parseFloat(document.getElementById('cov_ra_rm').value) || 0;
+      const var_rm = parseFloat(document.getElementById('var_rm').value) || 0;
+
+      // Cálculos dos indicadores (manter como no original)
+      const modeloGordon = r !== g ? D1 / (r - g) : 0;
+      const modeloGraham = EPS * (8.5 + 2 * g * 100);
+      const modeloGrahamAjustado = Y !== 0 ? (EPS * (8.5 + 2 * g * 100) * 4.4) / Y : 0;
+      const modeloBazin = r !== 0 ? D / r : 0;
+      const modeloPEG = (g * 100) !== 0 ? (preco_acao / EPS) / (g * 100) : 0;
+      const modeloDividendYield = preco_acao !== 0 ? (D / preco_acao) * 100 : 0;
+      const modeloPL = EPS !== 0 ? preco_acao / EPS : 0;
+      const modeloPB = numero_acoes !== 0 ? preco_acao / (patrimonio_liquido / numero_acoes) : 0;
+
+      const FCFF = EBIT * (1 - T) + depreciacao - capex - delta_cg;
+      const FCFE = FCFF - juros * (1 - T) + emprestimos_liquidos;
+      const NOPAT = EBIT * (1 - T);
+      const modeloEVA = NOPAT - (capital_investido * custo_capital);
+      const modeloROIC = capital_investido !== 0 ? (NOPAT / capital_investido) * 100 : 0;
+      let modeloDCF = 0;
+      for (let i = 1; i <= t; i++) {
+        modeloDCF += FCF / Math.pow(1 + r, i);
+      }
+      const modeloVPL = modeloDCF - investimento_inicial;
+      let modeloTIR = 0;
+      if (investimento_inicial !== 0) {
+        let tirGuess = 0.1;
+        let vplGuess = -investimento_inicial;
+        for (let i = 1; i <= t; i++) {
+          vplGuess += FCF / Math.pow(1 + tirGuess, i);
+        }
+        modeloTIR = vplGuess < 0 ? 0.05 : 0.15;
+      }
+
+      const modeloCAPM = Rf + beta * (Rm - Rf);
+      const modeloBeta = var_rm !== 0 ? cov_ra_rm / var_rm : 0;
+      const modeloSharpe = sigma_p !== 0 ? (Rp - Rf) / sigma_p : 0;
+      const modeloTreynor = beta_p !== 0 ? (Rp - Rf) / beta_p : 0;
+      const modeloMDD = valor_max !== 0 ? ((valor_max - valor_min) / valor_max) * 100 : 0;
+      const modeloVolatilidade = sigma_p * 100;
+      const modeloVaR = Z_alpha * sigma_p * valor_carteira;
+
+      const modeloPLFundamental = EPS !== 0 ? preco_acao / EPS : 0;
+      const modeloPVPA = numero_acoes !== 0 ? preco_acao / (patrimonio_liquido / numero_acoes) : 0;
+      const modeloDYFundamental = preco_acao !== 0 ? (D / preco_acao) * 100 : 0;
+      const modeloEVEBITDA = EBITDA !== 0 ? (valor_mercado + divida_liquida) / EBITDA : 0;
+      const modeloPEGFundamental = (g * 100) !== 0 ? modeloPLFundamental / (g * 100) : 0;
+      const modeloROE = patrimonio_liquido !== 0 ? (E / patrimonio_liquido) * 100 : 0;
+      const modeloROA = total_ativos !== 0 ? (E / total_ativos) * 100 : 0;
+
+      // Organização dos resultados
+      const resultados = [
+        { nome: "Gordon", valor: modeloGordon, ruim: (v) => v < preco_acao, medio: (v) => v >= preco_acao && v < preco_acao * 1.1, bom: (v) => v >= preco_acao * 1.1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "Graham", valor: modeloGraham, ruim: (v) => v < preco_acao, medio: (v) => v >= preco_acao && v < preco_acao * 1.1, bom: (v) => v >= preco_acao * 1.1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "Graham Ajustado", valor: modeloGrahamAjustado, ruim: (v) => v < preco_acao, medio: (v) => v >= preco_acao && v < preco_acao * 1.1, bom: (v) => v >= preco_acao * 1.1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "Bazin", valor: modeloBazin, ruim: (v) => v < preco_acao, medio: (v) => v >= preco_acao && v < preco_acao * 1.1, bom: (v) => v >= preco_acao * 1.1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "PEG", valor: modeloPEG, ruim: (v) => v > 2, medio: (v) => v >= 1 && v <= 2, bom: (v) => v < 1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "Dividend Yield (%)", valor: modeloDividendYield, ruim: (v) => v < 3, medio: (v) => v >= 3 && v <= 6, bom: (v) => v > 6, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "P/L", valor: modeloPL, ruim: (v) => v > 25, medio: (v) => v >= 15 && v <= 25, bom: (v) => v < 15, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "P/B", valor: modeloPB, ruim: (v) => v > 3, medio: (v) => v >= 1 && v <= 3, bom: (v) => v < 1, categoria: "Modelos de Valor e Dividendos" },
+        { nome: "DCF", valor: modeloDCF, ruim: (v) => v < preco_acao, medio: (v) => v >= preco_acao && v < preco_acao * 1.1, bom: (v) => v >= preco_acao * 1.1, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "FCFF", valor: FCFF, ruim: (v) => v < 0, medio: (v) => v >= 0 && v <= 0, bom: (v) => v > 0, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "FCFE", valor: FCFE, ruim: (v) => v < 0, medio: (v) => v >= 0 && v <= 0, bom: (v) => v > 0, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "EVA", valor: modeloEVA, ruim: (v) => v < 0, medio: (v) => v >= 0 && v <= 0, bom: (v) => v > 0, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "ROIC (%)", valor: modeloROIC, ruim: (v) => v < 5, medio: (v) => v >= 5 && v <= 15, bom: (v) => v > 15, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "VPL", valor: modeloVPL, ruim: (v) => v < 0, medio: (v) => v >= 0 && v <= 0, bom: (v) => v > 0, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "TIR (%)", valor: modeloTIR * 100, ruim: (v) => v < custo_capital * 100, medio: (v) => v >= custo_capital * 100 && v <= custo_capital * 100 + 1, bom: (v) => v > custo_capital * 100 + 1, categoria: "Fluxo de Caixa e Valor Econômico" },
+        { nome: "CAPM (%)", valor: modeloCAPM * 100, ruim: (v) => v < r * 100, medio: (v) => v >= r * 100 && v <= r * 100 + 1, bom: (v) => v > r * 100 + 1, categoria: "Risco e Retorno" },
+        { nome: "Beta", valor: modeloBeta, ruim: (v) => v > 1.5, medio: (v) => v >= 0.8 && v <= 1.5, bom: (v) => v < 0.8, categoria: "Risco e Retorno" },
+        { nome: "Sharpe Ratio", valor: modeloSharpe, ruim: (v) => v < 0.5, medio: (v) => v >= 0.5 && v <= 1, bom: (v) => v > 1, categoria: "Risco e Retorno" },
+        { nome: "Treynor Ratio (%)", valor: modeloTreynor * 100, ruim: (v) => v < 5, medio: (v) => v >= 5 && v <= 10, bom: (v) => v > 10, categoria: "Risco e Retorno" },
+        { nome: "Maximum Drawdown (%)", valor: modeloMDD, ruim: (v) => v > 50, medio: (v) => v >= 20 && v <= 50, bom: (v) => v < 20, categoria: "Risco e Retorno" },
+        { nome: "Volatilidade (%)", valor: modeloVolatilidade, ruim: (v) => v > 30, medio: (v) => v >= 15 && v <= 30, bom: (v) => v < 15, categoria: "Risco e Retorno" },
+        { nome: "VaR", valor: modeloVaR, ruim: (v) => v > valor_carteira * 0.1, medio: (v) => v >= valor_carteira * 0.05 && v <= valor_carteira * 0.1, bom: (v) => v < valor_carteira * 0.05, categoria: "Risco e Retorno" },
+        { nome: "P/L (Fundamental)", valor: modeloPLFundamental, ruim: (v) => v > 25, medio: (v) => v >= 10 && v <= 25, bom: (v) => v < 10, categoria: "Análise Fundamental e Valuation" },
+        { nome: "P/VP", valor: modeloPVPA, ruim: (v) => v > 2, medio: (v) => v >= 1 && v <= 2, bom: (v) => v < 1, categoria: "Análise Fundamental e Valuation" },
+        { nome: "Dividend Yield (Fundamental) (%)", valor: modeloDYFundamental, ruim: (v) => v < 2, medio: (v) => v >= 2 && v <= 6, bom: (v) => v > 6, categoria: "Análise Fundamental e Valuation" },
+        { nome: "EV/EBITDA", valor: modeloEVEBITDA, ruim: (v) => v > 10, medio: (v) => v >= 5 && v <= 10, bom: (v) => v < 5, categoria: "Análise Fundamental e Valuation" },
+        { nome: "PEG (Fundamental)", valor: modeloPEGFundamental, ruim: (v) => v > 2, medio: (v) => v >= 1 && v <= 2, bom: (v) => v < 1, categoria: "Análise Fundamental e Valuation" },
+        { nome: "ROE (%)", valor: modeloROE, ruim: (v) => v < 10, medio: (v) => v >= 10 && v <= 20, bom: (v) => v > 20, categoria: "Análise Fundamental e Valuation" },
+        { nome: "ROA (%)", valor: modeloROA, ruim: (v) => v < 5, medio: (v) => v >= 5 && v <= 15, bom: (v) => v > 15, categoria: "Análise Fundamental e Valuation" },
+      ];
+
+      // Exibir resultados originais
+      const resultadosDiv = document.getElementById('resultados');
+      resultadosDiv.innerHTML = '';
+      resultados.forEach(res => {
+        let cor = 'text-yellow-400';
+        if (res.bom(res.valor)) cor = 'text-green-400';
+        else if (res.medio(res.valor)) cor = 'text-yellow-400';
+        else if (res.ruim(res.valor)) cor = 'text-red-400';
+        resultadosDiv.innerHTML += `<p class="${cor}"><strong>${res.categoria}</strong> - ${res.nome}: ${res.valor.toFixed(2)}</p>`;
+      });
+
+      // Ranking: bons > médios > ruins, enumerados
+      const rankingDiv = document.getElementById('ranking');
+      rankingDiv.innerHTML = '<h3 class="text-lg font-semibold mb-2 text-blue-400">Ranking de Resultados</h3>';
+      const bons = resultados.filter(res => res.bom(res.valor));
+      const medios = resultados.filter(res => res.medio(res.valor));
+      const ruins = resultados.filter(res => res.ruim(res.valor));
+      let numero = 1;
+      [...bons, ...medios, ...ruins].forEach(res => {
+        let cor = 'text-yellow-400';
+        if (res.bom(res.valor)) cor = 'text-green-400';
+        else if (res.medio(res.valor)) cor = 'text-yellow-400';
+        else if (res.ruim(res.valor)) cor = 'text-red-400';
+        rankingDiv.innerHTML += `<p class="${cor}">${numero}. <strong>${res.categoria}</strong> - ${res.nome}: ${res.valor.toFixed(2)}</p>`;
+        numero++;
+      });
+
+      // Contagens para gráfico de rosca
+      const bomCount = bons.length;
+      const medioCount = medios.length;
+      const ruimCount = ruins.length;
+      const total = bomCount + medioCount + ruimCount;
+      const bomMedia = total > 0 ? (bomCount / total) * 100 : 0;
+      const medioMedia = total > 0 ? (medioCount / total) * 100 : 0;
+      const ruimMedia = total > 0 ? (ruimCount / total) * 100 : 0;
+
+      // Gráfico de rosca
+      const ctxRosca = document.getElementById('graficoRosca').getContext('2d');
+      new Chart(ctxRosca, {
+        type: 'doughnut',
+        data: {
+          labels: ['Bom', 'Médio', 'Ruim'],
+          datasets: [{
+            data: [bomMedia, medioMedia, ruimMedia],
+            backgroundColor: ['#34D399', '#FBBF24', '#F87171']
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+
+      // Resultado final baseado na maior média
+      let resultadoFinal = 'Médio';
+      let max = medioMedia;
+      if (bomMedia > max) {
+        max = bomMedia;
+        resultadoFinal = 'Bom';
+      } else if (ruimMedia > max) {
+        max = ruimMedia;
+        resultadoFinal = 'Ruim';
+      }
+      let recomendacao = '';
+      if (resultadoFinal === 'Bom') {
+        recomendacao = 'Compre';
+      } else if (resultadoFinal === 'Ruim') {
+        recomendacao = 'Venda';
+      } else {
+        recomendacao = 'Mantenha';
+      }
+      document.getElementById('resultadoFinal').innerHTML = `Resultado Final: ${recomendacao}`;
+
+      // Execução da ação
+      const execucaoAcao = document.getElementById('execucaoAcao');
+      execucaoAcao.innerHTML = '<h3 class="text-lg font-semibold mb-2 text-blue-400">Execução da Ação</h3>';
+      if (recomendacao === 'Mantenha') {
+        execucaoAcao.innerHTML += '<p>Mantenha até o valor abaixar o preço e depois compre. Venda quando subir.</p>';
+      } else if (recomendacao === 'Venda') {
+        execucaoAcao.innerHTML += '<p>Apenas venda.</p>';
+      } else if (recomendacao === 'Compre') {
+        execucaoAcao.innerHTML += '<p>Compre e quando valor aumentar venda.</p>';
+      }
+
+      // Relatório IA (manter como no original)
+      let relatorio = '';
+      const mediaValuation = resultados
+        .filter(r => r.categoria === "Modelos de Valor e Dividendos" || r.categoria === "Fluxo de Caixa e Valor Econômico")
+        .reduce((sum, r) => sum + (r.bom(r.valor) ? 1 : r.medio(r.valor) ? 0.5 : 0), 0) /
+        resultados.filter(r => r.categoria === "Modelos de Valor e Dividendos" || r.categoria === "Fluxo de Caixa e Valor Econômico").length;
+      const risco = resultados
+        .filter(r => r.categoria === "Risco e Retorno")
+        .reduce((sum, r) => sum + (r.bom(r.valor) ? 1 : r.medio(r.valor) ? 0.5 : 0), 0) /
+        resultados.filter(r => r.categoria === "Risco e Retorno").length;
+      const fundamentos = resultados
+        .filter(r => r.categoria === "Análise Fundamental e Valuation")
+        .reduce((sum, r) => sum + (r.bom(r.valor) ? 1 : r.medio(r.valor) ? 0.5 : 0), 0) /
+        resultados.filter(r => r.categoria === "Análise Fundamental e Valuation").length;
+
+      if (r < g) {
+        relatorio = '⚠️ Crescimento maior que retorno exigido — risco alto, evite compra.';
+      } else if (mediaValuation > 0.7 && risco > 0.7 && fundamentos > 0.7) {
+        relatorio = '🟢 Recomendação: COMPRAR — ativo subvalorizado, com baixo risco e fortes fundamentos.';
+      } else if (mediaValuation < 0.3 || risco < 0.3 || fundamentos < 0.3) {
+        relatorio = '🔴 Recomendação: VENDER — ativo supervalorizado, alto risco ou fundamentos fracos.';
+      } else {
+        relatorio = '🟡 Recomendação: MANTER — ativo com valuation equilibrado, risco moderado e fundamentos razoáveis.';
+      }
+      document.getElementById('relatorioIA').innerHTML = relatorio;
+
+      // Gráficos de pizza por categoria (manter como no original)
+      const categorias = [
+        "Modelos de Valor e Dividendos",
+        "Fluxo de Caixa e Valor Econômico",
+        "Risco e Retorno",
+        "Análise Fundamental e Valuation"
+      ];
+
+      const pieCharts = [
+        { id: 'graficoPizzaValuation', categoria: categorias[0] },
+        { id: 'graficoPizzaFluxo', categoria: categorias[1] },
+        { id: 'graficoPizzaRisco', categoria: categorias[2] },
+        { id: 'graficoPizzaFundamental', categoria: categorias[3] }
+      ];
+
+      pieCharts.forEach(chart => {
+        const indicadoresCategoria = resultados.filter(r => r.categoria === chart.categoria);
+        const bomCountCat = indicadoresCategoria.filter(r => r.bom(r.valor)).length;
+        const medioCountCat = indicadoresCategoria.filter(r => r.medio(r.valor)).length;
+        const ruimCountCat = indicadoresCategoria.filter(r => r.ruim(r.valor)).length;
+
+        const ctx = document.getElementById(chart.id).getContext('2d');
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: ['Bom', 'Médio', 'Ruim'],
+            datasets: [{
+              data: [bomCountCat, medioCountCat, ruimCountCat],
+              backgroundColor: ['#34D399', '#FBBF24', '#F87171'],
+              borderColor: '#1F2937'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: '#fff' }
+              }
+            }
+          }
+        });
+      });
+
+      // Gráfico de radar (manter como no original)
+      const ctxRadar = document.getElementById('graficoRadar').getContext('2d');
+      const maxValor = Math.max(...resultados.map(r => Math.abs(r.valor))) || 1;
+      const valoresNormalizados = resultados.map(r => (Math.abs(r.valor) / maxValor) * 100);
+      new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+          labels: resultados.map(r => r.nome),
+          datasets: [{
+            label: 'Força dos Indicadores',
+            data: valoresNormalizados,
+            borderColor: 'rgba(75,192,192,1)',
+            backgroundColor: 'rgba(75,192,192,0.2)'
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              pointLabels: { color: '#fff' },
+              min: 0,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+```
+
+Com esse código  e usando a documentação api da alpha vantage:https://www.alphavantage.co/documentation/#intelligence
+
+Conserte pra puxar o ticker e  o filtro pra puxar código do ticker
