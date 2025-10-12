@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>João Victor Balaguer - Consultoria de RH & Sistema de Gestão</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* cool-gray-50 */
+        }
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #2563eb, #4f46e5); /* blue-600 to indigo-600 */
+        }
+        .carousel-item {
+            display: none;
+        }
+        .carousel-item.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-gradient">JB Consultoria RH</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#features" class="text-gray-600 hover:text-blue-600 transition duration-300">Funcionalidades</a>
+                <a href="#social-proof" class="text-gray-600 hover:text-blue-600 transition duration-300">Depoimentos</a>
+                <a href="#faq" class="text-gray-600 hover:text-blue-600 transition duration-300">FAQ</a>
+                <a href="#contact" class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition duration-300 shadow-md">
+                    Fale Comigo
+                </a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#features" class="block py-2 text-gray-600 hover:text-blue-600">Funcionalidades</a>
+            <a href="#social-proof" class="block py-2 text-gray-600 hover:text-blue-600">Depoimentos</a>
+            <a href="#faq" class="block py-2 text-gray-600 hover:text-blue-600">FAQ</a>
+            <a href="#contact" class="block mt-2 w-full text-center bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition duration-300">
+                Fale Comigo
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="py-20 md:py-32 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
+                    O <span class="text-gradient">Sistema de RH Definitivo</span> para sua Empresa
+                </h1>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                    Centralize a gestão de pessoas, otimize processos e impulsione resultados com uma plataforma completa e intuitiva. Da folha de ponto à avaliação de desempenho, tudo em um só lugar.
+                </p>
+                <a href="https://wa.me/5521969880200" target="_blank" class="bg-blue-600 text-white font-bold px-8 py-4 rounded-full hover:bg-blue-700 transition duration-300 text-lg shadow-xl inline-flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 494.7l143.7-38.9c31.6 17.8 66.6 28.1 103.5 28.1 122.4 0 222-99.6 222-222 0-59.3-23.1-115-64.3-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                    Agende uma Demonstração
+                </a>
+            </div>
+        </section>
+
+        <!-- Video Section -->
+        <section id="demonstracao" class="py-20">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Veja o Sistema em Ação</h2>
+                <p class="text-gray-600 mb-12 max-w-2xl mx-auto">
+                    Descubra em poucos minutos como nossa plataforma pode transformar a gestão de RH da sua empresa.
+                </p>
+                <div class="aspect-video max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
+                    <iframe 
+                        class="w-full h-full"
+                        src="https://www.youtube.com/embed/I4LpQ8MFf4Y" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold">A Plataforma <span class="text-gradient">Tudo-em-Um</span></h2>
+                    <p class="text-gray-600 mt-4 max-w-2xl mx-auto">
+                        Esqueça a complexidade de gerenciar múltiplas ferramentas. Nossa solução integra todas as áreas essenciais do RH.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="award" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Sistema de Avaliação</h3>
+                        <p class="text-gray-600">Implemente avaliações de desempenho justas e eficazes, identifique talentos e crie planos de desenvolvimento contínuo.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="clock" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Folha de Ponto Inteligente</h3>
+                        <p class="text-gray-600">Automatize o controle de jornada, gerencie horas extras e bancos de horas com precisão e total conformidade com a legislação.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="clipboard-list" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Gestão de Tarefas</h3>
+                        <p class="text-gray-600">Organize fluxos de trabalho, delegue tarefas e acompanhe o progresso de projetos da equipe de forma clara e visual.</p>
+                    </div>
+                    <!-- Feature 4 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="users" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Recrutamento e Seleção</h3>
+                        <p class="text-gray-600">Atraia os melhores talentos, gerencie o funil de candidatos e conduza processos seletivos eficientes, do início ao fim.</p>
+                    </div>
+                    <!-- Feature 5 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="dollar-sign" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Gestão Financeira de RH</h3>
+                        <p class="text-gray-600">Tenha controle sobre orçamentos de RH, folha de pagamento e benefícios, com relatórios detalhados para tomada de decisão.</p>
+                    </div>
+                     <!-- Feature 6 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center mb-5">
+                            <i data-lucide="blinds" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Tudo em Um Só Lugar</h3>
+                        <p class="text-gray-600">Unifique dados e processos, elimine a redundância e ganhe uma visão 360° da sua equipe e da saúde organizacional.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Social Proof Section -->
+        <section id="social-proof" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold">Resultados que Falam por Si</h2>
+                    <p class="text-gray-600 mt-4 max-w-2xl mx-auto">
+                        Veja o que alguns de nossos clientes dizem sobre a transformação que a consultoria e o sistema trouxeram.
+                    </p>
+                </div>
+
+                <div class="relative max-w-md mx-auto h-96 md:h-80">
+                    <!-- Carousel Items -->
+                    <div id="carousel-items" class="w-full h-full">
+                         <!-- Testimonial 1 -->
+                        <div class="carousel-item active p-6">
+                            <div class="bg-white rounded-xl p-6 shadow-lg max-w-sm mx-auto">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-xl">M</div>
+                                    <div>
+                                        <p class="font-bold">Mariana C.</p>
+                                        <p class="text-sm text-gray-500">CEO, Tech Inova</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-green-100 p-4 rounded-lg rounded-tl-none relative">
+                                    <p class="text-gray-700">"João, o sistema de avaliação de desempenho ficou incrível! Nossos gestores estão adorando a facilidade para dar feedbacks. Já sentimos a diferença no engajamento!"</p>
+                                    <span class="text-xs text-gray-500 float-right mt-1">10:45 AM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonial 2 -->
+                        <div class="carousel-item p-6">
+                             <div class="bg-white rounded-xl p-6 shadow-lg max-w-sm mx-auto">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xl">L</div>
+                                    <div>
+                                        <p class="font-bold">Lucas F.</p>
+                                        <p class="text-sm text-gray-500">Diretor, VarejoMax</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-blue-100 p-4 rounded-lg rounded-tl-none relative">
+                                    <p class="text-gray-700">"Finalmente um sistema que integra tudo! O controle da folha de ponto com a gestão de tarefas simplificou nossa rotina. Obrigado pela consultoria impecável."</p>
+                                    <span class="text-xs text-gray-500 float-right mt-1">2:17 PM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonial 3 -->
+                        <div class="carousel-item p-6">
+                            <div class="bg-white rounded-xl p-6 shadow-lg max-w-sm mx-auto">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-xl">A</div>
+                                    <div>
+                                        <p class="font-bold">Ana Júlia</p>
+                                        <p class="text-sm text-gray-500">Gerente de RH, Logística Eficiente</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-purple-100 p-4 rounded-lg rounded-tl-none relative">
+                                    <p class="text-gray-700">"O processo de recrutamento ficou muito mais ágil. Conseguimos reduzir o tempo de contratação em 40% já no primeiro mês. Que resultado fantástico!"</p>
+                                    <span class="text-xs text-gray-500 float-right mt-1">9:32 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Carousel Controls -->
+                    <button id="prevBtn" class="absolute left-0 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow-md hover:bg-white transition">
+                        <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
+                    </button>
+                    <button id="nextBtn" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow-md hover:bg-white transition">
+                        <i data-lucide="chevron-right" class="w-6 h-6 text-gray-700"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-20 bg-white">
+            <div class="container mx-auto px-6 max-w-3xl">
+                 <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold">Perguntas Frequentes</h2>
+                    <p class="text-gray-600 mt-4">
+                        Tire suas dúvidas sobre como nossa solução pode ajudar sua empresa.
+                    </p>
+                </div>
+                <div class="space-y-4">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item bg-gray-50 rounded-lg shadow-sm">
+                        <button class="faq-question w-full flex justify-between items-center text-left p-6 font-semibold text-lg">
+                            <span>Como funciona a implementação do sistema?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 faq-icon transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer overflow-hidden max-h-0 transition-all duration-500 ease-in-out">
+                            <p class="p-6 pt-0 text-gray-600">
+                                A implementação é feita de forma consultiva e personalizada. Realizamos um diagnóstico das suas necessidades, configuramos a plataforma, importamos seus dados e oferecemos um treinamento completo para sua equipe garantir o máximo aproveitamento desde o primeiro dia.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item bg-gray-50 rounded-lg shadow-sm">
+                        <button class="faq-question w-full flex justify-between items-center text-left p-6 font-semibold text-lg">
+                            <span>O sistema é adequado para pequenas e médias empresas?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 faq-icon transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer overflow-hidden max-h-0 transition-all duration-500 ease-in-out">
+                            <p class="p-6 pt-0 text-gray-600">
+                                Sim! Nossa plataforma é 100% modular e escalável, adaptando-se perfeitamente às necessidades de empresas de todos os portes. Você paga apenas pelas funcionalidades que realmente precisa, com planos flexíveis que acompanham seu crescimento.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item bg-gray-50 rounded-lg shadow-sm">
+                        <button class="faq-question w-full flex justify-between items-center text-left p-6 font-semibold text-lg">
+                            <span>Vocês oferecem suporte técnico?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 faq-icon transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer overflow-hidden max-h-0 transition-all duration-500 ease-in-out">
+                            <p class="p-6 pt-0 text-gray-600">
+                                Com certeza. Oferecemos suporte contínuo via WhatsApp, e-mail e telefone. Nosso objetivo é ser um parceiro estratégico, garantindo que você tenha a melhor experiência e resolva qualquer dúvida rapidamente.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item bg-gray-50 rounded-lg shadow-sm">
+                        <button class="faq-question w-full flex justify-between items-center text-left p-6 font-semibold text-lg">
+                            <span>É possível integrar o sistema com outras ferramentas?</span>
+                             <i data-lucide="chevron-down" class="w-5 h-5 faq-icon transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer overflow-hidden max-h-0 transition-all duration-500 ease-in-out">
+                            <p class="p-6 pt-0 text-gray-600">
+                                Sim, nosso sistema foi desenvolvido com uma arquitetura moderna que permite integrações via API com diversas outras plataformas, como sistemas contábeis, ERPs e ferramentas de comunicação interna, centralizando ainda mais sua operação.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Vamos Conversar?</h2>
+                 <p class="text-gray-600 mb-10 max-w-xl mx-auto">
+                    Estou pronto para entender seus desafios e mostrar como podemos otimizar a gestão de pessoas na sua empresa.
+                </p>
+                <div class="flex justify-center items-center space-x-6">
+                    <a href="https://wa.me/5521969880200" target="_blank" class="bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 hover:scale-110 transition-all duration-300">
+                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 494.7l143.7-38.9c31.6 17.8 66.6 28.1 103.5 28.1 122.4 0 222-99.6 222-222 0-59.3-23.1-115-64.3-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                    </a>
+                     <a href="https://www.instagram.com/psi.jb9840?igsh=MXI0cXUxNWt0OXMweg==" target="_blank" class="bg-pink-500 text-white p-4 rounded-full shadow-lg hover:bg-pink-600 hover:scale-110 transition-all duration-300">
+                         <i data-lucide="instagram" class="w-8 h-8"></i>
+                    </a>
+                     <a href="https://www.linkedin.com/in/joao-victor-balaguer-3347b617b" target="_blank" class="bg-blue-700 text-white p-4 rounded-full shadow-lg hover:bg-blue-800 hover:scale-110 transition-all duration-300">
+                         <i data-lucide="linkedin" class="w-8 h-8"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500 text-sm">Site reservado 2025 Políticas Públicas S.A</p>
+        </div>
+    </footer>
+
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Testimonials Carousel
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const carouselItems = document.querySelectorAll('.carousel-item');
+        let currentIndex = 0;
+
+        function showItem(index) {
+            carouselItems.forEach((item, i) => {
+                item.classList.remove('active');
+                if (i === index) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselItems.length - 1;
+            showItem(currentIndex);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex < carouselItems.length - 1) ? currentIndex + 1 : 0;
+            showItem(currentIndex);
+        });
+        
+        // Auto-play carousel
+        setInterval(() => {
+            nextBtn.click();
+        }, 5000);
+
+        // FAQ Accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+            const icon = question.querySelector('.faq-icon');
+
+            question.addEventListener('click', () => {
+                const isOpen = item.classList.contains('open');
+
+                // Close all other items
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                       otherItem.classList.remove('open');
+                       otherItem.querySelector('.faq-answer').style.maxHeight = '0px';
+                       otherItem.querySelector('.faq-question .faq-icon').style.transform = 'rotate(0deg)';
+                    }
+                });
+
+                // Toggle current item
+                if (isOpen) {
+                    item.classList.remove('open');
+                    answer.style.maxHeight = '0px';
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    item.classList.add('open');
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
