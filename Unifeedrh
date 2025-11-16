@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Desempenho RH Integrado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        /* Estilos customizados do coe_rh.html */
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; }
+        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); }
+        .tab-button { transition: border-color 0.15s, color 0.15s; }
+        .tab-button.active { border-bottom: 3px solid #10b981; color: #10b981; font-weight: 600; }
+
+        /* Estilo para a foto do funcionário (placeholder) */
+        .photo-placeholder {
+            width: 128px;
+            height: 128px;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border-radius: 9999px;
+            margin: 0 auto 1rem auto;
+            border: 4px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+         
+        /* Estilos para a nova aba financeira */
+        .finance-table th, .finance-table td {
+            white-space: nowrap;
+        }
+
+        /* Estilos customizados do climafeeback.html */
+        .thermometer-icon {
+            stroke: currentColor;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div id="app" class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard de Desempenho RH (Integrado)</h1>
+
+        <div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
+            <button id="tab-dashboard" class="tab-button active py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Visão Geral</button>
+            
+            <button id="tab-clima" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Clima & Cultura</button>
+            
+            <button id="tab-finance" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Gestão Financeira</button>
+            <button id="tab-add-employee" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Adicionar Colaborador</button>
+            <button id="tab-tasks" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Gestão de Tarefas</button>
+            <button id="tab-timesheet" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Folha de Ponto</button>
+            <button id="tab-pdi" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">PDI/Treinamento</button>
+            <button id="tab-evaluations" class="tab-button py-2 px-4 text-gray-600 hover:text-gray-800 whitespace-nowrap">Avaliações</button>
+        </div>
+
+        <div id="dashboard-content">
+            <div id="kpi-container" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-xl card h-full">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalhes do Colaborador</h2>
+                        <div id="employee-details" class="text-center">
+                            <p class="text-gray-500">Selecione um funcionário na lista ao lado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div id="competency-charts" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl card">
+                            <h3 class="text-lg font-semibold mb-4">Radar de Competências (0-10)</h3>
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl card">
+                            <h3 class="text-lg font-semibold mb-4">Notas por Competência (0-10)</h3>
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                     
+                    <div id="demographic-charts" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl card">
+                            <h3 class="text-lg font-semibold mb-4">Funcionários por Gênero</h3>
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl card">
+                            <h3 class="text-lg font-semibold mb-4">Tempo de Empresa</h3>
+                            <canvas id="tenureChart"></canvas>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl card md:col-span-1">
+                            <h3 class="text-lg font-semibold mb-4">Movimentação Anual</h3>
+                            <canvas id="hiringFiringChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                 <div class="bg-white p-6 rounded-xl card">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Comparativo de QI por Colaborador</h2>
+                    <canvas id="qiComparisonChart"></canvas>
+                </div>
+                 <div class="bg-white p-6 rounded-xl card">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Distribuição de Perfil Comportamental</h2>
+                    <canvas id="behavioralProfileChart"></canvas>
+                </div>
+            </div>
+             
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                 <div class="bg-white p-6 rounded-xl card">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Avaliação Média por Departamento</h2>
+                    <canvas id="departmentAvgScoreChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-xl card">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">PDI Score Médio por Departamento</h2>
+                    <canvas id="departmentPdiChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-xl card">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Funcionários por Departamento</h2>
+                    <canvas id="employeesByDeptChart"></canvas>
+                </div>
+            </div>
+
+
+            <div class="mt-8 bg-white p-6 rounded-xl card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">QI Médio por Departamento</h2>
+                <canvas id="qiByDepartmentChart"></canvas>
+            </div>
+
+            <div class="mt-8 bg-white p-6 rounded-xl card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Salário Médio Mensal por Departamento</h2>
+                <canvas id="departmentSalaryChart"></canvas>
+            </div>
+
+
+            <div class="mt-8 bg-white p-6 rounded-xl card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Lista de Colaboradores Ativos</h2>
+                <div id="employee-list-container" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Completo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Área/Departamento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QI</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avaliação Média (0-10)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-list-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="finance-content" class="hidden">
+            <div class="space-y-8">
+                 <h2 class="text-2xl font-bold text-gray-800">Exemplos Práticos de Indicadores Financeiros</h2>
+                <div id="finance-examples-container" class="space-y-6"></div>
+            </div>
+        </div>
+
+        <div id="add-employee-content" class="hidden bg-white p-6 rounded-xl card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Adicionar Novo Colaborador</h2>
+            <form id="add-employee-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 
+                <div class="space-y-4 md:col-span-2 border-b pb-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Dados Pessoais e Contrato</h3>
+                    <div>
+                        <label for="nomeCompleto" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                        <input type="text" id="nomeCompleto" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
+                            <select id="departamento" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                                </select>
+                        </div>
+                        <div>
+                            <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label>
+                            <select id="cargo" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                                </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="salario" class="block text-sm font-medium text-gray-700">Salário (R$ Mensal)</label>
+                            <input type="number" id="salario" required min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="dataContratacao" class="block text-sm font-medium text-gray-700">Data de Contratação (DD/MM/AAAA)</label>
+                            <input type="text" id="dataContratacao" required  
+                                pattern="\d{2}/\d{2}/\d{4}"  
+                                placeholder="Ex: 31/12/2024" 
+                                title="Formato exigido: DD/MM/AAAA (Ex: 01/01/2023)" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="genero" class="block text-sm font-medium text-gray-700">Gênero</label>
+                            <select id="genero" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 md:col-span-2 border-b pb-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Avaliação de Competências (Nota 0-10)</h3>
+                     
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="comunicacao" class="block text-sm font-medium text-gray-700">Comunicação (0-10)</label>
+                            <input type="number" id="comunicacao" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="iniciativa" class="block text-sm font-medium text-gray-700">Iniciativa (0-10)</label>
+                            <input type="number" id="iniciativa" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="lideranca" class="block text-sm font-medium text-gray-700">Liderança (0-10)</label>
+                            <input type="number" id="lideranca" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="trabalhoEmEquipe" class="block text-sm font-medium text-gray-700">Trabalho em Equipe (0-10)</label>
+                            <input type="number" id="trabalhoEmEquipe" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="organizacao" class="block text-sm font-medium text-gray-700">Organização (0-10)</label>
+                            <input type="number" id="organizacao" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div class="col-span-2">
+                            <label for="frequenciaRatio" class="block text-sm font-medium text-gray-700">Frequência (Razão)</label>
+                            <p class="text-xs text-gray-500 mb-1">Insira a Razão de Frequência (Ex: 0.8 para 80% de horas)</p>
+                            <input type="number" id="frequenciaRatio" required min="0" max="1" step="0.01" placeholder="Ex: 0.8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                    </div>
+                </div>
+                 
+                <div class="space-y-4 md:col-span-2 border-b pb-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Desempenho por Tarefas</h3>
+                    <div>
+                        <label for="tarefasConcluidas" class="block text-sm font-medium text-gray-70AN0">Tarefas Concluídas (0 a 10)</label>
+                        <p class="text-xs text-gray-500 mb-1">Nota de 0 a 10, ganhando +1 ponto a cada 10 tarefas concluídas.</p>
+                        <input type="number" id="tarefasConcluidas" required min="0" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                        Adicionar Colaborador
+                    </button>
+                </div>
+            </form>
+            <div id="form-message" class="mt-4 p-3 rounded-lg hidden"></div>
+        </div>
+
+        <div id="tasks-content" class="hidden">
+            <div class="bg-white p-6 rounded-xl card space-y-8">
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Gestão de Tarefas</h2>
+                
+                <form id="add-task-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label for="taskName" class="block text-sm font-medium text-gray-700">Nome da Tarefa</labe...
+l>
+                    </div>
+                    <div>
+                        <label for="taskStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="taskStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                            <option>A Fazer</option>
+                            <option>Em Andamento</option>
+                            <option>Concluído</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="taskAssignees" class="block text-sm font-medium text-gray-700">Encarregados (IDs)</label>
+                        <input type="text" id="taskAssignees" placeholder="Ex: 101, 103" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="taskDueDate" class="block text-sm font-medium text-gray-700">Prazo (DD/MM/AAAA)</label>
+                        <input type="text" id="taskDueDate" placeholder="Ex: 31/12/2024" pattern="\d{2}/\d{2}/\d{4}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md md:col-span-4">
+                        Adicionar Tarefa
+                    </button>
+                </form>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Tarefas por Funcionário</h3>
+                        <canvas id="tasksByEmployeeChart"></canvas>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Tarefas Concluídas</h3>
+                        <canvas id="tasksCompletedChart"></canvas>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Tarefas em Andamento</h3>
+                        <canvas id="tasksInProgressChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefa</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Encarregados</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-list-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="timesheet-content" class="hidden">
+            <div class="bg-white p-6 rounded-xl card space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Folha de Ponto (Firebase Real-time)</h2>
+                
+                <div>
+                    <label for="timesheetEmployeeSelect" class="block text-sm font-medium text-gray-700">Selecionar Colaborador</label>
+                    <select id="timesheetEmployeeSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                        </select>
+                </div>
+
+                <div class="text-center space-y-4 p-6 bg-gray-50 rounded-lg">
+                    <button id="punchButton" class="w-full md:w-1/2 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg" disabled>
+                        Carregando...
+                    </button>
+                    <div class="text-lg">
+                        Status Atual: <span id="currentStatus" class="font-bold text-gray-500">DESCONECTADO</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        Último Registro: <span id="lastPunchTime" class="font-medium">N/A</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Histórico do Dia (<span id="currentDate"></span>)</h3>
+                    <ul id="punchHistoryList" class="space-y-2 max-h-48 overflow-y-auto border p-4 rounded-md bg-white">
+                        <li class="text-gray-500">Nenhum registro hoje.</li>
+                    </ul>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-medium text-gray-600">Total Horas (Dia)</h4>
+                        <p id="totalHoursDay" class="text-2xl font-bold text-emerald-600">0h 00m</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-medium text-gray-600">Progresso (Dia)</h4>
+                        <p id="progressDay" class="text-2xl font-bold text-emerald-600">0%</p>
+                        <span class="text-xs text-gray-500">(Base 8h)</span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-medium text-gray-600">Total Horas (Semana)</h4>
+                        <p id="totalHoursWeek" class="text-2xl font-bold text-gray-700">0h 00m</p>
+                    </div>
+                </div>
+                <p id="firebase-error" class="text-center text-red-500 text-sm hidden">Erro ao conectar com o Firebase. Funcionalidade em tempo real desabilitada.</p>
+            </div>
+        </div>
+
+        <div id="pdi-content" class="hidden">
+            <div class="bg-white p-6 rounded-xl card space-y-8">
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">PDI e Treinamento</h2>
+
+                <div>
+                    <label for="pdiEmployeeSelect" class="block text-sm font-medium text-gray-700">Selecionar Colaborador</label>
+                    <select id="pdiEmployeeSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                        </select>
+                </div>
+                
+                <div class="text-center bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-600">PDI Score (Média de Treinamentos)</h3>
+                    <p id="pdiScoreDisplay" class="text-5xl font-bold text-emerald-600">0.0</p>
+                </div>
+
+                <form id="add-training-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border rounded-md">
+                    <div>
+                        <label for="trainingName" class="block text-sm font-medium text-gray-700">Nome do Treinamento</label>
+                        <input type="text" id="trainingName" placeholder="Ex: Liderança Avançada" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="trainingScore" class="block text-sm font-medium text-gray-700">Nota (0-10)</label>
+                        <input type="number" id="trainingScore" min="0" max="10" step="0.1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                        Registrar Treinamento
+                    </button>
+                </form>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">PDI Score por Funcionário</h3>
+                        <canvas id="pdiComparisonChart"></canvas>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Notas de Treinamento (Individual)</h3>
+                        <canvas id="pdiRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700">Histórico de Treinamentos</h3>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Treinamento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="training-history-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="evaluations-content" class="hidden">
+            <div class="bg-white p-6 rounded-xl card space-y-8">
+                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Avaliações Psicológicas e Comportamentais</h2>
+                
+                <div>
+                    <label for="evalEmployeeSelect" class="block text-sm font-medium text-gray-700">Selecionar Colaborador</label>
+                    <select id="evalEmployeeSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                        </select>
+                </div>
+                
+                <form id="evaluation-form" class="space-y-6 p-4 border rounded-md">
+                    <h3 class="text-lg font-semibold text-gray-700">Registrar/Atualizar Avaliações</h3>
+                    <div id="evaluation-fields-container" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        </div>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                        Salvar Avaliações
+                    </button>
+                    <div id="eval-form-message" class="mt-4 p-3 rounded-lg hidden"></div>
+                </form>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Diagnósticos por Colaborador</h3>
+                        <canvas id="diagnosticsChart"></canvas>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700">Perfil de Avaliações Realizadas (Individual)</h3>
+                        <canvas id="evalRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700">Relatório Individual</h3>
+                    <div id="individual-report" class="text-gray-600 space-y-2">
+                        <p>Selecione um colaborador para ver o relatório.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="clima-content" class="hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="mb-8 border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-6">
+                        <button id="clima-dashboard-tab" onclick="switchClimaTab('dashboard')" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-emerald-500 text-emerald-600">
+                            Dashboard de Clima
+                        </button>
+                        <button id="clima-feedback-tab" onclick="switchClimaTab('feedback')" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Feedback (NPS Score)
+                        </button>
+                    </nav>
+                </div>
+
+                <div id="clima-dashboard-content">
+                    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div>
+                                <label for="department-filter" class="block text-sm font-medium text-gray-700">Departamento</label>
+                                <select id="department-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                                    <option value="Todos">Todos</option>
+                                    <option value="Financeiro">Financeiro</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Tecnologia">Tecnologia</option>
+                                    <option value="RH">RH</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="start-date" class="block text-sm font-medium text-gray-700">Data Início</label>
+                                <input type="date" id="start-date" value="2025-10-01" class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                            </div>
+                            <div>
+                                <label for="end-date" class="block text-sm font-medium text-gray-700">Data Fim</label>
+                                <input type="date" id="end-date" value="2025-11-30" class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                            </div>
+                            <div>
+                                <label for="search-employee" class="block text-sm font-medium text-gray-700">Buscar Funcionário</label>
+                                <input type="text" id="search-employee" placeholder="Nome..." class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                            </div>
+                            <div>
+                                <label for="order-filter" class="block text-sm font-medium text-gray-700">Ordenar Ranking</s-label>
+                                <select id="order-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                                    <option value="desc">Melhor → Pior</option>
+                                    <option value="asc">Pior → Melhor</option>
+                                </select>
+                            </div>
+                        </div>
+                         <button id="export-csv-btn" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                            Exportar CSV
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1 space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center h-48">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-2">Termômetro Organizacional</h3>
+                                <div id="thermo-display" class="flex items-center space-x-3 text-gray-400">
+                                    <svg class="thermometer-icon h-12 w-12" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zM10.5 10.5v.15a.75.75 0 00.328.623l1.838 1.378A.75.75 0 0013.5 12v.058a.75.75 0 00.728.746l.002.001a.75.75 0 00.746-.728l.001-.002V12a.75.75 0 00-.328-.623l-1.838-1.378A.75.75 0 0010.5 10.5z" />
+                                    </svg>
+                                    <span id="thermo-score" class="text-5xl font-bold">--%</span>
+                                </div>
+                                <p id="thermo-label" class="text-sm text-gray-500 mt-2">Dados insuficientes</p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold text-gray-700 mb-4">Média por Departamento</h3>
+                                <div id="department-scores" class="space-y-4">
+                                    <p class="text-gray-500">Nenhum dado filtrado.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Ranking de Funcionários</h3>
+                            <div class="overflow-x-auto max-h-96">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50 sticky top-0">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clima</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funcionário</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Com.</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Lid.</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Org.</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Equipe</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Ini.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ranking-table-body" class="bg-white divide-y divide-gray-200">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="clima-employee-details" class="mt-6 bg-white p-6 rounded-lg shadow-md hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 id="clima-details-name" class="text-xl font-semibold text-gray-800">Detalhes do Funcionário</h3>
+                            <button id="close-clima-details" class="text-gray-400 hover:text-gray-600">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-700 mb-2">Radar de Competências</h4>
+                                <canvas id="climaRadarChart"></canvas>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-700 mb-2">Scores Individuais</h4>
+                                <canvas id="climaBarChart"></canvas>
+                            </div>
+                            <div class="md:col-span-2 space-y-4">
+                                <div>
+                                    <h4 class="text-lg font-medium text-gray-700">Feedback Positivo</h4>
+                                    <p id="clima-feedback-positive" class="text-gray-600 italic bg-gray-50 p-3 rounded-md"></p>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-medium text-gray-700">Feedback Negativo</h4>
+                                    <p id="clima-feedback-negative" class="text-gray-600 italic bg-gray-50 p-3 rounded-md"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="clima-feedback-content" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <div id="feedback-form-container" class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-6">Formulário de Feedback (NPS)</h2>
+                            <form id="feedback-form" class="space-y-6">
+                                <fieldset class="space-y-4">
+                                    <legend class="text-lg font-medium text-gray-900">Identificação</legend>
+                                    <div>
+                                        <label for="feedback-name" class="block text-sm font-medium text-gray-700">Seu Nome (Completo)</label>
+                                        <input type="text" id="feedback-name" placeholder="Ex: Ana Silva" required class="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                                        <p class="mt-1 text-xs text-gray-500">Use o mesmo nome cadastrado no sistema.</p>
+                                    </div>
+                                    <div>
+                                        <label for="feedback-department" class="block text-sm font-medium text-gray-700">Seu Departamento</label>
+                                        <select id="feedback-department" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                                            <option value="">Selecione...</option>
+                                            <option value="Financeiro">Financeiro</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Tecnologia">Tecnologia</option>
+                                            <option value="RH">RH</option>
+                                        </select>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset>
+                                    <legend class="text-lg font-medium text-gray-900">Quiz de Competências</legend>
+                                    <div id="quiz-questions-container" class="mt-4 space-y-6 max-h-96 overflow-y-auto pr-2">
+                                        </div>
+                                </fieldset>
+
+                                <fieldset class="space-y-4">
+                                    <legend class="text-lg font-medium text-gray-900">Feedback Qualitativo</legend>
+                                    <div>
+                                        <label for="feedback-positive-input" class="block text-sm font-medium text-gray-700">O que você mais gostou?</label>
+                                        <textarea id="feedback-positive-input" rows="3" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                                    </div>
+                                    <div>
+                                        <label for="feedback-negative-input" class="block text-sm font-medium text-gray-700">O que você acha que poderia ser melhorado?</label>
+                                        <textarea id="feedback-negative-input" rows="3" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                                    </div>
+                                </fieldset>
+                                
+                                <div id="feedback-error" class="text-red-600 text-sm font-medium hidden"></div>
+                                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                                    Enviar Feedback e Sincronizar
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div id="feedback-report-container" class="bg-white p-6 rounded-lg shadow-md hidden">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-6">Relatório de Feedback</h2>
+                            <div id="feedback-report-content" class="space-y-6">
+                                </div>
+                            <button id="retake-quiz-btn" class="mt-6 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                                Responder Novamente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div> <script type="module">
+        // ====================================================================
+        // IMPORTAÇÕES DO FIREBASE (Simulado)
+        // ====================================================================
+        /* // Em um projeto real, você descomentaria isso:
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+        */
+        
+        // --- Simulação das funções do Firebase (para o código funcionar offline) ---
+        const initializeApp = (config) => ({ name: "[FirebaseMockApp]" });
+        const getAuth = () => ({ currentUser: null });
+        const onAuthStateChanged = (auth, callback) => { console.warn("Firebase Auth Mock: onAuthStateChanged"); callback(null); };
+        const getFirestore = () => ({ name: "[FirestoreMock]" });
+        const doc = (...args) => ({ path: args.join('/') });
+        const setDoc = (docRef, data) => { console.warn("Firebase Mock: setDoc", docRef.path, data); return Promise.resolve(); };
+        const onSnapshot = (docRef, callback) => { 
+            console.warn("Firebase Mock: onSnapshot", docRef.path);
+            // Simula um snapshot inicial vazio
+            setTimeout(() => callback({ exists: () => false, data: () => null }), 500);
+            return () => {}; // retorna função de unsubscribe
+        };
+        const updateDoc = (docRef, data) => { console.warn("Firebase Mock: updateDoc", docRef.path, data); return Promise.resolve(); };
+        const serverTimestamp = () => new Date();
+        // --- Fim da Simulação ---
+
+
+        // ====================================================================
+        // DADOS MOCK (Fonte Única da Verdade)
+        // ====================================================================
+
+        // Dados dos Funcionários (base coe_rh.html)
+        // Esta é agora a FONTE ÚNICA DE DADOS.
+        window.employees = [
+            { 
+                id: 101, nomeCompleto: "Mariana Silva", departamento: "Financeiro", cargo: "Analista Sênior", salario: 8500, dataContratacao: "01/03/2020", genero: "Feminino", fotoUrl: "https://i.pravatar.cc/150?img=1",
+                competencias: { comunicacao: 8, iniciativa: 7, lideranca: 7, trabalhoEmEquipe: 9, frequencia: 0.9, organizacao: 8 },
+                trainings: [ { name: "Gestão de Risco", score: 8.5, date: "2024-02-15" }, { name: "Excel Avançado", score: 9.0, date: "2024-05-20" } ],
+                evaluations: { qi: 115, behavioralProfile: "Analista", stress: "Baixo", ansiedade: "Moderada" },
+                feedback_positive: "Ótimo ambiente e colaboração entre as equipes.", // Campo do climafeeback
+                feedback_negative: "Processos poderiam ser mais ágeis." // Campo do climafeeback
+            },
+            { 
+                id: 102, nomeCompleto: "Carlos Pereira", departamento: "Marketing", cargo: "Coordenador de Mídia", salario: 10200, dataContratacao: "15/07/2019", genero: "Masculino", fotoUrl: "https://i.pravatar.cc/150?img=2",
+                competencias: { comunicacao: 9, iniciativa: 8, lideranca: 9, trabalhoEmEquipe: 8, frequencia: 0.95, organizacao: 7 },
+                trainings: [ { name: "SEO/SEM", score: 9.2, date: "2024-03-10" }, { name: "Liderança de Equipes", score: 8.8, date: "2024-06-01" } ],
+                evaluations: { qi: 120, behavioralProfile: "Comunicador", stress: "Moderado", ansiedade: "Baixa" },
+                feedback_positive: "Muitas oportunidades de crescimento.",
+                feedback_negative: "A comunicação interdepartamental falha às vezes."
+            },
+            { 
+                id: 103, nomeCompleto: "Beatriz Costa", departamento: "Tecnologia", cargo: "Desenvolvedora Sênior", salario: 13000, dataContratacao: "10/01/2018", genero: "Feminino", fotoUrl: "https://i.pravatar.cc/150?img=3",
+                competencias: { comunicacao: 7, iniciativa: 9, lideranca: 8, trabalhoEmEquipe: 9, frequencia: 0.98, organizacao: 9 },
+                trainings: [ { name: "Arquitetura de Microsserviços", score: 9.5, date: "2024-01-30" }, { name: "React Avançado", score: 9.8, date: "2024-04-15" } ],
+                evaluations: { qi: 130, behavioralProfile: "Executor", stress: "Moderado", ansiedade: "Moderada" },
+                feedback_positive: "Desafios técnicos interessantes e autonomia.",
+                feedback_negative: "Pressão alta em épocas de entrega."
+            },
+            { 
+                id: 104, nomeCompleto: "Ricardo Nunes", departamento: "Tecnologia", cargo: "Engenheiro de DevOps", salario: 12500, dataContratacao: "05/11/2021", genero: "Masculino", fotoUrl: "https://i.pravatar.cc/150?img=4",
+                competencias: { comunicacao: 8, iniciativa: 8, lideranca: 7, trabalhoEmEquipe: 8, frequencia: 1.0, organizacao: 9 },
+                trainings: [ { name: "Kubernetes", score: 9.0, date: "2024-03-22" }, { name: "Segurança de Redes", score: 8.7, date: "2024-07-05" } ],
+                evaluations: { qi: 125, behavioralProfile: "Planejador", stress: "Baixo", ansiedade: "Baixa" },
+                feedback_positive: "Equipe muito competente e bons recursos.",
+                feedback_negative: "Burocracia para aquisição de novas ferramentas."
+            },
+            { 
+                id: 105, nomeCompleto: "Juliana Martins", departamento: "RH", cargo: "Gerente de RH", salario: 14000, dataContratacao: "20/05/2017", genero: "Feminino", fotoUrl: "https://i.pravatar.cc/150?img=5",
+                competencias: { comunicacao: 10, iniciativa: 9, lideranca: 10, trabalhoEmEquipe: 9, frequencia: 0.96, organizacao: 10 },
+                trainings: [ { name: "Gestão de Conflitos", score: 9.5, date: "2024-02-10" }, { name: "People Analytics", score: 9.2, date: "2024-05-18" } ],
+                evaluations: { qi: 122, behavioralProfile: "Comunicador", stress: "Baixo", ansiedade: "Baixa" },
+                feedback_positive: "Empresa valoriza o bem-estar dos funcionários.",
+                feedback_negative: "Carga de trabalho elevada."
+            },
+            { 
+                id: 106, nomeCompleto: "Fábio Gomes", departamento: "Marketing", cargo: "Designer Pleno", salario: 7200, dataContratacao: "02/09/2022", genero: "Masculino", fotoUrl: "https://i.pravatar.cc/150?img=6",
+                competencias: { comunicacao: 8, iniciativa: 7, lideranca: 6, trabalhoEmEquipe: 9, frequencia: 0.93, organizacao: 8 },
+                trainings: [ { name: "Figma Avançado", score: 8.0, date: "2024-04-05" } ],
+                evaluations: { qi: 112, behavioralProfile: "Planejador", stress: "Moderado", ansiedade: "Moderada" },
+                feedback_positive: "Flexibilidade de horário.",
+                feedback_negative: "Pouca clareza nas demandas de briefing."
+            },
+            { 
+                id: 107, nomeCompleto: "Lucas Mendes", departamento: "Financeiro", cargo: "Analista Júnior", salario: 5500, dataContratacao: "10/01/2023", genero: "Masculino", fotoUrl: "https://i.pravatar.cc/150?img=7",
+                competencias: { comunicacao: 7, iniciativa: 6, lideranca: 5, trabalhoEmEquipe: 8, frequencia: 0.99, organizacao: 7 },
+                trainings: [ { name: "Contabilidade Básica", score: 7.5, date: "2024-03-01" } ],
+                evaluations: { qi: 108, behavioralProfile: "Analista", stress: "Baixo", ansiedade: "Baixa" },
+                feedback_positive: "Equipe disposta a ajudar.",
+                feedback_negative: "Salário abaixo da média do mercado."
+            },
+            { 
+                id: 108, nomeCompleto: "Fernanda Lima", departamento: "Tecnologia", cargo: "QA Sênior", salario: 11000, dataContratacao: "18/04/2019", genero: "Feminino", fotoUrl: "https://i.pravatar.cc/150?img=8",
+                competencias: { comunicacao: 9, iniciativa: 9, lideranca: 7, trabalhoEmEquipe: 9, frequencia: 0.97, organizacao: 10 },
+                trainings: [ { name: "Automação de Testes", score: 9.3, date: "2024-02-28" } ],
+                evaluations: { qi: 118, behavioralProfile: "Executor", stress: "Moderado", ansiedade: "Moderada" },
+                feedback_positive: "Qualidade do produto é levada a sério.",
+                feedback_negative: "Prazos irreais."
+            },
+            { 
+                id: 109, nomeCompleto: "André Souza", departamento: "RH", cargo: "Analista de Recrutamento", salario: 6800, dataContratacao: "30/08/2021", genero: "Masculino", fotoUrl: "https://i.pravatar.cc/150?img=9",
+                competencias: { comunicacao: 9, iniciativa: 8, lideranca: 7, trabalhoEmEquipe: 8, frequencia: 0.94, organizacao: 8 },
+                trainings: [ { name: "Entrevista por Competências", score: 8.8, date: "2024-04-12" } ],
+                evaluations: { qi: 110, behavioralProfile: "Comunicador", stress: "Baixo", ansiedade: "Baixa" },
+                feedback_positive: "Autonomia para gerir o processo seletivo.",
+                feedback_negative: "Ferramentas de R&S poderiam ser melhores."
+            },
+            { 
+                id: 110, nomeCompleto: "Patrícia Alves", departamento: "Marketing", cargo: "Analista de Conteúdo", salario: 6500, dataContratacao: "14/02/2023", genero: "Feminino", fotoUrl: "https://i.pravatar.cc/150?img=10",
+                competencias: { comunicacao: 9, iniciativa: 7, lideranca: 6, trabalhoEmEquipe: 8, frequencia: 0.95, organizacao: 7 },
+                trainings: [ { name: "Copywriting", score: 8.2, date: "2024-05-30" } ],
+                evaluations: { qi: 114, behavioralProfile: "Planejador", stress: "Baixo", ansiedade: "Moderada" },
+                feedback_positive: "Liberdade criativa.",
+                feedback_negative: "Falta de integração com a equipe de design."
+            }
+        ];
+
+        // Dados das Tarefas (base coe_rh.html)
+        window.tasks = [
+            { id: 1, name: "Revisão Orçamento Q4", status: "Concluído", assignedEmployeeIds: [101, 107], dueDate: "10/10/2024" },
+            { id: 2, name: "Campanha Black Friday", status: "Em Andamento", assignedEmployeeIds: [102, 106, 110], dueDate: "15/11/2024" },
+            { id: 3, name: "Migração API Gateway", status: "Em Andamento", assignedEmployeeIds: [103, 104], dueDate: "20/11/2024" },
+            { id: 4, name: "Plano de Testes v2.0", status: "A Fazer", assignedEmployeeIds: [108], dueDate: "05/12/2024" },
+            { id: 5, name: "Programa de Trainee 2025", status: "Em Andamento", assignedEmployeeIds: [105, 109], dueDate: "10/12/2024" },
+            { id: 6, name: "Relatório de Mídia Paga", status: "Concluído", assignedEmployeeIds: [102], dueDate: "01/11/2024" }
+        ];
+
+        // Dados do Quiz (base climafeeback.html)
+        const quizQuestions = [
+            // Liderança (Correta: A)
+            { id: 1, category: "Liderança", text: "A liderança inspira confiança na equipe.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 2, category: "Liderança", text: "Os líderes comunicam uma visão clara.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 3, category: "Liderança", text: "A liderança apoia o desenvolvimento profissional.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 4, category: "Liderança", text: "Os líderes são acessíveis e abertos a feedback.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 5, category: "Liderança", text: "A liderança toma decisões justas e imparciais.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 6, category: "Liderança", text: "Os líderes reconhecem o bom trabalho.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 7, category: "Liderança", text: "A liderança gerencia conflitos de forma eficaz.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 8, category: "Liderança", text: "Os líderes delegam tarefas adequadamente.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 9, category: "Liderança", text: "A liderança promove um ambiente positivo.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            { id: 10, category: "Liderança", text: "Os líderes dão o exemplo com sua conduta.", options: ["A", "B", "C", "D", "E"], correctAnswer: "A" },
+            
+            // Comunicação (Correta: B)
+            { id: 11, category: "Comunicação", text: "A comunicação interna é clara e eficaz.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 12, category: "Comunicação", text: "Sinto-me à vontade para expressar minhas opiniões.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 13, category: "Comunicação", text: "As reuniões são produtivas e bem gerenciadas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 14, category: "Comunicação", text: "Recebo feedback regular sobre meu desempenho.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 15, category: "Comunicação", text: "As informações importantes chegam a mim a tempo.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 16, category: "Comunicação", text: "A empresa é transparente sobre suas metas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 17, category: "Comunicação", text: "Sinto que sou ouvido pela minha gestão.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 18, category: "Comunicação", text: "Os canais de comunicação são adequados.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 19, category: "Comunicação", text: "A comunicação entre departamentos flui bem.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+            { id: 20, category: "Comunicação", text: "Os objetivos da minha equipe estão claros.", options: ["A", "B", "C", "D", "E"], correctAnswer: "B" },
+
+            // Iniciativa (Correta: C)
+            { id: 21, category: "Iniciativa", text: "Sinto-me encorajado a propor novas ideias.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 22, category: "Iniciativa", text: "Tenho autonomia para tomar decisões no meu trabalho.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 23, category: "Iniciativa", text: "A empresa valoriza a inovação e a criatividade.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 24, category: "Iniciativa", text: "Sinto-me motivado a ir além das minhas tarefas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 25, category: "Iniciativa", text: "Os erros são vistos como oportunidades de aprendizado.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 26, category: "Iniciativa", text: "Consigo implementar melhorias no meu processo.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 27, category: "Iniciativa", text: "Sou proativo na resolução de problemas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 28, category: "Iniciativa", text: "Busco ativamente por novos desafios.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 29, category: "Iniciativa", text: "A empresa investe em novas tecnologias.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+            { id: 30, category: "Iniciativa", text: "Tenho espaço para experimentar novas abordagens.", options: ["A", "B", "C", "D", "E"], correctAnswer: "C" },
+
+            // Trabalho em Equipe (Correta: D)
+            { id: 31, category: "Trabalho em Equipe", text: "Meus colegas de equipe são colaborativos.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 32, category: "Trabalho em Equipe", text: "Há um forte senso de cooperação no time.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 33, category: "Trabalho em Equipe", text: "As responsabilidades são divididas justamente.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 34, category: "Trabalho em Equipe", text: "Sinto-me respeitado pelos meus colegas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 35, category: "Trabalho em Equipe", text: "Conseguimos resolver conflitos internos de forma saudável.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 36, category: "Trabalho em Equipe", text: "A diversidade é valorizada na equipe.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 37, category: "Trabalho em Equipe", text: "Celebramos as conquistas juntos.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 38, category: "Trabalho em Equipe", text: "Confio na capacidade dos meus colegas.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 39, category: "Trabalho em Equipe", text: "A equipe está alinhada com os mesmos objetivos.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+            { id: 40, category: "Trabalho em Equipe", text: "Há ajuda mútua entre os membros da equipe.", options: ["A", "B", "C", "D", "E"], correctAnswer: "D" },
+
+            // Organização (Correta: E)
+            { id: 41, category: "Organização", text: "Os processos da empresa são claros e eficientes.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 42, category: "Organização", text: "Tenho as ferramentas necessárias para fazer meu trabalho.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 43, category: "Organização", text: "Meu ambiente de trabalho é organizado e adequado.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 44, category: "Organização", text: "As prioridades do meu trabalho são claras.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 45, category: "Organização", text: "A empresa planeja bem seus projetos e prazos.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 46, category: "Organização", text: "Consigo manter um bom equilíbrio vida-trabalho.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 47, category: "Organização", text: "A infraestrutura (TI, escritório) atende às necessidades.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 48, category: "Organização", text: "Os fluxos de trabalho são lógicos e fáceis de seguir.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 49, category: "Organização", text: "A empresa é organizada na gestão de documentos.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" },
+            { id: 50, category: "Organização", text: "Há pouca burocracia desnecessária.", options: ["A", "B", "C", "D", "E"], correctAnswer: "E" }
+        ];
+
+        // Constantes e Variáveis Globais
+        const departments = [...new Set(window.employees.map(e => e.departamento))];
+        const jobTitles = [...new Set(window.employees.map(e => e.cargo))];
+        const evalFields = [
+            { id: "qi", label: "QI (Score)", type: "number", default: 100 },
+            { id: "behavioralProfile", label: "Perfil Comportamental", type: "select", options: ["Analista", "Comunicador", "Executor", "Planejador"], default: "Analista" },
+            { id: "stress", label: "Nível de Stress", type: "select", options: ["Baixo", "Moderado", "Alto"], default: "Baixo" },
+            { id: "ansiedade", label: "Nível de Ansiedade", type: "select", options: ["Baixa", "Moderada", "Alta"], default: "Baixa" }
+        ];
+
+        // Instâncias dos Gráficos (Globais para serem atualizadas)
+        let chartInstances = {};
+        
+        // Variáveis de estado
+        let selectedEmployee = null;
+        let authReady = false;
+        let db; // Instância do Firestore
+        let auth; // Instância do Auth
+        let currentTimesheetListener = null; // Função de unsubscribe do onSnapshot
+
+        // ====================================================================
+        // FUNÇÕES DE UTILIDADE
+        // ====================================================================
+        
+        // Formata data de AAAA-MM-DD para DD/MM/AAAA
+        const formatDate = (dateString) => {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        };
+        
+        // Formata data de DD/MM/AAAA para AAAA-MM-DD
+        const parseDate = (dateString) => {
+            const [day, month, year] = dateString.split('/');
+            return `${year}-${month}-${day}`;
+        };
+
+        // Calcula a média de um array de números
+        const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+        
+        // Calcula o PDI Score (média das notas de treinamento)
+        const getPdiScore = (employee) => avg(employee.trainings.map(t => t.score));
+        
+        // Calcula a Avaliação Média (média das competências, convertendo frequencia)
+        const getAvgScore = (employee) => {
+            const { comunicacao, iniciativa, lideranca, trabalhoEmEquipe, frequencia, organizacao } = employee.competencias;
+            const freqScore = frequencia * 10; // Converte 0.9 para 9
+            return avg([comunicacao, iniciativa, lideranca, trabalhoEmEquipe, freqScore, organizacao]);
+        };
+        
+        // Calcula o tempo de empresa em anos
+        const getTenure = (dateString) => {
+            const [day, month, year] = dateString.split('/');
+            const startDate = new Date(`${year}-${month}-${day}`);
+            const diff = new Date().getTime() - startDate.getTime();
+            return diff / (1000 * 60 * 60 * 24 * 365.25);
+        };
+        
+        // Função para destruir gráficos antigos antes de recriar
+        const destroyChart = (chartId) => {
+            if (chartInstances[chartId]) {
+                chartInstances[chartId].destroy();
+                delete chartInstances[chartId];
+            }
+        };
+        
+        // Função unificada para mostrar mensagens de formulário
+        const showFormMessage = (formId, message, typeClass) => {
+            const msgEl = document.getElementById(formId);
+            msgEl.textContent = message;
+            msgEl.className = `mt-4 p-3 rounded-lg ${typeClass}`; // Remove 'hidden'
+        };
+
+
+        // ====================================================================
+        // ABA: VISÃO GERAL (DASHBOARD)
+        // ====================================================================
+
+        const renderDashboard = () => {
+            console.log("Renderizando Dashboard Principal...");
+            renderKPIs();
+            renderEmployeeList();
+            renderDemographicCharts();
+            renderEvaluationCharts();
+            renderDepartmentCharts();
+            
+            // Se um funcionário estava selecionado, re-renderiza seus detalhes
+            if (selectedEmployee) {
+                renderEmployeeDetails(selectedEmployee);
+            } else {
+                // Estado inicial dos gráficos individuais
+                renderIndividualCharts(null); 
+                document.getElementById('employee-details').innerHTML = `<p class="text-gray-500">Selecione um funcionário na lista abaixo.</p>`;
+            }
+        };
+
+        // 1. Renderizar KPIs
+        const renderKPIs = () => {
+            const kpiContainer = document.getElementById('kpi-container');
+            const totalEmployees = window.employees.length;
+            const avgSalary = avg(window.employees.map(e => e.salario));
+            const avgEvaluation = avg(window.employees.map(e => getAvgScore(e)));
+            const avgPdi = avg(window.employees.map(e => getPdiScore(e)));
+            const avgQi = avg(window.employees.map(e => e.evaluations.qi));
+
+            kpiContainer.innerHTML = `
+                <div class="bg-white p-4 rounded-xl card text-center"><div class="text-sm text-gray-500">Funcionários Ativos</div><div class="text-3xl font-bold text-emerald-600">${totalEmployees}</div></div>
+                <div class="bg-white p-4 rounded-xl card text-center"><div class="text-sm text-gray-500">Salário Médio</div><div class="text-3xl font-bold text-emerald-600">R$ ${avgSalary.toFixed(2)}</div></div>
+                <div class="bg-white p-4 rounded-xl card text-center"><div class="text-sm text-gray-500">Avaliação Média</div><div class="text-3xl font-bold text-emerald-600">${avgEvaluation.toFixed(1)}/10</div></div>
+                <div class="bg-white p-4 rounded-xl card text-center"><div class="text-sm text-gray-500">PDI Score Médio</div><div class="text-3xl font-bold text-emerald-600">${avgPdi.toFixed(1)}/10</div></div>
+                <div class="bg-white p-4 rounded-xl card text-center"><div class="text-sm text-gray-500">QI Médio</div><div class="text-3xl font-bold text-emerald-600">${avgQi.toFixed(0)}</div></div>
+            `;
+        };
+
+        // 2. Renderizar Lista de Funcionários
+        const renderEmployeeList = () => {
+            const listBody = document.getElementById('employee-list-body');
+            listBody.innerHTML = '';
+            window.employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 cursor-pointer';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full" src="${employee.fotoUrl}" alt="${employee.nomeCompleto}">
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${employee.nomeCompleto}</div>
+                                <div class="text-sm text-gray-500">ID: ${employee.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${employee.departamento}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${employee.cargo}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">${employee.evaluations.qi}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">${getAvgScore(employee).toFixed(1)}</td>
+                `;
+                row.addEventListener('click', () => {
+                    selectedEmployee = employee;
+                    renderEmployeeDetails(employee);
+                    // Remove destaque de outras linhas e destaca a atual
+                    Array.from(listBody.children).forEach(child => child.classList.remove('bg-emerald-50'));
+                    row.classList.add('bg-emerald-50');
+                });
+                listBody.appendChild(row);
+            });
+        };
+
+        // 3. Renderizar Detalhes do Funcionário (Sidebar)
+        const renderEmployeeDetails = (employee) => {
+            const detailsContainer = document.getElementById('employee-details');
+            if (!employee) {
+                detailsContainer.innerHTML = `<p class="text-gray-500">Selecione um funcionário na lista.</p>`;
+                renderIndividualCharts(null);
+                return;
+            }
+            
+            detailsContainer.innerHTML = `
+                <div class="photo-placeholder" style="background-image: url(${employee.fotoUrl}); background-size: cover; background-position: center;"></div>
+                <h3 class="text-xl font-bold text-gray-900">${employee.nomeCompleto}</h3>
+                <p class="text-sm font-medium text-emerald-600">${employee.cargo}</p>
+                <p class="text-sm text-gray-500">${employee.departamento}</p>
+                <div class="text-left mt-6 space-y-2 border-t pt-4">
+                    <p><strong>Salário:</strong> R$ ${employee.salario.toFixed(2)}</p>
+                    <p><strong>Contratação:</strong> ${employee.dataContratacao}</p>
+                    <p><strong>Gênero:</strong> ${employee.genero}</p>
+                    <p><strong>Avaliação Média:</strong> ${getAvgScore(employee).toFixed(1)}/10</p>
+                    <p><strong>PDI Score:</strong> ${getPdiScore(employee).toFixed(1)}/10</p>
+                    <p><strong>QI:</strong> ${employee.evaluations.qi}</p>
+                    <p><strong>Perfil:</strong> ${employee.evaluations.behavioralProfile}</p>
+                </div>
+            `;
+            renderIndividualCharts(employee);
+        };
+
+        // 4. Renderizar Gráficos Individuais (Radar e Barras)
+        const renderIndividualCharts = (employee) => {
+            // Destroi gráficos antigos
+            destroyChart('radarChart');
+            destroyChart('barChart');
+            
+            const labels = ['Comunicação', 'Iniciativa', 'Liderança', 'Equipe', 'Frequência', 'Organização'];
+            let data = [0, 0, 0, 0, 0, 0];
+
+            if (employee) {
+                const c = employee.competencias;
+                data = [c.comunicacao, c.iniciativa, c.lideranca, c.trabalhoEmEquipe, c.frequencia * 10, c.organizacao];
+            }
+
+            // Gráfico de Radar
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            chartInstances['radarChart'] = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: employee ? employee.nomeCompleto : 'Selecione',
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // emerald-500
+                        borderColor: 'rgb(16, 185, 129)',
+                        pointBackgroundColor: 'rgb(16, 185, 129)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(16, 185, 129)'
+                    }]
+                },
+                options: {
+                    elements: { line: { borderWidth: 3 } },
+                    scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } },
+                    plugins: { legend: { display: !!employee } } // Só mostra legenda se houver funcionário
+                }
+            });
+
+            // Gráfico de Barras
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            chartInstances['barChart'] = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pontuação (0-10)',
+                        data: data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: 'rgb(16, 185, 129)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true, max: 10 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+
+        // 5. Renderizar Gráficos Demográficos
+        const renderDemographicCharts = () => {
+            destroyChart('genderChart');
+            destroyChart('tenureChart');
+            destroyChart('hiringFiringChart');
+
+            // Gênero
+            const genderData = window.employees.reduce((acc, e) => {
+                acc[e.genero] = (acc[e.genero] || 0) + 1;
+                return acc;
+            }, {});
+            const genderCtx = document.getElementById('genderChart').getContext('2d');
+            chartInstances['genderChart'] = new Chart(genderCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(genderData),
+                    datasets: [{
+                        data: Object.values(genderData),
+                        backgroundColor: ['#10b981', '#059669', '#6ee7b7'] // Tons de Emerald
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+
+            // Tempo de Empresa
+            const tenureData = window.employees.map(e => getTenure(e.dataContratacao)).reduce((acc, years) => {
+                if (years < 1) acc['< 1 Ano']++;
+                else if (years < 3) acc['1-3 Anos']++;
+                else if (years < 5) acc['3-5 Anos']++;
+                else acc['5+ Anos']++;
+                return acc;
+            }, { '< 1 Ano': 0, '1-3 Anos': 0, '3-5 Anos': 0, '5+ Anos': 0 });
+            const tenureCtx = document.getElementById('tenureChart').getContext('2d');
+            chartInstances['tenureChart'] = new Chart(tenureCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(tenureData),
+                    datasets: [{
+                        data: Object.values(tenureData),
+                        backgroundColor: ['#10b981', '#059669', '#6ee7b7', '#a7f3d0']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            
+            // Movimentação (Mock Simples)
+            const hiringFiringCtx = document.getElementById('hiringFiringChart').getContext('2d');
+            chartInstances['hiringFiringChart'] = new Chart(hiringFiringCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2021', '2022', '2023', '2024'],
+                    datasets: [
+                        { label: 'Contratações', data: [2, 3, 3, 2], borderColor: '#10b981', tension: 0.1 },
+                        { label: 'Desligamentos', data: [1, 0, 1, 0], borderColor: '#f43f5e', tension: 0.1 } // Red
+                    ]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        };
+
+        // 6. Renderizar Gráficos de Avaliação (QI, Perfil)
+        const renderEvaluationCharts = () => {
+            destroyChart('qiComparisonChart');
+            destroyChart('behavioralProfileChart');
+            destroyChart('qiByDepartmentChart');
+
+            // Comparativo de QI
+            const qiData = window.employees.map(e => ({ name: e.nomeCompleto, qi: e.evaluations.qi }))
+                                        .sort((a, b) => b.qi - a.qi);
+            const qiCtx = document.getElementById('qiComparisonChart').getContext('2d');
+            chartInstances['qiComparisonChart'] = new Chart(qiCtx, {
+                type: 'bar',
+                data: {
+                    labels: qiData.map(e => e.name),
+                    datasets: [{
+                        label: 'QI',
+                        data: qiData.map(e => e.qi),
+                        backgroundColor: '#059669'
+                    }]
+                },
+                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Perfil Comportamental
+            const profileData = window.employees.reduce((acc, e) => {
+                const profile = e.evaluations.behavioralProfile;
+                acc[profile] = (acc[profile] || 0) + 1;
+                return acc;
+            }, {});
+            const profileCtx = document.getElementById('behavioralProfileChart').getContext('2d');
+            chartInstances['behavioralProfileChart'] = new Chart(profileCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(profileData),
+                    datasets: [{
+                        data: Object.values(profileData),
+                        backgroundColor: ['#10b981', '#059669', '#6ee7b7', '#a7f3d0']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            
+            // QI Médio por Departamento
+            const qiByDept = departments.map(dept => {
+                const deptEmployees = window.employees.filter(e => e.departamento === dept);
+                return { dept, avgQi: avg(deptEmployees.map(e => e.evaluations.qi)) };
+            });
+            const qiDeptCtx = document.getElementById('qiByDepartmentChart').getContext('2d');
+            chartInstances['qiByDepartmentChart'] = new Chart(qiDeptCtx, {
+                type: 'bar',
+                data: {
+                    labels: qiByDept.map(d => d.dept),
+                    datasets: [{
+                        label: 'QI Médio',
+                        data: qiByDept.map(d => d.avgQi),
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        };
+        
+        // 7. Renderizar Gráficos por Departamento
+        const renderDepartmentCharts = () => {
+            destroyChart('departmentAvgScoreChart');
+            destroyChart('departmentPdiChart');
+            destroyChart('employeesByDeptChart');
+            destroyChart('departmentSalaryChart');
+
+            const deptData = departments.map(dept => {
+                const deptEmployees = window.employees.filter(e => e.departamento === dept);
+                return {
+                    name: dept,
+                    count: deptEmployees.length,
+                    avgScore: avg(deptEmployees.map(e => getAvgScore(e))),
+                    avgPdi: avg(deptEmployees.map(e => getPdiScore(e))),
+                    avgSalary: avg(deptEmployees.map(e => e.salario))
+                };
+            });
+
+            // Avaliação Média por Depto
+            const avgScoreCtx = document.getElementById('departmentAvgScoreChart').getContext('2d');
+            chartInstances['departmentAvgScoreChart'] = new Chart(avgScoreCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: deptData.map(d => d.name),
+                    datasets: [{ data: deptData.map(d => d.avgScore), backgroundColor: ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+
+            // PDI Médio por Depto
+            const pdiCtx = document.getElementById('departmentPdiChart').getContext('2d');
+            chartInstances['pdiCtx'] = new Chart(pdiCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: deptData.map(d => d.name),
+                    datasets: [{ data: deptData.map(d => d.avgPdi), backgroundColor: ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            
+            // Funcionários por Depto
+            const countCtx = document.getElementById('employeesByDeptChart').getContext('2d');
+            chartInstances['employeesByDeptChart'] = new Chart(countCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: deptData.map(d => d.name),
+                    datasets: [{ data: deptData.map(d => d.count), backgroundColor: ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            
+            // Salário Médio por Depto
+            const salaryCtx = document.getElementById('departmentSalaryChart').getContext('2d');
+            chartInstances['departmentSalaryChart'] = new Chart(salaryCtx, {
+                type: 'bar',
+                data: {
+                    labels: deptData.map(d => d.name),
+                    datasets: [{
+                        label: 'Salário Médio (R$)',
+                        data: deptData.map(d => d.avgSalary),
+                        backgroundColor: '#059669'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        };
+
+
+        // ====================================================================
+        // ABA: GESTÃO FINANCEIRA
+        // ====================================================================
+
+        const renderFinanceContent = () => {
+            const container = document.getElementById('finance-examples-container');
+            const indicators = [
+                { 
+                    title: "1. Indicadores de Liquidez",
+                    items: [
+                        { name: "Liquidez Corrente", formula: "Ativo Circulante / Passivo Circulante", example: "R$ 150.000 / R$ 100.000 = 1,5", interpretation: "A empresa possui R$ 1,50 para cada R$ 1,00 de dívida de curto prazo." },
+                        { name: "Liquidez Seca", formula: "(Ativo Circulante - Estoques) / Passivo Circulante", example: "(R$ 150.000 - R$ 30.000) / R$ 100.000 = 1,2", interpretation: "Mesmo sem vender estoques, a empresa cobre suas dívidas de curto prazo." }
+                    ]
+                },
+                {
+                    title: "2. Indicadores de Endividamento",
+                    items: [
+                        { name: "Endividamento Geral", formula: "Passivo Total / Ativo Total", example: "R$ 250.000 / R$ 500.000 = 0,5 (ou 50%)", interpretation: "50% dos ativos da empresa são financiados por capital de terceiros (dívidas)." },
+                        { name: "Composição do Endividamento", formula: "Passivo Circulante / Passivo Total", example: "R$ 100.000 / R$ 250.000 = 0,4 (ou 40%)", interpretation: "40% das dívidas da empresa vencem no curto prazo." }
+                    ]
+                },
+                {
+                    title: "3. Indicadores de Rentabilidade",
+                    items: [
+                        { name: "Giro do Ativo", formula: "Receita Líquida / Ativo Total Médio", example: "R$ 800.000 / R$ 480.000 = 1,67", interpretation: "A empresa gera R$ 1,67 de receita para cada R$ 1,00 investido em ativos." },
+                        { name: "Margem Líquida", formula: "Lucro Líquido / Receita Líquida", example: "R$ 80.000 / R$ 800.000 = 0,10 (ou 10%)", interpretation: "O lucro líquido da empresa corresponde a 10% de sua receita." },
+                        { name: "ROA (Retorno sobre Ativo)", formula: "Lucro Líquido / Ativo Total Médio", example: "R$ 80.000 / R$ 480.000 = 0,167 (ou 16,7%)", interpretation: "O retorno gerado pelos ativos da empresa é de 16,7%." },
+                        { name: "ROE (Retorno sobre Patrimônio Líq.)", formula: "Lucro Líquido / Patrimônio Líquido Médio", example: "R$ 80.000 / R$ 230.000 = 0,348 (ou 34,8%)", interpretation: "O retorno para os acionistas (capital próprio) é de 34,8%." }
+                    ]
+                }
+            ];
+
+            container.innerHTML = indicators.map(group => `
+                <div class="bg-white p-6 rounded-xl card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">${group.title}</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 finance-table">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Indicador</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fórmula</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Exemplo de Cálculo</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interpretação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${group.items.map(item => `
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.name}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600 font-mono">${item.formula}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600 font-mono">${item.example}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-600">${item.interpretation}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `).join('');
+        };
+        
+
+        // ====================================================================
+        // ABA: ADICIONAR COLABORADOR
+        // ====================================================================
+        
+        // Popula os <select> do formulário
+        const populateFormOptions = () => {
+            const deptSelect = document.getElementById('departamento');
+            const cargoSelect = document.getElementById('cargo');
+            
+            departments.forEach(dept => {
+                deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
+            });
+            // Adiciona opção para novo departamento
+            deptSelect.innerHTML += `<option value="Novo">Outro (Novo Depto)</option>`;
+            
+            jobTitles.forEach(title => {
+                cargoSelect.innerHTML += `<option value="${title}">${title}</option>`;
+            });
+            // Adiciona opção para novo cargo
+            cargoSelect.innerHTML += `<option value="Novo">Outro (Novo Cargo)</option>`;
+        };
+
+        // Lógica do Formulário de Adicionar Colaborador
+        document.getElementById('add-employee-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Simplesmente pega os valores. Em um app real, faria validação e sanitização.
+            const newEmployee = {
+                id: Math.max(...window.employees.map(e => e.id)) + 1,
+                nomeCompleto: document.getElementById('nomeCompleto').value,
+                departamento: document.getElementById('departamento').value,
+                cargo: document.getElementById('cargo').value,
+                salario: parseFloat(document.getElementById('salario').value),
+                dataContratacao: document.getElementById('dataContratacao').value,
+                genero: document.getElementById('genero').value,
+                fotoUrl: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`, // Foto aleatória
+                competencias: {
+                    comunicacao: parseInt(document.getElementById('comunicacao').value, 10),
+                    iniciativa: parseInt(document.getElementById('iniciativa').value, 10),
+                    lideranca: parseInt(document.getElementById('lideranca').value, 10),
+                    trabalhoEmEquipe: parseInt(document.getElementById('trabalhoEmEquipe').value, 10),
+                    organizacao: parseInt(document.getElementById('organizacao').value, 10),
+                    frequencia: parseFloat(document.getElementById('frequenciaRatio').value)
+                },
+                trainings: [], // Novo funcionário começa sem treinamentos
+                evaluations: { // Valores padrão
+                    qi: 100, 
+                    behavioralProfile: "Não Definido", 
+                    stress: "Não Avaliado", 
+                    ansiedade: "Não Avaliado"
+                },
+                feedback_positive: "",
+                feedback_negative: ""
+            };
+            
+            // Adiciona ao array global
+            window.employees.push(newEmployee);
+            
+            // Mostra mensagem de sucesso
+            showFormMessage('form-message', `${newEmployee.nomeCompleto} foi adicionado com sucesso!`, 'bg-emerald-100 text-emerald-800');
+            
+            // Limpa o formulário
+            e.target.reset();
+            
+            // Atualiza o dashboard e muda para a aba principal
+            renderDashboard();
+            setTimeout(() => {
+                showFormMessage('form-message', '', 'hidden'); // Esconde a mensagem
+                switchTab('dashboard'); // Muda para a aba de dashboard
+            }, 2000);
+        });
+
+
+        // ====================================================================
+        // ABA: GESTÃO DE TAREFAS
+        // ====================================================================
+
+        const renderTasksContent = () => {
+            renderTaskList();
+            renderTaskCharts();
+        };
+
+        const renderTaskList = () => {
+            const taskListBody = document.getElementById('task-list-body');
+            taskListBody.innerHTML = '';
+            window.tasks.forEach(task => {
+                const assignees = task.assignedEmployeeIds.map(id => {
+                    const emp = window.employees.find(e => e.id === id);
+                    return emp ? emp.nomeCompleto.split(' ')[0] : 'N/A';
+                }).join(', ');
+                
+                let statusClass = '';
+                if (task.status === 'Concluído') statusClass = 'bg-emerald-100 text-emerald-800';
+                else if (task.status === 'Em Andamento') statusClass = 'bg-yellow-100 text-yellow-800';
+                else statusClass = 'bg-gray-100 text-gray-800';
+                
+                taskListBody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${task.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${task.status}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${assignees}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${task.dueDate}</td>
+                    </tr>
+                `;
+            });
+        };
+        
+        const renderTaskCharts = () => {
+            destroyChart('tasksByEmployeeChart');
+            destroyChart('tasksCompletedChart');
+            destroyChart('tasksInProgressChart');
+
+            // Tarefas por Funcionário
+            const tasksByEmployee = window.tasks.reduce((acc, task) => {
+                task.assignedEmployeeIds.forEach(id => {
+                    const emp = window.employees.find(e => e.id === id);
+                    if (emp) {
+                        const name = emp.nomeCompleto.split(' ')[0];
+                        acc[name] = (acc[name] || 0) + 1;
+                    }
+                });
+                return acc;
+            }, {});
+            const tasksByEmpCtx = document.getElementById('tasksByEmployeeChart').getContext('2d');
+            chartInstances['tasksByEmployeeChart'] = new Chart(tasksByEmpCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(tasksByEmployee),
+                    datasets: [{ data: Object.values(tasksByEmployee), backgroundColor: '#059669' }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+            
+            // Status das Tarefas
+            const tasksByStatus = window.tasks.reduce((acc, task) => {
+                acc[task.status] = (acc[task.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const completedCtx = document.getElementById('tasksCompletedChart').getContext('2d');
+            chartInstances['tasksCompletedChart'] = new Chart(completedCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Concluído', 'Outros'],
+                    datasets: [{ 
+                        data: [tasksByStatus['Concluído'] || 0, window.tasks.length - (tasksByStatus['Concluído'] || 0)],
+                        backgroundColor: ['#10b981', '#e5e7eb']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+            
+            const inProgressCtx = document.getElementById('tasksInProgressChart').getContext('2d');
+            chartInstances['tasksInProgressChart'] = new Chart(inProgressCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Em Andamento', 'Outros'],
+                    datasets: [{ 
+                        data: [tasksByStatus['Em Andamento'] || 0, window.tasks.length - (tasksByStatus['Em Andamento'] || 0)],
+                        backgroundColor: ['#f59e0b', '#e5e7eb'] // Amarelo
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+        };
+        
+        // Lógica do Formulário de Adicionar Tarefa
+        document.getElementById('add-task-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newTask = {
+                id: Math.max(...window.tasks.map(t => t.id)) + 1,
+                name: document.getElementById('taskName').value,
+                status: document.getElementById('taskStatus').value,
+                assignedEmployeeIds: document.getElementById('taskAssignees').value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id)),
+                dueDate: document.getElementById('taskDueDate').value
+            };
+            window.tasks.push(newTask);
+            renderTasksContent();
+            e.target.reset();
+        });
+
+        // ====================================================================
+        // ABA: FOLHA DE PONTO (Firebase)
+        // ====================================================================
+        
+        const initializeFirebase = () => {
+            try {
+                // Substitua pelas suas credenciais reais do Firebase
+                const firebaseConfig = {
+                    apiKey: "YOUR_API_KEY",
+                    authDomain: "YOUR_AUTH_DOMAIN",
+                    projectId: "YOUR_PROJECT_ID",
+                    storageBucket: "YOUR_STORAGE_BUCKET",
+                    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                    appId: "YOUR_APP_ID"
+                };
+                
+                // const app = initializeApp(firebaseConfig);
+                // auth = getAuth(app);
+                // db = getFirestore(app);
+                
+                // *** Usando Mocks ***
+                initializeApp(firebaseConfig);
+                auth = getAuth();
+                db = getFirestore();
+                // *********************
+
+                authReady = true;
+                console.log("Firebase (Mock) Inicializado");
+                document.getElementById('firebase-error').classList.add('hidden');
+                
+                // Popula o select da folha de ponto
+                const select = document.getElementById('timesheetEmployeeSelect');
+                select.innerHTML = '<option value="">Selecione...</option>';
+                window.employees.forEach(e => {
+                    select.innerHTML += `<option value="${e.id}">${e.nomeCompleto} (${e.departamento})</option>`;
+                });
+                
+                // Adiciona listener
+                select.addEventListener('change', (e) => setupTimesheetListener(e.target.value));
+
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase:", error);
+                document.getElementById('firebase-error').textContent = "Erro ao conectar com o Firebase. Funcionalidade em tempo real desabilitada.";
+                document.getElementById('firebase-error').classList.remove('hidden');
+                document.getElementById('punchButton').disabled = true;
+                document.getElementById('punchButton').textContent = "Erro de Conexão";
+            }
+        };
+
+        const setupTimesheetListener = (employeeId) => {
+            // Cancela o listener anterior
+            if (currentTimesheetListener) {
+                currentTimesheetListener(); 
+            }
+            
+            // Reseta a UI
+            updateTimesheetUI(null);
+            
+            if (!employeeId) return;
+
+            const today = new Date().toISOString().split('T')[0]; // AAAA-MM-DD
+            const docPath = `timesheets/${employeeId}_${today}`;
+            const docRef = doc(db, docPath);
+
+            currentTimesheetListener = onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    updateTimesheetUI(docSnap.data());
+                } else {
+                    // Nenhum registro hoje
+                    updateTimesheetUI({ punches: [] });
+                }
+            }, (error) => {
+                console.error("Erro no listener do Firestore:", error);
+                document.getElementById('firebase-error').textContent = "Erro ao ler dados em tempo real.";
+                document.getElementById('firebase-error').classList.remove('hidden');
+            });
+        };
+
+        const updateTimesheetUI = (data) => {
+            const punchButton = document.getElementById('punchButton');
+            const currentStatus = document.getElementById('currentStatus');
+            const lastPunchTime = document.getElementById('lastPunchTime');
+            const historyList = document.getElementById('punchHistoryList');
+            
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('pt-BR');
+
+            if (!data) { // Estado inicial (sem funcionário)
+                punchButton.disabled = true;
+                punchButton.textContent = "Selecione um Funcionário";
+                punchButton.className = "w-full md:w-1/2 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform shadow-lg bg-gray-400";
+                currentStatus.textContent = "DESCONECTADO";
+                currentStatus.className = "font-bold text-gray-500";
+                lastPunchTime.textContent = "N/A";
+                historyList.innerHTML = `<li class="text-gray-500">Selecione um funcionário.</li>`;
+                updateTotalHours([]);
+                return;
+            }
+
+            const punches = data.punches || [];
+            const lastPunch = punches.length > 0 ? punches[punches.length - 1] : null;
+            const isLoggedIn = lastPunch && lastPunch.type === 'in';
+            
+            // Atualiza Botão
+            punchButton.disabled = false;
+            punchButton.textContent = isLoggedIn ? "Bater Ponto (Saída)" : "Bater Ponto (Entrada)";
+            punchButton.className = `w-full md:w-1/2 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg ${isLoggedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`;
+
+            // Atualiza Status
+            currentStatus.textContent = isLoggedIn ? "LOGADO" : "DESLOGADO";
+            currentStatus.className = `font-bold ${isLoggedIn ? 'text-emerald-600' : 'text-red-600'}`;
+            
+            // Atualiza Último Registro
+            lastPunchTime.textContent = lastPunch ? new Date(lastPunch.timestamp.toDate ? lastPunch.timestamp.toDate() : Date.now()).toLocaleTimeString('pt-BR') : 'N/A'; // Mock Date.now()
+            
+            // Atualiza Histórico
+            if (punches.length === 0) {
+                historyList.innerHTML = `<li class="text-gray-500">Nenhum registro hoje.</li>`;
+            } else {
+                historyList.innerHTML = punches.map(p => {
+                    const time = new Date(p.timestamp.toDate ? p.timestamp.toDate() : Date.now()).toLocaleTimeString('pt-BR');
+                    const isOut = p.type === 'out';
+                    return `<li class="flex justify-between items-center ${isOut ? 'text-gray-500' : 'text-emerald-700'}">
+                                <span>${isOut ? 'Saída' : 'Entrada'}</span>
+                                <span class="font-medium">${time}</span>
+                            </li>`;
+                }).reverse().join('');
+            }
+            
+            // Atualiza Horas
+            updateTotalHours(punches);
+        };
+        
+        const updateTotalHours = (punches) => {
+            let totalMillis = 0;
+            let lastInTime = null;
+
+            punches.forEach(punch => {
+                const punchTime = new Date(punch.timestamp.toDate ? punch.timestamp.toDate() : Date.now()).getTime(); // Mock Date.now()
+                if (punch.type === 'in') {
+                    lastInTime = punchTime;
+                } else if (punch.type === 'out' && lastInTime) {
+                    totalMillis += (punchTime - lastInTime);
+                    lastInTime = null; // Reseta para o próximo par
+                }
+            });
+            
+            // Se ainda estiver logado, calcula até o momento atual
+            if (lastInTime) {
+                totalMillis += (Date.now() - lastInTime);
+            }
+            
+            const totalMinutes = totalMillis / (1000 * 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            
+            const totalDayMinutes = 8 * 60; // 8 horas
+            const progress = Math.min(100, (totalMinutes / totalDayMinutes) * 100);
+
+            document.getElementById('totalHoursDay').textContent = `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+            document.getElementById('progressDay').textContent = `${progress.toFixed(0)}%`;
+            // Total da semana seria um cálculo mais complexo, deixado como 0h
+            document.getElementById('totalHoursWeek').textContent = `0h 00m`;
+        };
+        
+        // Lógica do Botão de Bater Ponto
+        document.getElementById('punchButton').addEventListener('click', async () => {
+            const employeeId = document.getElementById('timesheetEmployeeSelect').value;
+            if (!employeeId) return;
+
+            const punchButton = document.getElementById('punchButton');
+            punchButton.disabled = true;
+            punchButton.textContent = "Registrando...";
+
+            const today = new Date().toISOString().split('T')[0];
+            const docPath = `timesheets/${employeeId}_${today}`;
+            const docRef = doc(db, docPath);
+
+            try {
+                const docSnap = { exists: () => false, data: () => ({ punches: [] }) }; // Simulação de getDoc
+                // const docSnap = await getDoc(docRef); // Chamada real
+                
+                const punches = docSnap.exists() ? docSnap.data().punches : [];
+                const lastPunch = punches.length > 0 ? punches[punches.length - 1] : null;
+                const newPunchType = (lastPunch && lastPunch.type === 'in') ? 'out' : 'in';
+
+                const newPunch = {
+                    type: newPunchType,
+                    timestamp: serverTimestamp() // Usa o timestamp do servidor
+                };
+
+                // Atualiza o documento
+                await setDoc(docRef, { punches: [...punches, newPunch] }, { merge: true }); // setDoc com merge (ou updateDoc)
+                
+                console.log("Ponto batido com sucesso (Mock)");
+                // O listener onSnapshot cuidará de atualizar a UI
+                
+            } catch (error) {
+                console.error("Erro ao bater ponto:", error);
+                document.getElementById('firebase-error').textContent = "Erro ao registrar ponto. Tente novamente.";
+                document.getElementById('firebase-error').classList.remove('hidden');
+                punchButton.disabled = false; // Reabilita em caso de erro
+            }
+        });
+
+
+        // ====================================================================
+        // ABA: PDI / TREINAMENTO
+        // ====================================================================
+
+        const populatePdiSelect = () => {
+            const select = document.getElementById('pdiEmployeeSelect');
+            if (select.options.length > 1) return; // Já populado
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            window.employees.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.nomeCompleto}</option>`;
+            });
+            select.addEventListener('change', (e) => renderPdiContent(e.target.value));
+        };
+        
+        const renderPdiContent = (employeeId = null) => {
+            // Popula o select se for a primeira vez
+            populatePdiSelect();
+            
+            const selectedPdiEmployee = employeeId ? window.employees.find(e => e.id == employeeId) : null;
+            
+            // Atualiza KPI
+            const pdiScore = selectedPdiEmployee ? getPdiScore(selectedPdiEmployee) : 0;
+            document.getElementById('pdiScoreDisplay').textContent = pdiScore.toFixed(1);
+            
+            // Atualiza Gráfico de Comparação (Sempre visível)
+            renderPdiComparisonChart();
+            
+            // Atualiza Gráfico Radar Individual
+            renderPdiRadarChart(selectedPdiEmployee);
+            
+            // Atualiza Tabela de Histórico
+            renderTrainingHistory(selectedPdiEmployee);
+        };
+        
+        const renderPdiComparisonChart = () => {
+            destroyChart('pdiComparisonChart');
+            
+            const pdiData = window.employees.map(e => ({
+                name: e.nomeCompleto.split(' ')[0],
+                score: getPdiScore(e)
+            })).sort((a, b) => b.score - a.score);
+            
+            const pdiCtx = document.getElementById('pdiComparisonChart').getContext('2d');
+            chartInstances['pdiComparisonChart'] = new Chart(pdiCtx, {
+                type: 'bar',
+                data: {
+                    labels: pdiData.map(d => d.name),
+                    datasets: [{
+                        label: 'PDI Score',
+                        data: pdiData.map(d => d.score),
+                        backgroundColor: '#059669'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+            });
+        };
+        
+        const renderPdiRadarChart = (employee) => {
+            destroyChart('pdiRadarChart');
+            
+            const labels = employee ? employee.trainings.map(t => t.name) : ['N/A'];
+            const data = employee ? employee.trainings.map(t => t.score) : [0];
+            
+            const pdiRadarCtx = document.getElementById('pdiRadarChart').getContext('2d');
+            chartInstances['pdiRadarChart'] = new Chart(pdiRadarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Notas',
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgb(16, 185, 129)',
+                    }]
+                },
+                options: {
+                    scales: { r: { beginAtZero: true, max: 10 } },
+                    plugins: { legend: { display: !!employee && employee.trainings.length > 0 } }
+                }
+            });
+        };
+        
+        const renderTrainingHistory = (employee) => {
+            const historyBody = document.getElementById('training-history-body');
+            if (!employee || employee.trainings.length === 0) {
+                historyBody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum treinamento registrado.</td></tr>`;
+                return;
+            }
+            
+            historyBody.innerHTML = employee.trainings.map(t => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${t.name}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800 font-medium">${t.score.toFixed(1)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${t.date}</td>
+                </tr>
+            `).join('');
+        };
+        
+        // Lógica do Formulário de Adicionar Treinamento
+        document.getElementById('add-training-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const employeeId = document.getElementById('pdiEmployeeSelect').value;
+            if (!employeeId) {
+                alert("Por favor, selecione um colaborador primeiro.");
+                return;
+            }
+            
+            const employee = window.employees.find(e => e.id == employeeId);
+            const newTraining = {
+                name: document.getElementById('trainingName').value,
+                score: parseFloat(document.getElementById('trainingScore').value),
+                date: new Date().toLocaleDateString('pt-BR')
+            };
+            
+            employee.trainings.push(newTraining);
+            
+            // Re-renderiza a aba PDI
+            renderPdiContent(employeeId);
+            // Re-renderiza o dashboard principal (para atualizar KPI)
+            renderDashboard();
+            
+            e.target.reset();
+        });
+
+        
+        // ====================================================================
+        // ABA: AVALIAÇÕES
+        // ====================================================================
+
+        const populateEvalSelect = () => {
+            const select = document.getElementById('evalEmployeeSelect');
+            if (select.options.length > 1) return; // Já populado
+            
+            select.innerHTML = '<option value="">Selecione...</option>';
+            window.employees.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.nomeCompleto}</option>`;
+            });
+            select.addEventListener('change', (e) => renderEvaluationContent(e.target.value));
+        };
+        
+        // Gera os campos do formulário dinamicamente
+        const generateEvaluationFormFields = () => {
+            const container = document.getElementById('evaluation-fields-container');
+            container.innerHTML = evalFields.map(field => {
+                if (field.type === 'select') {
+                    return `
+                        <div>
+                            <label for="eval-${field.id}" class="block text-sm font-medium text-gray-700">${field.label}</label>
+                            <select id="eval-${field.id}" data-key="${field.id}" class="eval-field mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white">
+                                ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </div>`;
+                }
+                return `
+                    <div>
+                        <label for="eval-${field.id}" class="block text-sm font-medium text-gray-700">${field.label}</label>
+                        <input type="${field.type}" id="eval-${field.id}" data-key="${field.id}" class="eval-field mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>`;
+            }).join('');
+        };
+        
+        const renderEvaluationContent = (employeeId = null) => {
+            populateEvalSelect();
+            
+            const selectedEvalEmployee = employeeId ? window.employees.find(e => e.id == employeeId) : null;
+            
+            // Preenche o formulário com dados atuais
+            const form = document.getElementById('evaluation-form');
+            if (selectedEvalEmployee) {
+                form.querySelectorAll('.eval-field').forEach(field => {
+                    const key = field.dataset.key;
+                    field.value = selectedEvalEmployee.evaluations[key] || '';
+                });
+            } else {
+                form.reset();
+            }
+            
+            // Renderiza gráficos
+            renderDiagnosticsChart();
+            renderEvalRadarChart(selectedEvalEmployee);
+            
+            // Renderiza relatório
+            renderIndividualReport(selectedEvalEmployee);
+        };
+        
+        const renderDiagnosticsChart = () => {
+            destroyChart('diagnosticsChart');
+            
+            // Gráfico de Exemplo (Perfil Comportamental)
+            const profileData = window.employees.reduce((acc, e) => {
+                const profile = e.evaluations.behavioralProfile;
+                acc[profile] = (acc[profile] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const diagCtx = document.getElementById('diagnosticsChart').getContext('2d');
+            chartInstances['diagnosticsChart'] = new Chart(diagCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(profileData),
+                    datasets: [{
+                        data: Object.values(profileData),
+                        backgroundColor: ['#047857', '#059669', '#10b981', '#34d399']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+        };
+        
+        const renderEvalRadarChart = (employee) => {
+            destroyChart('evalRadarChart');
+            
+            // Mapeia os dados para o radar (Ex: QI normalizado)
+            const labels = ['QI', 'Stress', 'Ansiedade'];
+            let data = [0, 0, 0];
+            
+            if (employee) {
+                const e = employee.evaluations;
+                // Normaliza os dados para uma escala (ex: 0-10)
+                const qiScore = Math.min(10, (e.qi - 70) / 8); // (150-70)/8 = 10
+                const stressScore = e.stress === 'Baixo' ? 3 : (e.stress === 'Moderado' ? 6 : 9);
+                const ansiedadeScore = e.ansiedade === 'Baixa' ? 3 : (e.ansiedade === 'Moderada' ? 6 : 9);
+                data = [qiScore, stressScore, ansiedadeScore];
+            }
+            
+            const evalRadarCtx = document.getElementById('evalRadarChart').getContext('2d');
+            chartInstances['evalRadarChart'] = new Chart(evalRadarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Scores Normalizados',
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgb(16, 185, 129)',
+                    }]
+                },
+                options: { scales: { r: { beginAtZero: true, max: 10 } } }
+            });
+        };
+        
+        const renderIndividualReport = (employee) => {
+            const reportEl = document.getElementById('individual-report');
+            if (!employee) {
+                reportEl.innerHTML = `<p>Selecione um colaborador para ver o relatório.</p>`;
+                return;
+            }
+            
+            const e = employee.evaluations;
+            const c = employee.competencias;
+            reportEl.innerHTML = `
+                <p><strong>${employee.nomeCompleto}</strong> (${employee.cargo}) apresenta um score de <strong>QI de ${e.qi}</strong>, classificado como acima da média. Seu perfil comportamental é <strong>${e.behavioralProfile}</strong>.</p>
+                <p>Em termos de competências, destaca-se em <strong>Comunicação (${c.comunicacao}/10)</strong> e <strong>Trabalho em Equipe (${c.trabalhoEmEquipe}/10)</strong>.</p>
+                <p>Os níveis de <strong>Stress (${e.stress})</strong> e <strong>Ansiedade (${e.ansiedade})</strong> estão dentro dos parâmetros gerenciáveis. Recomenda-se acompanhamento para manutenção do bem-estar.</p>
+            `;
+        };
+        
+        // Lógica do Formulário de Salvar Avaliações
+        document.getElementById('evaluation-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const employeeId = document.getElementById('evalEmployeeSelect').value;
+            if (!employeeId) {
+                showFormMessage('eval-form-message', 'Selecione um colaborador.', 'bg-yellow-100 text-yellow-800');
+                return;
+            }
+            
+            const employee = window.employees.find(e => e.id == employeeId);
+            
+            // Atualiza o objeto evaluations
+            e.target.querySelectorAll('.eval-field').forEach(field => {
+                const key = field.dataset.key;
+                const value = field.type === 'number' ? parseFloat(field.value) : field.value;
+                employee.evaluations[key] = value;
+            });
+            
+            // Re-renderiza
+            renderEvaluationContent(employeeId);
+            renderDashboard(); // Atualiza KPIs e lista
+            
+            showFormMessage('eval-form-message', 'Avaliações salvas com sucesso!', 'bg-emerald-100 text-emerald-800');
+            setTimeout(() => showFormMessage('eval-form-message', '', 'hidden'), 2000);
+        });
+        
+        // ====================================================================
+        // ABA: CLIMA & CULTURA (Lógica Unificada)
+        // ====================================================================
+        
+        // --- Variáveis de estado da aba Clima ---
+        let climaChartInstances = {}; // Instâncias de gráficos separadas
+        let currentFilteredData = []; // Dados filtrados da aba de clima
+
+        // --- Funções da Aba Clima ---
+
+        // Mapeia os dados do `employees` global para o formato do `climafeeback`
+        const getClimaData = () => {
+            return window.employees.map(emp => ({
+                employee_id: emp.id,
+                employee_name: emp.nomeCompleto,
+                department: emp.departamento,
+                date: emp.dataContratacao.split('/').reverse().join('-'), // Converte DD/MM/AAAA para AAAA-MM-DD
+                communication: emp.competencias.comunicacao * 10, // Converte 0-10 para 0-100
+                leadership: emp.competencias.lideranca * 10,
+                organization: emp.competencias.organizacao * 10,
+                teamwork: emp.competencias.trabalhoEmEquipe * 10,
+                initiative: emp.competencias.iniciativa * 10,
+                feedback_positive: emp.feedback_positive || "N/A",
+                feedback_negative: emp.feedback_negative || "N/A"
+            }));
+        };
+
+        // Navegação de abas interna (Dashboard Clima / Feedback Quiz)
+        const switchClimaTab = (tab) => {
+            const isDashboard = tab === 'dashboard';
+            document.getElementById('clima-dashboard-content').classList.toggle('hidden', !isDashboard);
+            document.getElementById('clima-feedback-content').classList.toggle('hidden', isDashboard);
+            
+            // Atualiza estilo dos botões da aba interna
+            document.getElementById('clima-dashboard-tab').className = `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${isDashboard ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
+            document.getElementById('clima-feedback-tab').className = `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${!isDashboard ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
+
+            if (isDashboard) {
+                updateClimaDashboard();
+            } else {
+                initFeedbackForm();
+            }
+        };
+        window.switchClimaTab = switchClimaTab; // Expor globalmente para o HTML
+        
+        // Calcula o score geral (0-100)
+        const getClimaOverallScore = (employee) => {
+            return (employee.communication + employee.leadership + employee.organization + employee.teamwork + employee.initiative) / 5;
+        };
+        
+        // Define a cor e o rótulo do termômetro
+        const getThermoDetails = (score) => {
+            if (score >= 70) return { color: 'text-emerald-600', label: 'Positivo' };
+            if (score >= 50) return { color: 'text-yellow-500', label: 'Neutro' };
+            return { color: 'text-red-600', label: 'Crítico' };
+        };
+
+        // Atualiza todo o Dashboard de Clima
+        const updateClimaDashboard = () => {
+            const data = getClimaData(); // Pega os dados mais recentes do array global 'employees'
+            
+            // Filtros
+            const deptFilter = document.getElementById('department-filter').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const search = document.getElementById('search-employee').value.toLowerCase();
+            const order = document.getElementById('order-filter').value;
+            
+            currentFilteredData = data.filter(e => 
+                (deptFilter === 'Todos' || e.department === deptFilter) &&
+                (e.date >= startDate && e.date <= endDate) &&
+                (e.employee_name.toLowerCase().includes(search))
+            );
+
+            // Ordenação
+            currentFilteredData.forEach(e => e.overallScore = getClimaOverallScore(e));
+            currentFilteredData.sort((a, b) => {
+                return order === 'desc' ? b.overallScore - a.overallScore : a.overallScore - b.overallScore;
+            });
+
+            // Renderiza módulos
+            updateThermo(currentFilteredData);
+            updateDepartmentScores(currentFilteredData);
+            updateRankingTable(currentFilteredData);
+            
+            // Esconde detalhes
+            document.getElementById('clima-employee-details').classList.add('hidden');
+        };
+
+        // Atualiza Módulo 1: Termômetro
+        const updateThermo = (filteredData) => {
+            const thermoDisplay = document.getElementById('thermo-display');
+            const thermoScoreEl = document.getElementById('thermo-score');
+            const thermoLabelEl = document.getElementById('thermo-label');
+
+            if (filteredData.length === 0) {
+                thermoDisplay.className = 'flex items-center space-x-3 text-gray-400';
+                thermoScoreEl.textContent = '--%';
+                thermoLabelEl.textContent = 'Dados insuficientes';
+                return;
+            }
+
+            const totalScore = avg(filteredData.map(getClimaOverallScore));
+            const { color, label } = getThermoDetails(totalScore);
+            
+            thermoDisplay.className = `flex items-center space-x-3 ${color}`;
+            thermoScoreEl.textContent = `${totalScore.toFixed(0)}%`;
+            thermoLabelEl.textContent = label;
+        };
+
+        // Atualiza Módulo 2: Médias por Departamento
+        const updateDepartmentScores = (filteredData) => {
+            const container = document.getElementById('department-scores');
+            if (filteredData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Nenhum dado filtrado.</p>';
+                return;
+            }
+            
+            const scoresByDept = filteredData.reduce((acc, e) => {
+                if (!acc[e.department]) acc[e.department] = { total: 0, count: 0 };
+                acc[e.department].total += e.overallScore;
+                acc[e.department].count++;
+                return acc;
+            }, {});
+
+            container.innerHTML = Object.keys(scoresByDept).map(dept => {
+                const score = scoresByDept[dept].total / scoresByDept[dept].count;
+                const count = scoresByDept[dept].count;
+                const { color } = getThermoDetails(score);
+                const colorClass = color.replace('text-', 'bg-'); // text-emerald-600 -> bg-emerald-600
+                
+                return `
+                    <div>
+                        <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
+                            <span>${dept} (${count} func.)</span>
+                            <span class="${color}">${score.toFixed(0)}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="${colorClass} h-2.5 rounded-full" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Atualiza Módulo 3: Ranking de Funcionários
+        const updateRankingTable = (filteredData) => {
+            const tableBody = document.getElementById('ranking-table-body');
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Nenhum funcionário encontrado.</td></tr>`;
+                return;
+            }
+            
+            tableBody.innerHTML = filteredData.map(e => {
+                const { color } = getThermoDetails(e.overallScore);
+                const colorClass = color.replace('text-', 'bg-');
+                
+                return `
+                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="showClimaDetails(${e.employee_id})">
+                        <td class="px-4 py-4"><span class="h-3 w-3 ${colorClass} rounded-full inline-block"></span></td>
+                        <td class="px-4 py-4">
+                            <div class="text-sm font-medium text-gray-900">${e.employee_name}</div>
+                            <div class="text-sm text-gray-500">${e.department}</div>
+                        </td>
+                        <td class="px-4 py-4 text-sm font-semibold text-gray-800">${(e.overallScore / 10).toFixed(1)} (${e.overallScore.toFixed(0)}%)</td>
+                        <td class="px-4 py-4 text-sm text-gray-600 hidden sm:table-cell">${e.communication.toFixed(0)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-600 hidden sm:table-cell">${e.leadership.toFixed(0)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-600 hidden sm:table-cell">${e.organization.toFixed(0)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-600 hidden sm:table-cell">${e.teamwork.toFixed(0)}</td>
+                        <td class="px-4 py-4 text-sm text-gray-600 hidden sm:table-cell">${e.initiative.toFixed(0)}</td>
+                    </tr>
+                `;
+            }).join('');
+        };
+        
+        // Mostra Módulo 4: Detalhes do Funcionário (Clima)
+        const showClimaDetails = (employeeId) => {
+            const employee = getClimaData().find(e => e.employee_id === employeeId);
+            if (!employee) return;
+            
+            document.getElementById('clima-employee-details').classList.remove('hidden');
+            document.getElementById('clima-details-name').textContent = `Detalhes de ${employee.employee_name}`;
+            document.getElementById('clima-feedback-positive').textContent = employee.feedback_positive;
+            document.getElementById('clima-feedback-negative').textContent = employee.feedback_negative;
+            
+            // Destroi gráficos antigos
+            if (climaChartInstances['climaRadarChart']) climaChartInstances['climaRadarChart'].destroy();
+            if (climaChartInstances['climaBarChart']) climaChartInstances['climaBarChart'].destroy();
+            
+            const labels = ['Com.', 'Lid.', 'Org.', 'Equipe', 'Ini.'];
+            const data = [
+                employee.communication / 10, // Converte 0-100 para 0-10
+                employee.leadership / 10,
+                employee.organization / 10,
+                employee.teamwork / 10,
+                employee.initiative / 10
+            ];
+
+            // Gráfico Radar
+            const radarCtx = document.getElementById('climaRadarChart').getContext('2d');
+            climaChartInstances['climaRadarChart'] = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score (0-10)',
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgb(16, 185, 129)',
+                    }]
+                },
+                options: { scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } } }
+            });
+
+            // Gráfico Barras
+            const barCtx = document.getElementById('climaBarChart').getContext('2d');
+            climaChartInstances['climaBarChart'] = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score (0-10)',
+                        data: data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true, max: 10 } }, plugins: { legend: { display: false } } }
+            });
+        };
+        window.showClimaDetails = showClimaDetails; // Expor globalmente
+
+        // Esconde Módulo 4
+        document.getElementById('close-clima-details').addEventListener('click', () => {
+            document.getElementById('clima-employee-details').classList.add('hidden');
+        });
+        
+        // Exportar CSV
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            if (currentFilteredData.length === 0) {
+                alert("Não há dados filtrados para exportar.");
+                return;
+            }
+            
+            const headers = ["ID", "Nome", "Departamento", "Data", "Score_Geral", "Comunicação", "Liderança", "Organização", "Equipe", "Iniciativa", "Feedback_Pos", "Feedback_Neg"];
+            const rows = currentFilteredData.map(e => 
+                [
+                    e.employee_id,
+                    `"${e.employee_name}"`,
+                    e.department,
+                    e.date,
+                    e.overallScore.toFixed(1),
+                    e.communication.toFixed(0),
+                    e.leadership.toFixed(0),
+                    e.organization.toFixed(0),
+                    e.teamwork.toFixed(0),
+                    e.initiative.toFixed(0),
+                    `"${e.feedback_positive.replace(/"/g, '""')}"`,
+                    `"${e.feedback_negative.replace(/"/g, '""')}"`
+                ].join(',')
+            );
+            
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "relatorio_clima.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        
+        // --- Funções do Formulário de Feedback (Quiz) ---
+        
+        // Inicializa o formulário de feedback
+        const initFeedbackForm = () => {
+            const container = document.getElementById('quiz-questions-container');
+            container.innerHTML = '';
+            
+            // Agrupa perguntas por categoria
+            const questionsByCategory = quizQuestions.reduce((acc, q) => {
+                if (!acc[q.category]) acc[q.category] = [];
+                acc[q.category].push(q);
+                return acc;
+            }, {});
+
+            // Renderiza as perguntas agrupadas
+            for (const category in questionsByCategory) {
+                const categoryEl = document.createElement('div');
+                categoryEl.className = 'border-t pt-4';
+                categoryEl.innerHTML = `<h4 class="text-md font-semibold text-gray-800 mb-3">${category}</h4>`;
+                
+                const questionsList = document.createElement('div');
+                questionsList.className = 'space-y-4';
+                
+                questionsByCategory[category].forEach(q => {
+                    questionsList.innerHTML += `
+                        <div class="text-sm">
+                            <p class="font-medium text-gray-700">${q.id}. ${q.text}</p>
+                            <fieldset class="mt-2">
+                                <legend class="sr-only">Opções para a pergunta ${q.id}</legend>
+                                <div class="flex items-center space-x-4">
+                                    ${q.options.map(opt => `
+                                    <div class="flex items-center">
+                                        <input id="q-${q.id}-opt-${opt}" name="question-${q.id}" type="radio" value="${opt}" required class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500">
+                                        <label for="q-${q.id}-opt-${opt}" class="ml-2 block text-sm text-gray-700">${opt}</label>
+                                    </div>
+                                    `).join('')}
+                                </div>
+                            </fieldset>
+                        </div>
+                    `;
+                });
+                categoryEl.appendChild(questionsList);
+                container.appendChild(categoryEl);
+            }
+            
+            // Popula o select de departamento (se não estiver populado)
+            const deptSelect = document.getElementById('feedback-department');
+            if(deptSelect.options.length <= 1) {
+                 departments.forEach(dept => {
+                    deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
+                });
+            }
+            
+            // Reseta a visibilidade
+            document.getElementById('feedback-form-container').classList.remove('hidden');
+            document.getElementById('feedback-report-container').classList.add('hidden');
+            document.getElementById('feedback-form').reset();
+            document.getElementById('feedback-error').classList.add('hidden');
+        };
+
+        // Lógica de Submit do Quiz
+        document.getElementById('feedback-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const errorEl = document.getElementById('feedback-error');
+            
+            const employeeName = formData.get('feedback-name');
+            const department = formData.get('feedback-department');
+            const feedbackPos = formData.get('feedback-positive-input');
+            const feedbackNeg = formData.get('feedback-negative-input');
+            
+            // Validação
+            if (!employeeName || !department) {
+                errorEl.textContent = 'Por favor, preencha seu Nome e Departamento.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            if (formData.getAll('question-1').length === 0) { // Verifica se alguma pergunta foi respondida
+                 errorEl.textContent = 'Por favor, responda todas as perguntas do quiz.';
+                 errorEl.classList.remove('hidden');
+                 return;
+            }
+
+            // Cálculo dos Scores
+            const scores = { 'Liderança': 0, 'Comunicação': 0, 'Iniciativa': 0, 'Trabalho em Equipe': 0, 'Organização': 0 };
+            const counts = { 'Liderança': 0, 'Comunicação': 0, 'Iniciativa': 0, 'Trabalho em Equipe': 0, 'Organização': 0 };
+            
+            quizQuestions.forEach(q => {
+                const answer = formData.get(`question-${q.id}`);
+                counts[q.category]++;
+                if (answer === q.correctAnswer) {
+                    scores[q.category]++;
+                }
+            });
+
+            // Converte para percentual (0-100)
+            const finalScores = {};
+            for (const category in scores) {
+                finalScores[category] = (scores[category] / counts[category]) * 100;
+            }
+            
+            // ### INÍCIO DA SINCRONIZAÇÃO ###
+            const employee = window.employees.find(e => 
+                e.nomeCompleto.toLowerCase() === employeeName.toLowerCase() && 
+                e.departamento === department
+            );
+
+            if (!employee) {
+                errorEl.textContent = `Funcionário "${employeeName}" do departamento "${department}" não encontrado. Verifique se o nome e departamento estão corretos.`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Atualiza o objeto 'employee' no array 'window.employees'
+            employee.competencias.lideranca = finalScores['Liderança'] / 10; // Converte 0-100 para 0-10
+            employee.competencias.comunicacao = finalScores['Comunicação'] / 10;
+            employee.competencias.iniciativa = finalScores['Iniciativa'] / 10;
+            employee.competencias.trabalhoEmEquipe = finalScores['Trabalho em Equipe'] / 10;
+            employee.competencias.organizacao = finalScores['Organização'] / 10;
+            employee.feedback_positive = feedbackPos;
+            employee.feedback_negative = feedbackNeg;
+            
+            console.log(`Competências de ${employee.nomeCompleto} atualizadas:`, employee.competencias);
+            
+            // Atualiza a Visão Geral (Dashboard Principal)
+            // Se o funcionário atualizado for o selecionado, re-renderiza os detalhes
+            if (selectedEmployee && selectedEmployee.id === employee.id) {
+                 renderEmployeeDetails(employee);
+            }
+            // Re-renderiza a lista (para scores) e KPIs
+            renderEmployeeList();
+            renderKPIs();
+            renderDepartmentCharts(); // Atualiza médias por depto
+            
+            // ### FIM DA SINCRONIZAÇÃO ###
+
+            // Mostra o relatório
+            showFeedbackReport(employeeName, finalScores);
+        });
+        
+        // Mostra o Relatório do Quiz
+        const showFeedbackReport = (name, scores) => {
+            document.getElementById('feedback-form-container').classList.add('hidden');
+            const reportContainer = document.getElementById('feedback-report-container');
+            const reportContent = document.getElementById('feedback-report-content');
+            reportContainer.classList.remove('hidden');
+
+            const overallScore = avg(Object.values(scores));
+            const { color, label } = getThermoDetails(overallScore);
+            const colorClass = color.replace('text-', 'bg-');
+            
+            // Ordena scores
+            const sortedScores = Object.entries(scores).sort(([,a],[,b]) => a - b);
+            
+            reportContent.innerHTML = `
+                <h3 class="text-xl font-semibold text-gray-800">Obrigado, ${name}!</h3>
+                <p class="text-gray-600">Seu feedback foi registrado e suas competências no sistema foram atualizadas.</p>
+                
+                <div class="text-center bg-gray-50 p-6 rounded-lg">
+                    <h4 class="text-lg font-medium text-gray-600">Média Geral de Acertos</h4>
+                    <p class="text-5xl font-bold ${color}">${overallScore.toFixed(0)}%</p>
+                    <p class="text-md font-medium ${color}">${label}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">Performance por Competência</h4>
+                    <div class="space-y-3">
+                    ${Object.entries(scores).map(([category, score]) => {
+                        const { color: catColor } = getThermoDetails(score);
+                        const catColorClass = catColor.replace('text-', 'bg-');
+                        return `
+                        <div>
+                            <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
+                                <span>${category}</span>
+                                <span class="${catColor}">${score.toFixed(0)}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="${catColorClass} h-2.5 rounded-full" style="width: ${score}%"></div>
+                            </div>
+                        </div>
+                        `
+                    }).join('')}
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">Resumo Individual (Pior → Melhor)</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        ${sortedScores.map(([category, score]) => `<li>${category}: ${score.toFixed(0)}%</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        };
+        
+        // Botão "Responder Novamente"
+        document.getElementById('retake-quiz-btn').addEventListener('click', initFeedbackForm);
+        
+        // Listeners da Aba de Clima
+        document.getElementById('department-filter').addEventListener('change', updateClimaDashboard);
+        document.getElementById('start-date').addEventListener('change', updateClimaDashboard);
+        document.getElementById('end-date').addEventListener('change', updateClimaDashboard);
+        document.getElementById('search-employee').addEventListener('input', updateClimaDashboard);
+        document.getElementById('order-filter').addEventListener('change', updateClimaDashboard);
+        
+        
+        // ====================================================================
+        // NAVEGAÇÃO PRINCIPAL E INICIALIZAÇÃO
+        // ====================================================================
+
+        const allTabIds = ['dashboard', 'clima', 'finance', 'add-employee', 'tasks', 'timesheet', 'pdi', 'evaluations'];
+
+        const switchTab = (tabId) => {
+            console.log(`Trocando para aba: ${tabId}`);
+            
+            allTabIds.forEach(id => {
+                const isTarget = id === tabId;
+                const contentEl = document.getElementById(`${id}-content`);
+                const tabEl = document.getElementById(`tab-${id}`);
+                
+                if (contentEl) contentEl.classList.toggle('hidden', !isTarget);
+                if (tabEl) tabEl.classList.toggle('active', isTarget);
+                
+                // Lógica de "lazy loading" para renderizar conteúdo ao clicar na aba
+                if (isTarget) {
+                    if (id === 'dashboard') renderDashboard();
+                    if (id === 'clima') switchClimaTab('dashboard'); // Inicia na sub-aba dashboard
+                    if (id === 'finance') renderFinanceContent();
+                    if (id === 'tasks') renderTasksContent();
+                    if (id === 'timesheet' && authReady) setupTimesheetListener(document.getElementById('timesheetEmployeeSelect').value);
+                    if (id === 'pdi') renderPdiContent(document.getElementById('pdiEmployeeSelect').value);
+                    if (id === 'evaluations') renderEvaluationContent(document.getElementById('evalEmployeeSelect').value);
+                }
+            });
+        };
+
+        // Adiciona listeners aos botões de aba principais
+        allTabIds.forEach(id => {
+            const tabButton = document.getElementById(`tab-${id}`);
+            if (tabButton) {
+                tabButton.addEventListener('click', () => switchTab(id));
+            }
+        });
+
+
+        // --- INICIALIZAÇÃO GERAL ---
+        window.onload = function() {
+            initializeFirebase();
+            
+            // Popula selects e formulários estáticos
+            populateFormOptions();
+            generateEvaluationFormFields();
+            
+            // Renderiza a primeira aba
+            renderDashboard();
+            switchTab('dashboard');
+        };
+
+    </script>
+</body>
+</html>
+
