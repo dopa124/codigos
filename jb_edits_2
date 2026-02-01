@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JB Edits | Estilo Gamer Retrô</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --neon-green: #1BFF3A;
+            --dark-bg: #05280F;
+            --deep-black: #000000;
+            --medium-green: #1C8F3A;
+            --accent-orange: #FF6A00;
+            --light-text: #E6FDEB;
+            --glow: 0 0 15px rgba(27, 255, 58, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--deep-black);
+            color: var(--light-text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+        }
+
+        /* Efeito Scanlines CRT */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Hero Section */
+        header {
+            min-height: 100vh;
+            padding: 40px 0;
+            background: radial-gradient(circle, var(--dark-bg) 0%, var(--deep-black) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-bottom: 4px solid var(--medium-green);
+        }
+
+        .hero-logo-img {
+            max-width: 180px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px var(--neon-green));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            color: var(--neon-green);
+            text-shadow: 4px 4px 0px #000, 0 0 20px var(--neon-green);
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--medium-green);
+        }
+
+        .service-desc {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px dashed var(--medium-green);
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* --- ESTILO DOS ÍCONES SOCIAIS --- */
+        .social-icons-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            z-index: 10000; /* Garante que fique acima de scanlines se necessário */
+            position: relative;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--medium-green);
+            border-radius: 12px;
+            color: var(--light-text);
+            font-size: 1.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .social-btn:hover {
+            border-color: var(--neon-green);
+            color: var(--deep-black);
+            background-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--neon-green);
+            transform: translateY(-5px);
+        }
+        /* -------------------------------- */
+
+        .btn-neon {
+            background: var(--neon-green);
+            color: var(--deep-black);
+            padding: 15px 30px;
+            border: none;
+            font-family: 'Press Start 2P';
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--glow);
+            margin-top: 10px;
+        }
+
+        .btn-neon:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 25px var(--neon-green);
+        }
+
+        /* Grid de Níveis */
+        .products-section { padding: 80px 0; }
+        .section-title { text-align: center; margin-bottom: 50px; color: var(--neon-green); }
+
+        .grid-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .product-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 2px solid #1c3a23;
+            background: var(--dark-bg);
+            transition: 0.3s;
+        }
+
+        .product-card img {
+            display: block;
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: transform .5s ease;
+        }
+
+        .product-card:hover img { transform: scale(1.08); opacity: 1; }
+        .product-card:hover { border-color: var(--neon-green); box-shadow: var(--glow); }
+
+        .level-badge {
+            position: absolute;
+            left: 50%; top: 40%;
+            transform: translate(-50%, -50%);
+            font-family: "Press Start 2P";
+            font-size: 24px;
+            color: var(--neon-green);
+            opacity: 0.5;
+            pointer-events: none;
+            text-shadow: 0 0 12px var(--neon-green);
+            white-space: nowrap;
+        }
+
+        .cta-overlay {
+            position: absolute;
+            right: 15px; bottom: 15px; left: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--neon-green);
+            text-align: center;
+        }
+
+        .cta-overlay span {
+            display: block;
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        /* Seção Orçamento */
+        .custom-quote {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(transparent, var(--dark-bg));
+            margin-top: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--accent-orange);
+        }
+
+        /* Modal Checkout */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--dark-bg);
+            margin: 10% auto;
+            padding: 30px;
+            width: 90%; max-width: 500px;
+            border: 3px solid var(--neon-green);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #000;
+            border: 1px solid var(--medium-green);
+            color: white;
+            border-radius: 8px;
+        }
+
+        /* FAQ & Footer */
+        .faq { padding: 60px 0; background: #021207; }
+        footer { padding: 40px; text-align: center; border-top: 2px solid var(--medium-green); }
+
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2rem; }
+            .grid-levels { grid-template-columns: 1fr; }
+            .hero-logo-img { max-width: 140px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="hero-content container">
+            <img src="https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Picsart_26-01-27_03-24-45-118(1).png" alt="JB Edits Logo Icon" class="hero-logo-img">
+            
+            <h1>JB EDITS</h1>
+            
+            <p>Qualidade profissional, visual pixel-perfect, entrega veloz.</p>
+            <div class="service-desc">
+                Edição profissional de vídeos: pode ser para filme, série, música, edit, etc.
+            </div>
+
+            <div class="social-icons-container">
+                <a href="https://wa.me/5521969880200?text=Quero%20saber%20mais%20sobre%20a%20jb%20edits" target="_blank" class="social-btn" title="Fale no WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://www.instagram.com/jb_849p_ea?igsh=cWRuZmhyY3d3bmlx" target="_blank" class="social-btn" title="Siga no Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="mailto:jb.849p.ea@gmail.com" class="social-btn" title="Envie um E-mail">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
+
+            <a href="#levels" class="btn-neon">VER NÍVEIS E COMPRAR</a>
+        </div>
+    </header>
+
+    <section id="levels" class="products-section container">
+        <h2 class="section-title">Selecione seu Nível</h2>
+        
+        <div class="grid-levels" id="grid-container">
+            </div>
+
+        <div class="custom-quote">
+            <h3 class="pixel-font" style="color: var(--accent-orange); font-size: 1rem; margin-bottom: 15px;">Boss Level</h3>
+            <p>Para vídeos acima de 15 minutos, entre em contato para fazer o orçamento personalizado.</p>
+            <a href="#" class="btn-neon" style="background: var(--accent-orange); margin-top: 20px;">SOLICITAR ORÇAMENTO</a>
+        </div>
+    </section>
+
+    <section class="faq">
+        <div class="container">
+            <h2 class="section-title" style="font-size: 1.2rem;">Perguntas Frequentes</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <details style="margin-bottom: 20px; border-bottom: 1px solid var(--medium-green); padding-bottom: 10px;">
+                    <summary style="cursor:pointer; font-weight: bold; color: var(--neon-green);">Qual o prazo de entrega?</summary>
+                    <p>Até 48h úteis após o envio do brief e assets.</p>
+                </details>
+                <details style="margin-bottom: 20px; border-bottom: 1px solid var(--medium-green); padding-bottom: 10px;">
+                    <summary style="cursor:pointer; font-weight: bold; color: var(--neon-green);">Como funciona o pagamento?</summary>
+                    <p>Aceitamos PIX, Stripe e PayPal diretamente no checkout.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p class="pixel-font" style="font-size: 0.6rem;">© 2026 JB EDITS - LEVEL UP YOUR CONTENT</p>
+        
+        <div class="social-icons-container" style="margin-top: 30px;">
+            <a href="https://wa.me/5521969880200?text=Quero%20saber%20mais%20sobre%20a%20jb%20edits" target="_blank" class="social-btn" title="WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://www.instagram.com/jb_849p_ea?igsh=cWRuZmhyY3d3bmlx" target="_blank" class="social-btn" title="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="mailto:jb.849p.ea@gmail.com" class="social-btn" title="E-mail">
+                <i class="fas fa-envelope"></i>
+            </a>
+        </div>
+    </footer>
+
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="pixel-font" style="font-size: 0.8rem; color: var(--neon-green);">Finalizar Pedido</h2>
+            <form id="checkoutForm" style="margin-top: 20px;">
+                <input type="text" placeholder="Seu Nickname" required>
+                <input type="email" placeholder="Seu E-mail" required>
+                <textarea placeholder="Brief do vídeo (link de arquivos ou instruções)" rows="4"></textarea>
+                <button type="submit" class="btn-neon" style="width: 100%; margin-top: 10px;">PAGAR AGORA</button>
+            </form>
+            <button onclick="closeModal()" style="background:none; border:none; color:grey; cursor:pointer; margin-top: 15px; font-size: 0.7rem;">[ Cancelar ]</button>
+        </div>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, duration: '1 min', price: 100, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_113001_CapCut.jpg?updatedAt=1769785596399' },
+            { id: 2, duration: '2 min', price: 200, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_113054_CapCut.jpg?updatedAt=1769787959481' },
+            { id: 3, duration: '3 min', price: 300, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_113141_CapCut.jpg' },
+            { id: 4, duration: '4 min', price: 400, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_113117_CapCut.jpg' },
+            { id: 5, duration: '5 min', price: 500, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_113031_CapCut.jpg?updatedAt=1769786101993' },
+            { id: 6, duration: '6 min', price: 600, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_022847_CapCut.jpg?updatedAt=1769785874969' },
+            { id: 7, duration: '7 min', price: 700, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_022832_CapCut.jpg?updatedAt=1769785843726' },
+            { id: 8, duration: '8 min', price: 800, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_022730_CapCut.jpg?updatedAt=1769785821883' },
+            { id: 9, duration: '9 min', price: 900, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_022620_CapCut.jpg?updatedAt=1769785786943' },
+            { id: 10, duration: '10 min', price: 1000, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_022545_CapCut.jpg?updatedAt=1769785752851' },
+            { id: 11, duration: '11 min', price: 1100, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_021224_CapCut.jpg?updatedAt=1769785704508' },
+            { id: 12, duration: '12 min', price: 1200, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_020630_CapCut.jpg?updatedAt=1769785677795' },
+            { id: 13, duration: '13 min', price: 1300, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_021125_CapCut.jpg?updatedAt=1769785652463' },
+            { id: 14, duration: '14 min', price: 1400, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_020729_CapCut.jpg?updatedAt=1769785634454' },
+            { id: 15, duration: '15 min', price: 1500, img: 'https://ik.imagekit.io/hrgn3rkko/Jb%20edits/Screenshot_20260130_011507_CapCut.jpg?updatedAt=1769784150494' }
+        ];
+
+        const grid = document.getElementById('grid-container');
+
+        products.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <img src="${p.img}" alt="Level ${p.id}" loading="lazy">
+                <div class="level-badge">level ${p.id}</div>
+                <div class="cta-overlay">
+                    <span>1 vídeo de ${p.duration} apenas R$ ${p.price}</span>
+                    <button onclick="openModal(${p.id}, ${p.price})" class="btn-neon" style="padding: 8px 15px; font-size: 0.6rem;">COMPRAR AGORA</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        function openModal(level, price) {
+            document.getElementById('modalTitle').innerText = `FINALIZAR PEDIDO — LEVEL ${level}`;
+            document.getElementById('checkoutModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('checkoutModal')) closeModal();
+        }
+    </script>
+</body>
+</html>
