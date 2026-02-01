@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MidiaUp | Agência de Social Media</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background:#0f172a; color:#fff; scroll-behavior: smooth; }
+    .bg-orange{background:#FF5A2E}
+    .text-orange{color:#FF5A2E}
+    .bg-pink{background:#D94B8A}
+    .bg-purple{background:#6A4CF5}
+    .bg-blue{background:#2E6CF6}
+
+    .glow-button{
+      box-shadow:0 0 30px rgba(255,90,46,.4);
+      transition:.3s
+    }
+    .glow-button:hover{
+      box-shadow:0 0 50px rgba(255,90,46,.7);
+      transform:scale(1.02)
+    }
+
+    .menu-button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px; /* pill shape */
+      background: rgba(255, 90, 46, 0.1); /* subtle orange tint */
+      border: 1px solid rgba(255, 90, 46, 0.3);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 1rem; /* larger than text-sm */
+      color: #fff;
+    }
+    .menu-button:hover {
+      background: #FF5A2E;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(255,90,46,.5);
+      transform: translateY(-2px);
+    }
+
+    .swiper-pagination-bullet{
+      background:#FF5A2E;
+      opacity:.4
+    }
+    .swiper-pagination-bullet-active{opacity:1}
+
+    /* Estilos da Social Bar */
+    .social-bar {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 90, 46, 0.2);
+    }
+    .social-icon:hover {
+      transform: translateY(-3px);
+      color: #FF5A2E;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="py-10 flex flex-col items-center">
+  <img src="https://ik.imagekit.io/mlogfyny9u/copilot_image_1769057122110(1)(1).png" class="h-20 mb-4">
+  <h1 class="text-4xl font-black">
+    MIDIA<span class="text-orange">UP</span>
+  </h1>
+
+  <nav class="mt-6">
+    <ul class="flex space-x-4 font-bold text-gray-300"> <!-- reduced space-x for better fit -->
+      <li><a href="#videos" class="menu-button">Vídeos</a></li>
+      <li><a href="#carrosseis" class="menu-button">Carrosséis</a></li>
+      <li><a href="#posts" class="menu-button">Posts</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="videos" class="container mx-auto px-4 max-w-4xl">
+  <h2 class="text-3xl font-bold text-center mb-10">
+    Pronto para elevar o nível do seu perfil?
+  </h2>
+
+  <div class="w-full rounded-t-3xl overflow-hidden border-x-4 border-t-4 border-[#6A4CF5]">
+    <img src="https://ik.imagekit.io/mlogfyny9u/1%20video%201%20minuto_20260127_145548_0000.png" class="w-full">
+  </div>
+  <a href="https://pay.herospark.com/1-video-de-1-minuto-por-apenas-100-reais-499702" target="_blank"
+     class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block">
+    QUERO 1 VÍDEO DE 1 MINUTO POR APENAS R$ 100
+  </a>
+
+  <div class="my-10"></div>
+
+  <div class="w-full rounded-t-3xl overflow-hidden border-x-4 border-t-4 border-[#6A4CF5]">
+    <img src="https://ik.imagekit.io/mlogfyny9u/C%C3%B3pia%20de%20Mande%20link%20do%20video%20quer%20igual%20edi%C3%A7%C3%A3o%20outro%20deixe%20sua%20descri%C3%A7%C3%A3o%20ou_20260128_102321_0000.png" class="w-full">
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block">
+    QUERO 1 VÍDEO DE 2 MINUTOS POR APENAS R$ 200
+  </a>
+
+  <div class="my-10"></div>
+
+  <div class="w-full rounded-t-3xl overflow-hidden border-x-4 border-t-4 border-[#6A4CF5]">
+    <img src="https://ik.imagekit.io/mlogfyny9u/C%C3%B3pia%20de%20Mande%20link%20do%20video%20quer%20igual%20edi%C3%A7%C3%A3o%20outro%20deixe%20sua%20descri%C3%A7%C3%A3o%20ou_20260128_103039_0000.png" class="w-full">
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block">
+    QUERO 1 VÍDEO DE 3 MINUTOS POR APENAS R$ 300
+  </a>
+
+  <div class="my-10"></div>
+
+  <div class="w-full rounded-t-3xl overflow-hidden border-x-4 border-t-4 border-[#6A4CF5]">
+    <img src="https://ik.imagekit.io/mlogfyny9u/C%C3%B3pia%20de%20C%C3%B3pia%20de%20Mande%20link%20do%20video%20quer%20igual%20edi%C3%A7%C3%A3o%20outro%20deixe%20sua%20des_20260128_105815_0000.png" class="w-full">
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block">
+    QUERO 1 VÍDEO DE 4 MINUTOS POR APENAS R$ 400
+  </a>
+
+  <div class="my-10"></div>
+
+  <div class="w-full rounded-t-3xl overflow-hidden border-x-4 border-t-4 border-[#6A4CF5]">
+    <img src="https://ik.imagekit.io/mlogfyny9u/C%C3%B3pia%20de%20C%C3%B3pia%20de%20Mande%20link%20do%20video%20quer%20igual%20edi%C3%A7%C3%A3o%20outro%20deixe%20sua%20des_20260128_105858_0000.png" class="w-full">
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block">
+    QUERO 1 VÍDEO DE 5 MINUTOS POR APENAS R$ 500
+  </a>
+
+  <p class="mt-4 text-xs text-gray-500 uppercase tracking-widest font-bold text-center">
+    Oferta por tempo limitado
+  </p>
+</main>
+
+<section id="carrosseis" class="container mx-auto px-4 mt-24 max-w-5xl">
+  <h2 class="text-3xl font-black text-center mb-6">
+    Carrosséis que <span class="text-orange">convertem</span>
+  </h2>
+
+  <div class="relative swiper swiper-carrosseis rounded-t-3xl border-x-4 border-t-4 border-[#6A4CF5] overflow-hidden">
+    <div class="swiper-wrapper">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/1_Corrupcao-no-Brasil.png">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/2_O-brasileiro-acorda-todo-dia-pensando.png">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/3-697a496773213_89502__Balanced%20(1).jpg">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/1-697a4834b3e5f_89470__Balanced.jpg">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/10_Rir-pra-nao-chorar.png">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/4-697a49677de5b_89480__Balanced.jpg">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/5_O-discurso-muda-os-slogans-mudam.png">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/1-697a496750bd1_89493__Balanced.jpg">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/2-697a496766d75_89471__Balanced.jpg">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/7_O-brasileiro-nao-acompanha-politica.png">
+    </div>
+    <div class="swiper-button-next text-orange"></div>
+    <div class="swiper-button-prev text-orange"></div>
+    <div class="swiper-pagination"></div>
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block border-x-4 border-b-4 border-[#6A4CF5]">
+    QUERO MEU CARROSSEL • R$ 50 POR PÁGINA
+  </a>
+</section>
+
+<section id="posts" class="container mx-auto px-4 mt-24 mb-32 max-w-5xl">
+  <h2 class="text-3xl font-black text-center mb-6">
+    Posts <span class="text-orange">Estratégicos</span>
+  </h2>
+
+  <div class="relative swiper swiper-posts rounded-t-3xl border-x-4 border-t-4 border-[#6A4CF5] overflow-hidden">
+    <div class="swiper-wrapper">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/__username___jb_849p_sm___biography____%EF%B8%8F%20Social%20Midia_%20Mais%20que%20conte%C3%BAdo_%20%C3%A9%20conex%C3%A3o.___full_name______edge_followed_by__3__edge_follow__5__media_co(.webp?updatedAt=1769644640231">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/1769614522218.png?updatedAt=1769644622564">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/file_1769614017819.jpg?updatedAt=1769644603188">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/Post%20para%20Instagram%20-%20Amores%20e%20desamores_%20quando%20o%20cora%C3%A7%C3%A3o%20e%20o%20c%C3%A9rebro%20disc_20260128_120911_0000.png?updatedAt=1769644587119">
+      <img class="swiper-slide" src="https://ik.imagekit.io/mlogfyny9u/Post%20para%20Instagram%20-%20Vida%20Adulta%20Meme_20260128_120632_0000.png?updatedAt=1769644569615">
+    </div>
+    <div class="swiper-button-next text-orange"></div>
+    <div class="swiper-button-prev text-orange"></div>
+    <div class="swiper-pagination"></div>
+  </div>
+  <a href="#" class="glow-button w-full bg-orange font-black text-xl md:text-3xl py-8 rounded-b-3xl text-center block border-x-4 border-b-4 border-[#6A4CF5]">
+    QUERO 1 POST POR APENAS R$ 50
+  </a>
+</section>
+
+<div class="social-bar fixed bottom-0 left-0 w-full z-50 py-4 px-6">
+  <div class="container mx-auto flex justify-center items-center space-x-8 md:space-x-12">
+    
+    <a href="https://wa.me/5521969880200?text=Quero%20saber%20mais%20sobre%20a%20MidiaUP" 
+       target="_blank" class="social-icon transition-all duration-300 flex items-center space-x-2">
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.628 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span class="hidden md:inline text-xs font-bold uppercase tracking-widest">WhatsApp</span>
+    </a>
+
+    <a href="https://www.instagram.com/jb_849p_sm?igsh=MTNkOG9zZzN0Z2sxbQ==" 
+       target="_blank" class="social-icon transition-all duration-300 flex items-center space-x-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+      <span class="hidden md:inline text-xs font-bold uppercase tracking-widest">Instagram</span>
+    </a>
+
+    <a href="mailto:jb.849p.sm@gmail.com" 
+       class="social-icon transition-all duration-300 flex items-center space-x-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      <span class="hidden md:inline text-xs font-bold uppercase tracking-widest">E-mail</span>
+    </a>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+  new Swiper('.swiper-carrosseis', {
+    loop: true,
+    grabCursor: true,
+    autoplay: { delay: 3500 },
+    pagination: { el: '.swiper-carrosseis .swiper-pagination', clickable: true },
+    navigation: { nextEl: '.swiper-carrosseis .swiper-button-next', prevEl: '.swiper-carrosseis .swiper-button-prev' }
+  });
+
+  new Swiper('.swiper-posts', {
+    loop: true,
+    grabCursor: true,
+    autoplay: { delay: 3500 },
+    pagination: { el: '.swiper-posts .swiper-pagination', clickable: true },
+    navigation: { nextEl: '.swiper-posts .swiper-button-next', prevEl: '.swiper-posts .swiper-button-prev' }
+  });
+</script>
+
+</body>
+</html>
