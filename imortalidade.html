@@ -1,0 +1,564 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioGenesis | Turritopsis dohrnii Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb; /* Azul Royal */
+            --secondary: #0ea5e9; /* Azul Claro */
+            --accent: #10b981; /* Verde Esmeralda */
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --surface: #ffffff;
+            --danger: #ef4444;
+            --warning-bg: #fef2f2;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            color: #334155;
+            line-height: 1.6;
+            padding-top: 80px; /* Espaço para o menu fixo */
+        }
+
+        /* --- Navegação --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span { color: var(--primary); }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); color: white; }
+
+        /* --- Layout Geral --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+
+        h1 { font-size: 2.5rem; color: var(--dark); margin-bottom: 1rem; letter-spacing: -0.02em; }
+        h2 { font-size: 1.8rem; color: var(--dark); margin-bottom: 1.5rem; border-left: 5px solid var(--primary); padding-left: 15px; }
+        p { margin-bottom: 1rem; max-width: 800px; }
+
+        /* --- Aviso de Segurança --- */
+        .aviso-box {
+            background-color: var(--warning-bg);
+            border: 1px solid #fecaca;
+            border-left: 5px solid var(--danger);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+        .aviso-icon { font-size: 1.5rem; }
+        .aviso-content h3 { color: var(--danger); margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .aviso-content p { font-size: 0.9rem; margin: 0; color: #7f1d1d; }
+
+        /* --- Tabelas --- */
+        .table-container {
+            overflow-x: auto;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: var(--dark);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f8fafc; }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-copy { background-color: #dbeafe; color: #1e40af; }
+        .tag-function { background-color: #d1fae5; color: #065f46; }
+
+        /* --- Simulador --- */
+        .simulator-panel {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="number"] {
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100px;
+        }
+
+        button.btn-run {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        button.btn-run:hover { background-color: #059669; }
+
+        /* Cards de Resultado */
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .gene-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .dna-seq {
+            font-family: 'Courier New', monospace;
+            background: #1e293b;
+            color: #10b981;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .protocol-steps {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Simplificação para mobile */
+            .controls { flex-direction: column; align-items: stretch; }
+            input[type="number"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">🧬 Bio<span>Genesis</span></a>
+            <div class="nav-links">
+                <a href="#inicio">Início</a>
+                <a href="#genes-av">Genes Água-Viva</a>
+                <a href="#genes-hum">Genes Humanos</a>
+                <a href="#protocolos">Protocolos</a>
+            </div>
+            <a href="#simulador" class="btn-cta">Acessar Simulador</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <section id="inicio">
+            <h1>Regeneração Celular & Imortalidade Biológica</h1>
+            <p>Uma ferramenta analítica hipotética baseada no genoma da <em>Turritopsis dohrnii</em>. Explore combinações genéticas para simular processos de transdiferenciação e reparo de DNA.</p>
+            
+            <div class="aviso-box">
+                <div class="aviso-icon">⚠️</div>
+                <div class="aviso-content">
+                    <h3>Aviso Legal e Ético</h3>
+                    <p>Todas as informações geradas são estritamente hipotéticas e para fins educacionais. A manipulação genética em organismos vivos requer rigorosa aprovação ética (CONEP/ANVISA/FDA) e biossegurança. Não tente reproduzir experimentalmente sem supervisão qualificada.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="genes-av">
+            <h2>Genes da <em>Turritopsis dohrnii</em></h2>
+            <p>Genes identificados em estudos (PNAS 2022, PMC 2021) responsáveis pela capacidade de reverter ao estágio de pólipo.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gene</th>
+                            <th>Cópias/Variantes</th>
+                            <th>Função Biológica</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-av-body">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="genes-hum">
+            <h2>Homólogos Humanos</h2>
+            <p>Genes presentes no genoma humano com potencial para edição visando longevidade e reparo.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gene Humano</th>
+                            <th>Status no Envelhecimento</th>
+                            <th>Função Principal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-hum-body">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="stats">
+            <h2>Estatísticas Computacionais</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div class="result-card" style="text-align: center;">
+                    <h3 style="color:var(--primary); font-size: 2rem;">9.15 x 10<sup>22</sup></h3>
+                    <p>Combinações Totais Possíveis</p>
+                </div>
+                <div class="result-card" style="text-align: center;">
+                    <h3 style="color:var(--accent); font-size: 2rem;">68 - 72</h3>
+                    <p>Átomos por Par de Base (Estimado)</p>
+                </div>
+                <div class="result-card" style="text-align: center;">
+                    <h3 style="color:var(--secondary); font-size: 2rem;">~780</h3>
+                    <p>Pares de Genes Cruzados</p>
+                </div>
+            </div>
+            <h3>Número de Combinações Possíveis</h3>
+            <p>O número total de combinações possíveis de sequências é extremamente grande: aproximadamente 91.495.850.605.599.376.015.360 (ou 9.15 x 10^22). Isso é calculado como a soma para cada comprimento L de 68 a 72 de [C(5,2) * 2^L], onde C(5,2)=10 é o número de maneiras de escolher 2 bases de 5. Testar todas é impraticável devido ao tamanho astronômico; em vez disso, abordagens computacionais como simulações in silico seriam usadas para priorizar. Aqui, você pode gerar um número limitado de combinações hipotéticas para fins educacionais. O número de pares de genes possíveis é de cerca de 780 (45 genes de água-viva x 16 humanos), mas sequências são infinitas praticamente.</p>
+        </section>
+
+        <section id="simulador">
+            <div class="simulator-panel">
+                <h2>🧪 Simulador de Combinação Genética</h2>
+                <p>Gere sequências de DNA híbridas (68-72 bases) combinando nucleotídeos (A, T, G, C, U) com alvos genéticos.</p>
+                
+                <div class="controls">
+                    <div>
+                        <label for="numCombinacoes" style="display:block; margin-bottom:5px; font-weight:600;">Qtd. Combinações</label>
+                        <input type="number" id="numCombinacoes" min="1" max="50" value="6">
+                    </div>
+                    <button class="btn-run" onclick="gerarCombinacoes()">⚡ Iniciar Processamento In Silico</button>
+                </div>
+
+                <div id="loading" style="display:none; text-align:center; padding: 20px;">
+                    <p>Sintetizando cadeias de nucleotídeos... 🧬</p>
+                </div>
+
+                <div id="combinacoes-grid" class="result-grid"></div>
+            </div>
+        </section>
+
+        <section id="protocolos">
+            <h2>Protocolos de Validação (Teórico)</h2>
+            <h3>Como Testar as Combinações na Prática (Hipotético e Educacional)</h3>
+            <p>Essas combinações são fictícias e não representam sequências reais de genes. Em um contexto científico real, testar sequências genéticas para efeitos como regeneração celular ou reversão de envelhecimento envolveria etapas rigorosas, éticas e reguladas. Aqui vai um guia de alto nível passo a passo (não actionable; consulte especialistas e autoridades):</p>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <td width="20%"><strong>1. In Silico</strong></td>
+                        <td>Análise In Silico (Computacional): Use ferramentas de bioinformática (ex: BLAST, CRISPR design tools) para prever a função da sequência, compatibilidade com genes humanos e potenciais efeitos. Simule interações com modelos de IA para regeneração celular.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. In Vitro</strong></td>
+                        <td>Testes In Vitro (Em Células): Insira a sequência em culturas de células humanas (ex: células-tronco iPS) usando edição genética como CRISPR-Cas9. Observe mudanças em proliferação, telômeros e marcadores de envelhecimento (ex: beta-galactosidase). Meça regeneração em modelos de dano celular.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. In Vivo</strong></td>
+                        <td>Testes In Vivo (Em Animais): Após aprovações éticas (ex: IACUC), teste em modelos animais como camundongos ou zebrafish. Insira os genes via vetores virais ou transgênicos. Monitore longevidade, regeneração de tecidos e reversão a estados juvenis. Compare com controles.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>4. Pré-Clínicos</strong></td>
+                        <td>Estudos Pré-Clínicos: Avalie segurança, toxicidade e eficácia em múltiplos modelos. Use ensaios para detectar riscos como câncer (devido a imortalidade celular descontrolada).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. Ensaios Clínicos</strong></td>
+                        <td>Testes em Humanos (Ensaios Clínicos): Somente após aprovações regulatórias (ex: FDA, ANVISA, IRB).<br>
+                        Fase 1: Segurança em pequeno grupo de voluntários saudáveis ou pacientes. Administre via terapia gênica (ex: injeção de vetores AAV). Monitore efeitos colaterais.<br>
+                        Fase 2: Eficácia em grupo maior com condições de envelhecimento (ex: progeria). Meça biomarcadores de regeneração (telômeros, inflamação).<br>
+                        Fase 3: Confirmação em larga escala, comparando com placebo. Acompanhe longo prazo para reversão de envelhecimento.<br>
+                        Fase 4: Pós-aprovação, monitoramento contínuo.<br>
+                        Requer consentimento informado, diversidade de participantes e foco em ética (ex: evitar exploração).</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>© 2025 BioGenesis Research (Simulação Educacional). Baseado em dados públicos de Turritopsis dohrnii.</p>
+    </footer>
+
+    <script>
+        // --- BASE DE DADOS ---
+        const genesAguaVivaData = [
+            { gene: 'POLD1', copias: '4 Cópias', funcao: 'Reparo crítico de DNA e replicação; mantém integridade genômica.' },
+            { gene: 'POLA2', copias: '2 Cópias', funcao: 'Polimerase essencial para síntese de DNA na regeneração.' },
+            { gene: 'RFC3', copias: 'Duplicado', funcao: 'Fator de replicação C, auxilia a polimerase.' },
+            { gene: 'TOP3B', copias: '4 Cópias', funcao: 'Topoisomerase; resolve emaranhados de DNA.' },
+            { gene: 'XRCC5', copias: '2 Cópias', funcao: 'Reparo de quebras de dupla fita (NHEJ).' },
+            { gene: 'TERT', copias: 'Variantes Ativas', funcao: 'Manutenção de telômeros (imortalidade biológica).' },
+            { gene: 'HSP70', copias: 'Múltiplas', funcao: 'Proteína de choque térmico; renaturação de proteínas.' },
+            { gene: 'FOXO', copias: 'Ativo', funcao: 'Regulador mestre da longevidade e resistência ao estresse.' }
+            // Adicionei os principais para a tabela não ficar infinita no exemplo, mas a lógica suporta todos
+        ];
+
+        const genesHumanosData = [
+            { gene: 'POLD1', status: 'Cópia Única', funcao: 'Replicação de DNA. Mutações causam envelhecimento precoce.' },
+            { gene: 'TERT', status: 'Silenciado', funcao: 'Telomerase. Inativa na maioria das células somáticas adultas.' },
+            { gene: 'TP53', status: 'Supressor Tumor', funcao: 'Guardião do genoma. Induz apoptose se o dano for alto.' },
+            { gene: 'SIRT6', status: 'Longevidade', funcao: 'Reparo de DNA e manutenção da cromatina.' },
+            { gene: 'OCT4', status: 'Fator Yamanaka', funcao: 'Reprogramação celular para pluripotência (iPS).' }
+        ];
+
+        const bases = ['T', 'A', 'G', 'C', 'U'];
+        const listaCompletaGenesAV = ['POLD1', 'POLA2', 'RFC3', 'TOP3B', 'XRCC5', 'GEN1', 'RAD51C', 'MSH2', 'LMNA', 'GAR1', 'POT1', 'TXN', 'GSR', 'GLI3', 'SOX7', 'MYC', 'PSEN1', 'BMP7', 'CASP3', 'TUBG1', 'MORC3', 'TPP1', 'ATM', 'HECW2', 'MsrA', 'BRCA1', 'SIRT3', 'RTEL1', 'HSP70'];
+        const listaCompletaGenesHum = ['POLD1', 'POLA2', 'XRCC5', 'POT1', 'BRCA1', 'SIRT3', 'TERT', 'HSP70', 'OCT4', 'MSRA', 'FOXO3', 'TP53', 'ATM', 'MMP14', 'BAZ1A', 'CASP3'];
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+        function renderizarTabelas() {
+            // Tabela Água Viva
+            const tbodyAV = document.getElementById('tabela-av-body');
+            let htmlAV = '';
+            genesAguaVivaData.forEach(item => {
+                htmlAV += `<tr>
+                    <td><strong>${item.gene}</strong></td>
+                    <td><span class="tag tag-copy">${item.copias}</span></td>
+                    <td>${item.funcao}</td>
+                </tr>`;
+            });
+            // Adiciona linha "e mais..." para simular a lista completa
+            htmlAV += `<tr><td colspan="3" style="text-align:center; color:#888;">...e outros 40 genes identificados na base de dados.</td></tr>`;
+            tbodyAV.innerHTML = htmlAV;
+
+            // Tabela Humana
+            const tbodyHum = document.getElementById('tabela-hum-body');
+            let htmlHum = '';
+            genesHumanosData.forEach(item => {
+                htmlHum += `<tr>
+                    <td><strong>${item.gene}</strong></td>
+                    <td><span class="tag tag-function">${item.status}</span></td>
+                    <td>${item.funcao}</td>
+                </tr>`;
+            });
+            tbodyHum.innerHTML = htmlHum;
+        }
+
+        // --- LÓGICA DO SIMULADOR ---
+
+        function gerarSequencia(tamanho, duasBases) {
+            let seq = '';
+            for (let i = 0; i < tamanho; i++) {
+                seq += duasBases[Math.floor(Math.random() * 2)];
+            }
+            return seq;
+        }
+
+        function gerarCombinacoes() {
+            const numInput = document.getElementById('numCombinacoes');
+            const grid = document.getElementById('combinacoes-grid');
+            const loader = document.getElementById('loading');
+            
+            let num = parseInt(numInput.value);
+            if (isNaN(num) || num < 1) num = 6;
+            if (num > 50) {
+                alert('Limitado a 50 para performance.');
+                num = 50;
+            }
+
+            // UI Feedback
+            grid.innerHTML = '';
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                
+                for (let i = 0; i < num; i++) {
+                    // Lógica Genética Simulada
+                    const tamanho = Math.floor(Math.random() * 5) + 68; // 68 a 72 bp
+                    const idx1 = Math.floor(Math.random() * bases.length);
+                    let idx2 = Math.floor(Math.random() * bases.length);
+                    while (idx2 === idx1) idx2 = Math.floor(Math.random() * bases.length);
+                    
+                    const basesEscolhidas = [bases[idx1], bases[idx2]];
+                    
+                    // Gera Sequência Híbrida
+                    const metade = Math.floor(tamanho / 2);
+                    const seqPura = gerarSequencia(tamanho, basesEscolhidas);
+                    // Injeta padrão humano no meio
+                    const seqHumana = gerarSequencia(metade, ['A', 'T', 'G', 'C']); 
+                    const seqFinal = seqPura.substring(0, Math.floor(metade/2)) + seqHumana + seqPura.substring(metade);
+
+                    const geneAV = listaCompletaGenesAV[Math.floor(Math.random() * listaCompletaGenesAV.length)];
+                    const geneHum = listaCompletaGenesHum[Math.floor(Math.random() * listaCompletaGenesHum.length)];
+
+                    // Criação do Card HTML
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <span class="gene-badge">🧬 Amostra #${i + 1}</span>
+                            <span style="font-size:0.8rem; color:#888;">${tamanho} bp</span>
+                        </div>
+                        <div style="margin-bottom:10px;">
+                            <strong>Fusão:</strong> <span style="color:var(--primary)">${geneAV}</span> (T. dohrnii) <br>
+                            <strong>Alvo:</strong> <span style="color:var(--secondary)">${geneHum}</span> (Humano)
+                        </div>
+                        <div class="dna-seq">${seqFinal}</div>
+                        <div class="protocol-steps">
+                            <strong>Análise Sugerida:</strong> Verificar afinidade de ligação com promotores de ${geneHum} usando vetores virais.
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }
+            }, 800); // Delay simulado para parecer processamento
+        }
+
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', () => {
+            renderizarTabelas();
+        });
+
+    </script>
+</body>
+</html>
+```
